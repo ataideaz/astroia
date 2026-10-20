@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1785189989198,
+      "tag": "0000_acoustic_silver_sable",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785191169053,
+      "tag": "0001_parched_spencer_smythe",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1785523460292,
+      "tag": "0002_married_sentry",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786395007390,
+      "tag": "0003_lumpy_thunderball",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789928832484,
+      "tag": "0004_naive_bromley",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789929276502,
+      "tag": "0005_youthful_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790014790249,
+      "tag": "0006_tidy_spyke",
+      "breakpoints": true
+    }
+  ]
+}

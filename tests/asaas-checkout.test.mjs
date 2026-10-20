@@ -1,0 +1,32 @@
+import {build} from 'esbuild';
+import {DatabaseSync} from 'node:sqlite';
+import {readFile,mkdir} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=new DatabaseSync(':memory:');
+for(const f of ['0002_married_sentry.sql','0004_naive_bromley.sql','0005_youthful_wasp.sql','0006_tidy_spyke.sql'])db.exec(await readFile('drizzle/'+f,'utf8'));
+const wrap={prepare(query){let args=[];return {bind(...v){args=v;return this},async first(){return db.prepare(query).get(...args)??null},async all(){return {results:db.prepare(query).all(...args)}},async run(){return db.prepare(query).run(...args)}}},async batch(statements){db.exec('BEGIN');try{const r=[];for(const s of statements)r.push(await s.run());db.exec('COMMIT');return r}catch(e){db.exec('ROLLBACK');throw e}}};
+globalThis.__db=wrap;
+await mkdir('.sites-runtime',{recursive:true});
+await build({entryPoints:['lib/asaas.ts'],outfile:'.sites-runtime/asaas-checkout-test.mjs',platform:'node',format:'esm',bundle:true,plugins:[{name:'db',setup(b){b.onResolve({filter:/^cloudflare:workers$/},()=>({path:'db',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const env={DB:globalThis.__db};',loader:'js'}))}}]});
+process.env.ASAAS_API_KEY='fake-test-key';process.env.ASAAS_AMOUNT_CENTS='100';
+const {createAsaasCheckout,syncAsaasPayment,refreshAsaasOrder}=await import('../.sites-runtime/asaas-checkout-test.mjs');
+let linkCount=0;const links=[];const payments={};
+globalThis.fetch=async(url,init)=>{const u=new URL(url);assert.equal(u.origin,'https://api.asaas.com');assert.equal(init.headers.access_token,'fake-test-key');
+if(u.pathname==='/v3/paymentLinks' && init.method==='GET')return Response.json({data:links.filter(l=>l.externalReference===u.searchParams.get('externalReference'))});
+if(u.pathname==='/v3/paymentLinks' && init.method==='POST'){const b=JSON.parse(init.body);assert.equal(b.value,1);assert.equal(b.billingType,'PIX');assert.equal(b.chargeType,'DETACHED');assert.equal(b.notificationEnabled,false);assert.equal(b.isAddressRequired,false);assert.equal(b.callback.autoRedirect,true);assert.match(b.callback.successUrl,/^https:\/\/astroia\.ataideaz\.chatgpt\.site\/#report=[a-f0-9]{64}&payment=success$/);const l={...b,id:'link_'+(++linkCount),url:'https://www.asaas.com/c/link_'+linkCount};links.push(l);return Response.json(l)}
+const p=payments[u.pathname.split('/').at(-1)];assert.ok(p,'Unknown provider payment');return Response.json(p);
+};
+async function seed(char){const token=char.repeat(64);const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),b=>b.toString(16).padStart(2,'0')).join('');db.prepare('INSERT INTO guest_reports (token_hash,request_json,analysis_json,created_at) VALUES (?,?,?,?)').run(hash,'{}','{}',Date.now());return token}
+const a=await createAsaasCheckout(await seed('a'),'a@example.com','A');
+const again=await createAsaasCheckout('a'.repeat(64),'a@example.com','A');assert.equal(a.orderId,again.orderId);assert.equal(linkCount,1);
+const b=await createAsaasCheckout(await seed('b'),'b@example.com','B');assert.equal(linkCount,2);
+const status=id=>db.prepare('SELECT status FROM payment_orders WHERE id=?').get(id).status;
+payments.pay_a={id:'pay_a',value:1,paymentLink:'link_1',status:'PENDING'};await syncAsaasPayment('pay_a','link_1');assert.equal(status(a.orderId),'pending');
+payments.pay_a.status='RECEIVED';payments.pay_a.value=.5;assert.equal(await syncAsaasPayment('pay_a','link_1'),'mismatch');assert.equal(status(a.orderId),'pending');
+payments.pay_a.value=1;await syncAsaasPayment('pay_a','link_1');assert.equal(status(a.orderId),'approved');assert.equal(status(b.orderId),'pending');
+await assert.rejects(()=>createAsaasCheckout('a'.repeat(64),'a@example.com','A'),/já está pago/);
+assert.equal(await syncAsaasPayment('pay_a','link_2'),'mismatch');assert.equal(status(b.orderId),'pending');
+payments.pay_a.status='REFUNDED';await refreshAsaasOrder(a.orderId);assert.equal(status(a.orderId),'refunded');
+payments.pay_b={id:'pay_b',value:1,paymentLink:'link_2',status:'CONFIRMED'};await syncAsaasPayment('pay_b','link_2');assert.equal(status(b.orderId),'approved');
+assert.equal(await syncAsaasPayment('pay_unknown',undefined,'unrelated'),'unmatched');
+console.log('PASS: R$1 server price, payment-link reuse, pending/paid gates, amount validation and isolation.');

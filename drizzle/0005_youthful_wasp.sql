@@ -1,0 +1,1 @@
+ALTER TABLE `guest_reports` ADD `checkout_url` text;
