@@ -523,6 +523,195 @@ function NatalChart({ analysis }: { analysis: AnalysisResult }) {
   );
 }
 
+type FreeReadingData = NonNullable<AnalysisResult["freeReading"]>;
+
+function FreeReadingView({
+  analysis,
+  reading,
+}: {
+  analysis: AnalysisResult;
+  reading: FreeReadingData;
+}) {
+  const [shareStatus, setShareStatus] = useState("");
+
+  async function shareArchetype() {
+    const url = typeof window !== "undefined" ? window.location.origin : "";
+    const text = `Meu arquétipo no AstroIA é ${reading.archetype.name} ✦ Descubra o seu:`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Meu arquétipo AstroIA", text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setShareStatus("Texto copiado! É só colar no WhatsApp ou no Instagram.");
+    } catch {
+      setShareStatus("");
+    }
+  }
+
+  return (
+    <div className="fr">
+      <section className="fr-archetype" aria-labelledby="fr-archetype-title">
+        <span className="fr-kicker">Seu arquétipo</span>
+        <h2 id="fr-archetype-title">{reading.archetype.name}</h2>
+        <p className="fr-archetype-text">{reading.archetype.text}</p>
+        <p className="fr-archetype-combos">{reading.archetype.combinations}</p>
+        <div className="fr-share">
+          <button className="analysis-button" onClick={shareArchetype} type="button">
+            Compartilhar meu arquétipo
+          </button>
+          {shareStatus && <p role="status">{shareStatus}</p>}
+        </div>
+      </section>
+
+      {analysis.placements.length > 0 && (
+        <section className="fr-chart" aria-labelledby="fr-chart-title">
+          <span className="fr-kicker">Seu céu de nascimento</span>
+          <h2 id="fr-chart-title">Assim estava o céu quando você nasceu</h2>
+          <p>
+            Cada símbolo é um planeta. O lugar em que ele está na roda mostra o
+            signo em que ele estava naquele momento.
+          </p>
+          <NatalChart analysis={analysis} />
+        </section>
+      )}
+
+      <section className="fr-layers" aria-labelledby="fr-layers-title">
+        <span className="fr-kicker">As partes mais importantes do seu mapa</span>
+        <h2 id="fr-layers-title">{reading.mirror.title}</h2>
+        <div className="fr-layer-grid">
+          {reading.layers.map((layer) => (
+            <article className={`fr-layer fr-layer-${layer.id}`} key={layer.id}>
+              <div className="fr-layer-top">
+                <span className="fr-layer-symbol" aria-hidden="true">
+                  {layer.symbol}
+                </span>
+                <div>
+                  <small>
+                    {layer.role} em {layer.sign}
+                  </small>
+                  <span className="fr-layer-question">{layer.question}</span>
+                </div>
+              </div>
+              <h3>{layer.headline}</h3>
+              <p>{layer.text}</p>
+              <div className="fr-traits">
+                <div>
+                  <strong>No seu melhor</strong>
+                  <ul>
+                    {layer.gifts.map((gift) => (
+                      <li key={gift}>{gift}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <strong>Quando pesa</strong>
+                  <ul className="fr-shadow-list">
+                    {layer.shadows.map((shadow) => (
+                      <li key={shadow}>{shadow}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        {reading.noTimeNote && <p className="fr-note">{reading.noTimeNote}</p>}
+      </section>
+
+      <section className="fr-mirror" aria-labelledby="fr-mirror-title">
+        <span className="fr-kicker">Juntando tudo</span>
+        <h2 id="fr-mirror-title">Como as suas partes conversam</h2>
+        <p className="fr-mirror-text">{reading.mirror.text}</p>
+        <p>{reading.mirror.harmony}</p>
+        {reading.mirror.sameSign && (
+          <p className="fr-same-sign">
+            <span aria-hidden="true">✦</span> {reading.mirror.sameSign}
+          </p>
+        )}
+      </section>
+
+      <section className="fr-duo" aria-label="Seu superpoder e seu ponto de atenção">
+        <article className="fr-duo-power">
+          <span aria-hidden="true">⚡</span>
+          <h3>Seu superpoder</h3>
+          <p>{reading.superpower}</p>
+        </article>
+        <article className="fr-duo-attention">
+          <span aria-hidden="true">◐</span>
+          <h3>Seu ponto de atenção</h3>
+          <p>{reading.attention}</p>
+        </article>
+      </section>
+    </div>
+  );
+}
+
+function FreeTeasers({
+  reading,
+  firstName,
+  price,
+  onUnlock,
+}: {
+  reading: FreeReadingData;
+  firstName: string;
+  price: string;
+  onUnlock: () => void;
+}) {
+  return (
+    <section className="fr-teasers" aria-labelledby="fr-teasers-title">
+      <span className="fr-kicker">O que o seu mapa ainda guarda</span>
+      <h2 id="fr-teasers-title">
+        {firstName}, isso foi só o começo
+      </h2>
+      <p className="fr-teasers-intro">
+        Olha o começo do que o seu mapa diz sobre as outras áreas da sua vida.
+      </p>
+      <div className="fr-teaser-grid">
+        {reading.teasers.map((teaser) => (
+          <article className={`fr-teaser fr-teaser-${teaser.id}`} key={teaser.id}>
+            <div className="fr-teaser-top">
+              <span aria-hidden="true">{teaser.symbol}</span>
+              <small>{teaser.label}</small>
+            </div>
+            <h3>{teaser.title}</h3>
+            <p>{teaser.opening}</p>
+            <p className="fr-cliff" aria-hidden="true">
+              {teaser.cliff}…
+            </p>
+            <ul className="fr-locked">
+              {teaser.locked.map((item) => (
+                <li key={item}>
+                  <span aria-hidden="true">🔒</span> {item}
+                </li>
+              ))}
+            </ul>
+            <button className="fr-teaser-unlock" onClick={onUnlock} type="button">
+              Ler o resto
+            </button>
+          </article>
+        ))}
+      </div>
+      <div className="fr-unlock-box">
+        <div>
+          <strong>Mapa completo · {price}</strong>
+          <p>
+            Pagamento único, sem assinatura. Você recebe na hora as quatro áreas
+            completas, o plano prático e o PDF para guardar.
+          </p>
+        </div>
+        <button
+          className="analysis-button primary-analysis-button"
+          onClick={onUnlock}
+          type="button"
+        >
+          Desbloquear meu mapa completo
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true }: { paymentAmountCents?: number; paymentsEnabled?: boolean }) {
   const paymentPrice = (paymentAmountCents / 100).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
   const paymentTest = paymentAmountCents === 100;
@@ -602,6 +791,8 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
         analysis.bigThree.ascendant?.sign,
       )
     : null;
+  const newFreeReading =
+    reportTier === "free" && analysis?.freeReading ? analysis.freeReading : null;
 
   async function loadPrivateReport(token: string, refresh = true) {
     setReportOpeningStep(0);
@@ -1752,7 +1943,9 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
                   ? `este é um olhar cuidadoso sobre ${analysis.themeDeepDive.label.toLowerCase()}.`
                   : reportTier === "premium"
                     ? `este é seu mapa completo: personalidade, amor, carreira, dinheiro e momento atual.`
-                    : `esta é sua leitura essencial sobre ${analysis.themeDeepDive.label.toLowerCase()}.`}
+                    : newFreeReading
+                      ? "este é o seu mapa."
+                      : `esta é sua leitura essencial sobre ${analysis.themeDeepDive.label.toLowerCase()}.`}
               </h2>
               <p className="profile-context-label">
                 {analysis.person.relationshipLabel}
@@ -1898,7 +2091,11 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
             </article>
           )}
 
-          {reportTier === "free" && (
+          {newFreeReading && (
+            <FreeReadingView analysis={analysis} reading={newFreeReading} />
+          )}
+
+          {reportTier === "free" && !newFreeReading && (
             <article
               className={`theme-focus-card theme-${analysis.themeDeepDive.id}`}
               id="foco-escolhido"
@@ -1948,6 +2145,7 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
             </article>
           )}
 
+          {!newFreeReading && (<>
           <section className="big-three-explanation" aria-labelledby="big-three-title">
             <span className="section-kicker">{themeLens?.explanationKicker}</span>
             <h2 id="big-three-title">{themeLens?.explanationTitle}</h2>
@@ -2093,6 +2291,7 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
               )}
             </section>
           )}
+          </>)}
 
           <article className="pattern-card">
             <div>
@@ -2312,7 +2511,20 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
             </article>
           </div>
 
-          {reportTier === "free" && (
+          {newFreeReading && (
+            <FreeTeasers
+              firstName={analysis.person.firstName}
+              onUnlock={() => {
+                setOfferMode("individual");
+                setCheckoutEmail(form.email);
+                openCheckout(null, "upgrade");
+              }}
+              price={paymentPrice}
+              reading={newFreeReading}
+            />
+          )}
+
+          {reportTier === "free" && !newFreeReading && (
             <article className="free-upgrade-card">
               <div>
                 <span className="section-kicker">Você viu o padrão</span>
@@ -2388,7 +2600,7 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
               Terra; não significa que haja algo errado.
             </p>
           </div>
-          <NatalChart analysis={analysis} />
+          {!newFreeReading && <NatalChart analysis={analysis} />}
           <div className="placements-grid premium-only">
             {analysis.placements.map((placement) => (
               <article className="placement-pill" key={placement.key}>

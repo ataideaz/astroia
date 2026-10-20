@@ -5,6 +5,7 @@ import {
   GeoVector,
   MoonPhase,
 } from "astronomy-engine";
+import { buildFreeReading, type FreeReading } from "./free-reading";
 
 type SignKey =
   | "aries"
@@ -200,6 +201,8 @@ export type AnalysisResult = {
     reflectionQuestions: string[];
   };
   notes: string[];
+  /** Leitura grátis nova (ausente em relatórios antigos e em mapas de menores). */
+  freeReading?: FreeReading | null;
 };
 
 const { Origin, Horoscope } = astroPackage as unknown as {
@@ -3076,7 +3079,19 @@ export async function createAstroAnalysis(
       : baseThemeFocus;
   const summary = isMinor
     ? `Esta leitura começa por ${themeDeepDive.label.toLowerCase()}. ${themeDeepDive.introduction} O padrão dominante combina ${dominantElement.toLowerCase()} e movimento ${dominantMode.toLowerCase()}. Use esses pontos para observar ${firstName} com curiosidade, nunca para criar rótulos.`
-    : `Você escolheu começar por ${themeDeepDive.label.toLowerCase()}. ${themeDeepDive.introduction} Seu padrão dominante combina ${dominantElement.toLowerCase()} e movimento ${dominantMode.toLowerCase()}, o que ajuda a explicar como esse tema aparece na prática.`;
+    : `Seu mapa junta Sol em ${byKey.sun.sign}, Lua em ${byKey.moon.sign}${ascendant ? ` e Ascendente em ${ascendant.sign}` : ""}. Role a página para descobrir o que cada um diz sobre você.`;
+  const freeReading = isMinor
+    ? null
+    : buildFreeReading({
+        sun: byKey.sun,
+        moon: byKey.moon,
+        ascendant,
+        midheaven,
+        venus: byKey.venus,
+        jupiter: byKey.jupiter,
+        personalYear,
+        skyMovements: currentSky.highlights.length,
+      });
   const readings = isMinor
     ? themeDeepDive.sections.map((section, index) => ({
         id: `${themeDeepDive.id}-cuidado-${index}`,
@@ -3164,6 +3179,7 @@ export async function createAstroAnalysis(
     },
     aspects: aspectResults,
     premium,
+    freeReading,
     notes: [
       "A análise utiliza zodíaco tropical e casas Placidus.",
       `O céu de ${currentSky.dateLabel} foi calculado para cruzar trânsitos atuais com as posições do nascimento.`,

@@ -26,7 +26,7 @@ export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremiu
   return { ...(reportTier === "premium" ? full : preview(full)), reportToken: token };
 }
 export function preview(full: AnalysisResult): AnalysisResult {
-  return { ...full, placements: [], midheaven: null, aspects: [], readings: [], allThemes: [],
+  return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [],
     premium: { headline: "", introduction: "", chapters: [], actionPlan: [], reflectionQuestions: [] },
     themeDeepDive: { ...full.themeDeepDive, sections: full.themeDeepDive.sections.slice(0, 1) },
     zodiacPortrait: full.zodiacPortrait ? { ...full.zodiacPortrait, premiumLayers: [] } : undefined,
