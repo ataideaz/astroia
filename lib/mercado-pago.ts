@@ -31,12 +31,12 @@ export const paymentOffers: Record<
   individual: {
     title: "AstroIA Premium",
     description: "Um mapa completo com os cinco temas",
-    amountCents: 1990,
+    amountCents: 3790,
   },
   additional: {
     title: "Novo Mapa Premium",
     description: "Um perfil adicional com resultado separado",
-    amountCents: 1490,
+    amountCents: 3790,
   },
 };
 

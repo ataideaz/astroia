@@ -116,13 +116,13 @@ const checkoutOffers: Record<
 > = {
   individual: {
     name: "AstroIA Premium",
-    price: "R$ 27,90",
+    price: "R$ 37,90",
     description: "Um mapa completo com os cinco temas",
     quantity: "1 mapa Premium",
   },
   additional: {
     name: "Novo Mapa Premium",
-    price: "R$ 14,90",
+    price: "R$ 37,90",
     description: "Um perfil adicional com resultado separado",
     quantity: "1 perfil adicional",
   },
@@ -937,7 +937,7 @@ function FreeTeasers({
   );
 }
 
-export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true }: { paymentAmountCents?: number; paymentsEnabled?: boolean }) {
+export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true }: { paymentAmountCents?: number; paymentsEnabled?: boolean }) {
   const paymentPrice = (paymentAmountCents / 100).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
   const paymentTest = paymentAmountCents === 100;
   const [awaitingPayment, setAwaitingPayment] = useState(false);
@@ -2920,7 +2920,7 @@ export default function Home({ paymentAmountCents = 2790, paymentsEnabled = true
           <span className="section-kicker">{paymentTest ? "Validação do pagamento · R$ 1,00 real" : "Seu mapa completo"}</span>
           <h2>Comece por você e continue com quem importa</h2>
           <p>
-            Prévia sem cadastro. Compra única por mapa completo, com pagamento pelo Asaas e acesso por link privado. {paymentTest && "Durante esta validação, a cobrança real é de R$ 1,00. O preço normal será R$ 19,90."}
+            Prévia sem cadastro. Compra única por mapa completo, com pagamento pelo Asaas e acesso por link privado. {paymentTest && "Durante esta validação, a cobrança real é de R$ 1,00. O preço normal será R$ 37,90."}
           </p>
         </div>
 
