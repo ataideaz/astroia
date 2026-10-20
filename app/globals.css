@@ -6165,3 +6165,21 @@ footer {
   font-size: 13px;
   color: var(--muted);
 }
+
+.fr-share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.fr-share-buttons .analysis-button {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.fr-share-hint {
+  font-size: 13px !important;
+  color: var(--muted) !important;
+  margin: 2px 0 0 !important;
+}

@@ -546,21 +546,169 @@ function FreeReadingView({
   reading: FreeReadingData;
 }) {
   const [shareStatus, setShareStatus] = useState("");
+  const [isMakingImage, setIsMakingImage] = useState(false);
 
-  async function shareArchetype() {
-    const url = typeof window !== "undefined" ? window.location.origin : "";
-    const text = `Meu arquétipo no AstroIA é ${reading.archetype.name} ✦ Descubra o seu:`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Meu arquétipo AstroIA", text, url });
-        return;
+  const shareText = `Meu arquétipo no AstroIA é ${reading.archetype.name} ✦ Descubra o seu:`;
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  async function makeStoryImage(): Promise<Blob> {
+    const width = 1080;
+    const height = 1920;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas");
+    const root = getComputedStyle(document.documentElement);
+    const serif = root.getPropertyValue("--font-cormorant").trim() || "Georgia, serif";
+    const sans = root.getPropertyValue("--font-manrope").trim() || "Arial, sans-serif";
+    await Promise.all([
+      document.fonts.load(`600 120px ${serif}`),
+      document.fonts.load(`500 60px ${serif}`),
+      document.fonts.load(`400 40px ${sans}`),
+      document.fonts.load(`700 40px ${sans}`),
+    ]).catch(() => undefined);
+
+    // Fundo
+    const bg = ctx.createLinearGradient(0, 0, 0, height);
+    bg.addColorStop(0, "#0d1128");
+    bg.addColorStop(1, "#070916");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+    const glow = ctx.createRadialGradient(width / 2, 620, 40, width / 2, 620, 760);
+    glow.addColorStop(0, "rgba(128, 104, 242, 0.42)");
+    glow.addColorStop(1, "rgba(128, 104, 242, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, width, height);
+    let seed = reading.archetype.name.length * 131 + 7;
+    const random = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+    for (let index = 0; index < 140; index += 1) {
+      ctx.globalAlpha = 0.25 + random() * 0.6;
+      ctx.fillStyle = random() > 0.75 ? "#f0d69d" : "#f7f1e8";
+      ctx.beginPath();
+      ctx.arc(random() * width, random() * height, 1 + random() * 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    const center = (text: string, y: number, font: string, color: string) => {
+      ctx.font = font;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.fillText(text, width / 2, y);
+    };
+    const wrap = (text: string, font: string, maxWidth: number) => {
+      ctx.font = font;
+      const words = text.split(" ");
+      const lines: string[] = [];
+      let line = "";
+      for (const word of words) {
+        const candidate = line ? `${line} ${word}` : word;
+        if (line && ctx.measureText(candidate).width > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = candidate;
+        }
       }
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setShareStatus("Texto copiado! É só colar no WhatsApp ou no Instagram.");
+      if (line) lines.push(line);
+      return lines;
+    };
+
+    // Marca
+    ctx.fillStyle = "#f0d69d";
+    ctx.beginPath();
+    ctx.arc(width / 2 - 118, 196, 16, 0, Math.PI * 2);
+    ctx.fill();
+    center("AstroIA", 214, `600 54px ${serif}`, "#f7f1e8");
+
+    center("MEU ARQUÉTIPO", 470, `700 34px ${sans}`, "#e4bc72");
+    const nameFont = `600 128px ${serif}`;
+    const nameLines = wrap(reading.archetype.name, nameFont, 920);
+    let y = 620;
+    const nameGradient = ctx.createLinearGradient(120, 0, width - 120, 0);
+    nameGradient.addColorStop(0, "#f0d69d");
+    nameGradient.addColorStop(1, "#b7a7ff");
+    for (const line of nameLines) {
+      ctx.font = nameFont;
+      ctx.fillStyle = nameGradient;
+      ctx.textAlign = "center";
+      ctx.fillText(line, width / 2, y);
+      y += 132;
+    }
+
+    y += 30;
+    const bodyFont = `400 40px ${sans}`;
+    for (const line of wrap(reading.archetype.text, bodyFont, 860)) {
+      center(line, y, bodyFont, "#ddd6ea");
+      y += 60;
+    }
+
+    // Sol, Lua e Ascendente
+    const boxes = reading.layers;
+    const gap = 28;
+    const boxWidth = (width - 140 - gap * (boxes.length - 1)) / boxes.length;
+    const boxTop = Math.max(y + 70, 1240);
+    boxes.forEach((layer, index) => {
+      const x = 70 + index * (boxWidth + gap);
+      ctx.fillStyle = "rgba(18, 21, 48, 0.92)";
+      ctx.strokeStyle = "rgba(205, 188, 255, 0.28)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(x, boxTop, boxWidth, 210, 36);
+      ctx.fill();
+      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.font = `700 28px ${sans}`;
+      ctx.fillStyle = "#e4bc72";
+      ctx.fillText(layer.role.replace(/^(Seu|Sua) /, "").toUpperCase(), x + boxWidth / 2, boxTop + 70);
+      ctx.font = `600 64px ${serif}`;
+      ctx.fillStyle = "#f7f1e8";
+      ctx.fillText(layer.sign, x + boxWidth / 2, boxTop + 150);
+    });
+
+    center("Descubra o seu arquétipo em", 1690, `400 36px ${sans}`, "#b6aec5");
+    center(window.location.host, 1752, `700 44px ${sans}`, "#f0d69d");
+
+    return new Promise((resolve, reject) =>
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("blob"))), "image/png"),
+    );
+  }
+
+  async function shareStoryImage() {
+    setShareStatus("");
+    setIsMakingImage(true);
+    try {
+      const blob = await makeStoryImage();
+      const file = new File([blob], "meu-arquetipo-astroia.png", { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text: `${shareText} ${siteUrl}` });
+          setShareStatus("Pronto! Agora é só escolher onde postar.");
+          return;
+        } catch (error) {
+          if (error instanceof DOMException && error.name === "AbortError") return;
+        }
+      }
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "meu-arquetipo-astroia.png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+      setShareStatus("Imagem baixada! Ela está na sua pasta de downloads, pronta para postar nos stories.");
     } catch {
-      setShareStatus("");
+      setShareStatus("Não deu para criar a imagem neste navegador. Tente pelo celular ou use o botão do WhatsApp.");
+    } finally {
+      setIsMakingImage(false);
     }
   }
+
+  const whatsappLink = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${siteUrl}`)}`;
 
   return (
     <div className="fr">
@@ -570,9 +718,22 @@ function FreeReadingView({
         <p className="fr-archetype-text">{reading.archetype.text}</p>
         <p className="fr-archetype-combos">{reading.archetype.combinations}</p>
         <div className="fr-share">
-          <button className="analysis-button" onClick={shareArchetype} type="button">
-            Compartilhar meu arquétipo
-          </button>
+          <div className="fr-share-buttons">
+            <button
+              className="analysis-button primary-analysis-button"
+              disabled={isMakingImage}
+              onClick={shareStoryImage}
+              type="button"
+            >
+              {isMakingImage ? "Criando a imagem..." : "Criar imagem para os stories"}
+            </button>
+            <a className="analysis-button" href={whatsappLink} rel="noreferrer" target="_blank">
+              Mandar no WhatsApp
+            </a>
+          </div>
+          <p className="fr-share-hint">
+            Mostre o seu arquétipo e descubra o dos seus amigos.
+          </p>
           {shareStatus && <p role="status">{shareStatus}</p>}
         </div>
       </section>
