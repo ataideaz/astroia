@@ -1,0 +1,9 @@
+Ícones oficiais baixados do Meta Brand Resource Center (pacotes oficiais de
+marca do WhatsApp e do Instagram). Usados sem alteração, apenas como ícone nos
+botões de compartilhar, conforme as diretrizes de marca da Meta.
+
+- whatsapp-glyph-white.svg  <- Digital_Glyph_White_RGB_2026.svg
+- instagram-glyph-white.svg <- Instagram_Glyph_White.svg
+
+O logo do TikTok não é usado: as diretrizes do TikTok exigem permissão prévia
+por escrito para usar seus logos e ícones.

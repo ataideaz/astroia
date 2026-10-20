@@ -737,7 +737,7 @@ function FreeReadingView({
           <p className="fr-share-title">Mostre o seu arquétipo para os amigos</p>
           <div className="fr-share-buttons">
             <a className="fr-social fr-social-whatsapp" href={whatsappLink} rel="noreferrer" target="_blank">
-              <ShareIcon /> WhatsApp
+              <img alt="" className="fr-social-glyph" src="/icons/whatsapp-glyph-white.svg" /> WhatsApp
             </a>
             <button
               className="fr-social fr-social-instagram"
@@ -745,7 +745,7 @@ function FreeReadingView({
               onClick={() => shareStoryImage("instagram")}
               type="button"
             >
-              <ShareIcon /> Instagram
+              <img alt="" className="fr-social-glyph" src="/icons/instagram-glyph-white.svg" /> Instagram
             </button>
             <button
               className="fr-social fr-social-tiktok"

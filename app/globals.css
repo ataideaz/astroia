@@ -6285,3 +6285,11 @@ footer {
     width: 100%;
   }
 }
+
+/* Logos oficiais (Meta Brand Resource Center), sem alteração */
+.fr-social-glyph {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: block;
+}
