@@ -13,7 +13,8 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply astroia --local",
-    "db:migrate:remote": "wrangler d1 migrations apply astroia --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply astroia --remote",
+    "deploy": "wrangler d1 migrations apply astroia --remote && wrangler deploy"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

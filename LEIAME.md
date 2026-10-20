@@ -9,7 +9,7 @@ O projeto usa vinext/Vite com runtime Cloudflare Workers e banco D1. Requer Node
 1. Extraia o ZIP e entre na pasta do projeto.
 2. Instale dependências: `npm ci`.
 3. Copie `.env.example` para `.dev.vars` (ou configure as mesmas variáveis no ambiente do seu provedor) e preencha os valores necessários. Não envie `.dev.vars` ao Git.
-4. Copie `wrangler.jsonc.example` para `wrangler.jsonc`; crie um banco D1 e substitua `database_id` pelo ID real.
+4. O `wrangler.jsonc` já aponta para o banco D1 `astroia` da conta Cloudflare do projeto.
 5. Aplique as migrações locais: `npm run db:migrate:local`.
 6. Inicie o site: `npm run dev`.
 7. Compile com `npm run build`. Para publicar no Cloudflare Workers, use `npx wrangler deploy` depois de configurar a conta, o D1 e os segredos.
@@ -83,7 +83,7 @@ Os relatórios contêm dados pessoais e informações de nascimento. Guarde os b
 - `public/`: imagens, fontes e outros arquivos públicos.
 - `tests/`: testes automatizados.
 - `.env.example`: nomes de variáveis, sem credenciais.
-- `wrangler.jsonc.example`: exemplo de bindings Cloudflare para completar antes da publicação.
+- `wrangler.jsonc`: configuração do Worker e dos bindings Cloudflare (D1, Assets, Images).
 
 ## Scripts principais
 
