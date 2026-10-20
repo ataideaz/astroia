@@ -6119,3 +6119,49 @@ footer {
 .fr-chart .natal-chart-legend {
   display: none;
 }
+
+/* Lista simples dos planetas abaixo da roda */
+.fr-planet-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px auto 0;
+  max-width: 640px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+  text-align: left;
+}
+.fr-planet-list li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  column-gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--deep);
+  border: 1px solid var(--soft-line);
+}
+.fr-planet-symbol {
+  grid-row: span 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  color: var(--gold-light);
+  border: 1px solid rgba(228, 188, 114, 0.4);
+}
+.fr-planet-name {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--ink);
+}
+.fr-planet-name strong {
+  color: var(--gold-light);
+}
+.fr-planet-list small {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--muted);
+}

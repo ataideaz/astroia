@@ -525,6 +525,19 @@ function NatalChart({ analysis }: { analysis: AnalysisResult }) {
 
 type FreeReadingData = NonNullable<AnalysisResult["freeReading"]>;
 
+const PLANET_SIMPLE: Record<string, string> = {
+  sun: "quem você é por dentro",
+  moon: "o que você sente",
+  mercury: "como você pensa e conversa",
+  venus: "como você ama",
+  mars: "como você age e luta pelo que quer",
+  jupiter: "onde a sorte e o crescimento aparecem",
+  saturn: "onde você aprende com esforço",
+  uranus: "onde você quer mudar e inovar",
+  neptune: "onde você sonha e se inspira",
+  pluto: "onde você se transforma",
+};
+
 function FreeReadingView({
   analysis,
   reading,
@@ -569,10 +582,31 @@ function FreeReadingView({
           <span className="fr-kicker">Seu céu de nascimento</span>
           <h2 id="fr-chart-title">Assim estava o céu quando você nasceu</h2>
           <p>
-            Cada símbolo é um planeta. O lugar em que ele está na roda mostra o
-            signo em que ele estava naquele momento.
+            No dia e na hora em que você nasceu, cada planeta estava passando
+            por um signo do céu. Cada planeta cuida de uma parte da sua vida, e
+            o signo mostra o jeito como essa parte funciona em você.
           </p>
           <NatalChart analysis={analysis} />
+          <ul className="fr-planet-list">
+            {analysis.bigThree.ascendant && (
+              <li>
+                <span className="fr-planet-symbol" aria-hidden="true">↑</span>
+                <span className="fr-planet-name">
+                  Ascendente em <strong>{analysis.bigThree.ascendant.sign}</strong>
+                </span>
+                <small>como os outros veem você</small>
+              </li>
+            )}
+            {analysis.placements.map((placement) => (
+              <li key={placement.key}>
+                <span className="fr-planet-symbol" aria-hidden="true">{placement.symbol}</span>
+                <span className="fr-planet-name">
+                  {placement.label} em <strong>{placement.sign}</strong>
+                </span>
+                <small>{PLANET_SIMPLE[placement.key] ?? ""}</small>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
