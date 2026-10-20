@@ -7,6 +7,13 @@
   "assets": { "directory": "./dist/client", "binding": "ASSETS" },
   "images": { "binding": "IMAGES" },
   "observability": { "enabled": true },
+  // Configurações públicas (não são segredos). Segredos, como a credencial
+  // do Mercado Pago, ficam só no painel da Cloudflare.
+  "keep_vars": true,
+  "vars": {
+    "ASTROIA_SITE_URL": "https://astroia.ataideaz.workers.dev",
+    "MERCADO_PAGO_MODE": "test"
+  },
   "d1_databases": [
     {
       "binding": "DB",
