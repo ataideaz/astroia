@@ -6111,3 +6111,11 @@ footer {
     width: 100%;
   }
 }
+
+/* Roda do mapa liberada na leitura grátis nova */
+.free-report .fr-chart .natal-chart.premium-only {
+  display: block;
+}
+.fr-chart .natal-chart-legend {
+  display: none;
+}

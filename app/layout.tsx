@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { EB_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -7,7 +7,9 @@ const manrope = Manrope({
   subsets: ["latin"],
 });
 
-const cormorant = Cormorant_Garamond({
+// EB Garamond no lugar de Cormorant Garamond: a Cormorant desenha o
+// acento de "ê" deslocado (defeito da própria fonte no Google Fonts).
+const cormorant = EB_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
