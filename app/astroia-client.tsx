@@ -1064,12 +1064,12 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
     const timer = window.setInterval(async () => {
       if (++checks > 60) { window.clearInterval(timer); return; }
       try {
-        const response = await fetch("/api/report", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({token:reportToken, refresh:false})});
+        const response = await fetch("/api/report", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({token:reportToken, refresh: checks % 3 === 0})});
         if (!response.ok) return;
         const payload = await response.json();
         if (!cancelled && payload.reportTier === "premium") {
           setAnalysis(payload.analysis); setReportTier("premium"); saveMap(payload.analysis, "premium", reportToken); setAwaitingPayment(false);
-          setAccessStatus("Pagamento confirmado pelo Asaas. Seu mapa completo e PDF estão disponíveis.");
+          setAccessStatus("Pagamento confirmado! Seu mapa completo e o PDF estão liberados.");
         }
       } catch { /* Manual consultation remains available. */ }
     }, 10000);
@@ -1430,7 +1430,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
         error?: string;
       };
       if (!response.ok || !payload.orderId || !payload.checkoutUrl) {
-        throw new Error(payload.error || "Não foi possível abrir o Asaas.");
+        throw new Error(payload.error || "Não foi possível abrir o pagamento.");
       }
 
       const checkoutSession: PendingCheckoutSession = {
@@ -1449,7 +1449,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
       if (paymentWindow) paymentWindow.location.replace(payload.checkoutUrl);
       else window.location.assign(payload.checkoutUrl);
       setCheckoutStatus("idle"); setCheckoutOpen(false); setAwaitingPayment(true);
-      setAccessStatus("Conclua o pagamento na aba do Asaas. Esta página aguarda a confirmação e libera seu mapa automaticamente. Guarde seu link privado.");
+      setAccessStatus("Conclua o pagamento na aba do Mercado Pago. Esta página espera a confirmação e libera o seu mapa sozinha. Guarde o seu link.");
     } catch (error) {
       paymentWindow?.close();
       activeCheckoutOrderId.current = null;
@@ -2920,7 +2920,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
           <span className="section-kicker">{paymentTest ? "Validação do pagamento · R$ 1,00 real" : "Seu mapa completo"}</span>
           <h2>Comece por você e continue com quem importa</h2>
           <p>
-            Prévia sem cadastro. Compra única por mapa completo, com pagamento pelo Asaas e acesso por link privado. {paymentTest && "Durante esta validação, a cobrança real é de R$ 1,00. O preço normal será R$ 37,90."}
+            Prévia sem cadastro. Compra única por mapa completo, com pagamento pelo Mercado Pago (Pix ou cartão) e acesso por link privado. {paymentTest && "Durante esta validação, a cobrança real é de R$ 1,00. O preço normal será R$ 37,90."}
           </p>
         </div>
 
@@ -3084,7 +3084,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
               <span className="section-kicker">Seu mapa está quase pronto</span>
               <h2 id="checkout-title">Revise e libere sua leitura Premium</h2>
               <p>
-                {paymentsEnabled ? <>Você será levado ao Asaas para pagar {paymentPrice} por Pix pelo mapa completo. Esta é uma cobrança real, única e sem assinatura.</> : <>O pagamento está desligado neste momento. O mapa Premium será liberado apenas para validação do conteúdo.</>}
+                {paymentsEnabled ? <>Você será levado ao Mercado Pago para pagar {paymentPrice} pelo mapa completo, por Pix ou cartão. Pagamento único, sem assinatura.</> : <>O pagamento está desligado neste momento. O mapa Premium será liberado apenas para validação do conteúdo.</>}
               </p>
             </div>
 
@@ -3145,7 +3145,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                   <span aria-hidden="true">→</span>
                 </button>
                 <small>
-                  Confirmação de pagamento recebida do Asaas.
+                  Confirmação de pagamento recebida.
                 </small>
               </div>
             ) : (
@@ -3196,19 +3196,19 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                   <div className="payment-heading">
                     <div>
                       <span className="section-kicker">Pagamento único</span>
-                      <h3>{paymentsEnabled ? "Pagar por Pix no Asaas" : "Validação do mapa Premium"}</h3>
+                      <h3>{paymentsEnabled ? "Pagar com Mercado Pago" : "Validação do mapa Premium"}</h3>
                     </div>
-                    <span className="secure-label">⌾ pagamento pelo Asaas</span>
+                    <span className="secure-label">⌾ pagamento seguro pelo Mercado Pago</span>
                   </div>
 
                   <label className="field"><span>E-mail para identificar a compra (sem criar conta)</span><input type="email" value={checkoutEmail} onChange={event => setCheckoutEmail(event.target.value)} placeholder="voce@exemplo.com" /></label>
                   <p>Antes de pagar, guarde seu <a href={`/#report=${reportToken}`} onClick={() => setCheckoutOpen(false)}>link privado do mapa</a>. Ele permite consultar o pagamento mesmo depois de fechar esta página.</p>
                   <div className="mercado-pago-card">
-                    <span className="mercado-pago-mark" aria-hidden="true">Asaas</span>
+                    <span className="mercado-pago-mark" aria-hidden="true">Mercado Pago</span>
                     <div>
                       <h4>Pagamento único pelo mapa completo</h4>
                       <p>
-                        {paymentsEnabled ? <>O pagamento é por Pix e o preço é definido pelo servidor do AstroIA. O Premium só será liberado depois que o Asaas confirmar o pedido.</> : <>O Asaas está desconectado para esta validação. Clique abaixo para abrir o mapa Premium sem cobrança.</>}
+                        {paymentsEnabled ? <>Pague por Pix ou cartão. O mapa completo é liberado assim que o Mercado Pago confirmar o pagamento.</> : <>O Asaas está desconectado para esta validação. Clique abaixo para abrir o mapa Premium sem cobrança.</>}
                       </p>
                     </div>
                   </div>
@@ -3238,7 +3238,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                   <div className="checkout-simulation-note">
                     <span aria-hidden="true">⌾</span>
                     <p>
-                      {paymentsEnabled ? <><strong>Pagamento real de {paymentPrice}.</strong> Use seus dados reais no Asaas. O mapa completo será liberado após a confirmação do pagamento.</> : <><strong>Pagamento desativado.</strong> Esta versão é apenas para revisar o conteúdo do mapa Premium.</>}
+                      {paymentsEnabled ? <><strong>Pagamento de {paymentPrice}.</strong> O mapa completo é liberado logo após a confirmação.</> : <><strong>Pagamento desativado.</strong> Esta versão é apenas para revisar o conteúdo do mapa Premium.</>}
                     </p>
                   </div>
 

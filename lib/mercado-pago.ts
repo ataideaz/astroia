@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { asaasAmountCents as priceCents } from "./asaas";
 
 export type PaymentOfferMode = "individual" | "additional";
 
@@ -30,7 +31,7 @@ export const paymentOffers: Record<
 > = {
   individual: {
     title: "AstroIA Premium",
-    description: "Um mapa completo com os cinco temas",
+    description: "Mapa astral completo com PDF. Pagamento único, sem assinatura.",
     amountCents: 3790,
   },
   additional: {
@@ -105,7 +106,7 @@ export async function createPaymentPreference(input: {
   }
 
 
-  const offer = paymentOffers[input.offerMode];
+  const offer = { ...paymentOffers[input.offerMode], amountCents: priceCents() };
   const orderId = `ast_${crypto.randomUUID()}`;
   const customerEmail = cleanEmail(input.customerEmail);
   const personName = cleanText(input.personName, 100);
@@ -131,7 +132,7 @@ export async function createPaymentPreference(input: {
     .run();
 
   const siteUrl = getSiteUrl();
-  const returnUrl = `${siteUrl}/#report=${encodeURIComponent(input.reportToken || "")}`;
+  const returnUrl = `${siteUrl}/#report=${encodeURIComponent(input.reportToken || "")}&payment=success`;
   const response = await mercadoPagoFetch("/checkout/preferences", {
     method: "POST",
     headers: { "X-Idempotency-Key": orderId },

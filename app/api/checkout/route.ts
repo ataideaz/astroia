@@ -1,4 +1,4 @@
-import { getGuestReport, limitRequest } from "../../../lib/guest-reports";
+import { attachOrder, getGuestReport, limitRequest } from "../../../lib/guest-reports";
 import { normalizedEmail } from "../../../lib/site-auth";
 import { createAsaasCheckout, paymentsEnabled } from "../../../lib/asaas";
 export const dynamic = "force-dynamic";
@@ -13,6 +13,18 @@ export async function POST(request: Request) {
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
     if (report.reportTier === "premium") throw new Error("Este relatório já está liberado. Use seu link privado.");
+    if (process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()) {
+      const { createPaymentPreference } = await import("../../../lib/mercado-pago");
+      const checkout = await createPaymentPreference({
+        offerMode: "individual",
+        customerEmail: email,
+        personName: report.analysis.person.fullName,
+        themeLabel: "Mapa completo",
+        reportToken: body.reportToken,
+      });
+      await attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl);
+      return Response.json(checkout, {headers:{"Cache-Control":"no-store"}});
+    }
     const checkout = await createAsaasCheckout(body.reportToken, email, report.analysis.person.fullName);
     return Response.json(checkout, {headers:{"Cache-Control":"no-store"}});
   } catch(error) { return Response.json({error:error instanceof Error ? error.message : "Não foi possível iniciar a compra."}, {status:400}); }
