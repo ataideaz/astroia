@@ -250,9 +250,9 @@ function layoutBlock(block: Block, fonts: Fonts, width: number): Layout {
     case "gap":
       return { height: block.size, draw: () => undefined };
     case "kicker": {
-      const size = 7.4;
+      const size = 8.2;
       const lines = wrapText(block.text.toUpperCase(), fonts.bold, size, width);
-      const lineHeight = 10;
+      const lineHeight = 11;
       return {
         height: lines.length * lineHeight + 6,
         draw: (page, x, yTop) => {
@@ -276,7 +276,7 @@ function layoutBlock(block: Block, fonts: Fonts, width: number): Layout {
       };
     }
     case "text": {
-      const size = block.size ?? 10.6;
+      const size = block.size ?? 12;
       const font = block.bold ? fonts.bold : fonts.body;
       const lineHeight = size * 1.55;
       const lines = wrapText(block.text, font, size, width);
@@ -290,7 +290,7 @@ function layoutBlock(block: Block, fonts: Fonts, width: number): Layout {
       };
     }
     case "quote": {
-      const size = block.size ?? 15;
+      const size = block.size ?? 16.5;
       const lineHeight = size * 1.35;
       const lines = wrapText(block.text, fonts.italic, size, width);
       return {
@@ -303,8 +303,8 @@ function layoutBlock(block: Block, fonts: Fonts, width: number): Layout {
       };
     }
     case "list": {
-      const size = 10;
-      const lineHeight = 15;
+      const size = 11.4;
+      const lineHeight = 17;
       const rows = block.items.map((item) => wrapText(item, fonts.body, size, width - 14));
       const total = rows.reduce((sum, lines) => sum + lines.length * lineHeight + 3, 0);
       return {
@@ -335,8 +335,8 @@ function layoutBlock(block: Block, fonts: Fonts, width: number): Layout {
       };
     }
     case "chips": {
-      const size = 9;
-      const chipHeight = 19;
+      const size = 10.4;
+      const chipHeight = 22;
       const gap = 6;
       const padding = 9;
       const rows: Array<Array<{ text: string; width: number }>> = [[]];
@@ -351,11 +351,11 @@ function layoutBlock(block: Block, fonts: Fonts, width: number): Layout {
         rows[rows.length - 1].push({ text, width: chipWidth });
         rowWidth += (rowWidth ? gap : 0) + chipWidth;
       }
-      const labelHeight = 15;
+      const labelHeight = 17;
       return {
         height: labelHeight + rows.length * (chipHeight + gap) + 2,
         draw: (page, x, yTop) => {
-          page.drawText(pdfText(block.label), { x, y: yTop - 9, size: 8.4, font: fonts.bold, color: C.ink });
+          page.drawText(pdfText(block.label), { x, y: yTop - 10, size: 9.6, font: fonts.bold, color: C.ink });
           rows.forEach((row, rowIndex) => {
             let chipX = x;
             const chipTop = yTop - labelHeight - rowIndex * (chipHeight + gap);
@@ -448,7 +448,7 @@ function loose(flow: Flow, blocks: Block[]) {
       // Quebra linha a linha para textos longos.
       const items = block.type === "text" ? [block.text] : block.items;
       for (const item of items) {
-        const size = block.type === "text" ? (block.size ?? 10.6) : 10;
+        const size = block.type === "text" ? (block.size ?? 12) : 11.4;
         const font = block.type === "text" && block.bold ? flow.fonts.bold : flow.fonts.body;
         const lineHeight = size * 1.55;
         const lines = wrapText(item, font, size, CONTENT_WIDTH - (block.type === "list" ? 14 : 0));
@@ -480,9 +480,9 @@ function loose(flow: Flow, blocks: Block[]) {
 function sectionHeading(flow: Flow, kicker: string, title: string, intro?: string) {
   const blocks: Block[] = [
     { type: "kicker", text: kicker },
-    { type: "title", text: title, size: 24 },
+    { type: "title", text: title, size: 26 },
   ];
-  if (intro) blocks.push({ type: "text", text: intro, color: C.muted, size: 10.4 });
+  if (intro) blocks.push({ type: "text", text: intro, color: C.muted, size: 11.6 });
   const { layouts, height } = measure(blocks, flow.fonts, CONTENT_WIDTH);
   ensureSpace(flow, height + 150);
   for (const layout of layouts) {
@@ -634,15 +634,15 @@ function planetList(flow: Flow, analysis: AnalysisResult) {
   }
   const gap = 10;
   const width = (CONTENT_WIDTH - gap) / 2;
-  const rowHeight = 34;
+  const rowHeight = 38;
   for (let index = 0; index < items.length; index += 2) {
     ensureSpace(flow, rowHeight + 6);
     [items[index], items[index + 1]].forEach((item, column) => {
       if (!item) return;
       const x = MARGIN + column * (width + gap);
       roundedRect(flow.page, x, flow.y, width, rowHeight, { fill: C.deep, border: C.line, radius: 12 });
-      flow.page.drawText(pdfText(item.title), { x: x + 12, y: flow.y - 14, size: 9.6, font: flow.fonts.bold, color: C.goldLight });
-      flow.page.drawText(pdfText(item.text), { x: x + 12, y: flow.y - 26, size: 8.4, font: flow.fonts.body, color: C.muted });
+      flow.page.drawText(pdfText(item.title), { x: x + 12, y: flow.y - 16, size: 11, font: flow.fonts.bold, color: C.goldLight });
+      flow.page.drawText(pdfText(item.text), { x: x + 12, y: flow.y - 30, size: 9.4, font: flow.fonts.body, color: C.muted });
     });
     flow.y -= rowHeight + 5;
   }
@@ -672,8 +672,8 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
     y -= 54;
   }
   const meta = `${formatBirthDate(analysis.person.birthDate)}  ·  ${analysis.person.birthTime || "horário não informado"}  ·  ${analysis.person.location}`;
-  for (const line of wrapText(meta, fonts.body, 9, CONTENT_WIDTH)) {
-    centerText(page, line, fonts.body, 9, y + 18, C.muted);
+  for (const line of wrapText(meta, fonts.body, 10.4, CONTENT_WIDTH)) {
+    centerText(page, line, fonts.body, 10.4, y + 18, C.muted);
     y -= 13;
   }
   y -= 26;
@@ -683,9 +683,9 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
       { type: "kicker", text: "Seu arquétipo" },
       { type: "title", text: reading.archetype.name, size: 34, color: C.goldLight },
       { type: "gap", size: 4 },
-      { type: "text", text: reading.archetype.text, size: 11.2, color: C.body },
+      { type: "text", text: reading.archetype.text, size: 12.6, color: C.body },
       { type: "gap", size: 4 },
-      { type: "text", text: reading.archetype.combinations, size: 9, color: C.muted },
+      { type: "text", text: reading.archetype.combinations, size: 10, color: C.muted },
     ];
     const panelHeight = drawCardAt(page, fonts, panel, MARGIN + 20, y, CONTENT_WIDTH - 40, {
       fill: C.panel,
@@ -711,17 +711,15 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
     ], MARGIN + 20, y, CONTENT_WIDTH - 40, { padding: 24 });
   }
 
-  centerText(
-    page,
+  const notes = [
+    "Astrologia e numerologia para reflexão e entretenimento. Não substituem ajuda profissional.",
     analysis.person.isMinor
-      ? "Leitura infantojuvenil adaptada e de uso responsável."
-      : "Astrologia e numerologia em linguagem simples.",
-    fonts.body,
-    8.4,
-    50,
-    C.muted,
-  );
-  centerText(page, SITE, fonts.bold, 8.4, 34, C.goldLight);
+      ? "Leitura adaptada para criança ou adolescente: possibilidades, nunca rótulos."
+      : `Zodíaco tropical e casas Placidus · céu atual calculado em ${analysis.currentSky.dateLabel}.`,
+  ];
+  centerText(page, notes[0], fonts.body, 8.2, 64, C.muted);
+  centerText(page, notes[1], fonts.body, 8.2, 52, C.muted);
+  centerText(page, SITE, fonts.bold, 9, 32, C.goldLight);
 }
 
 // ---------------------------------------------------------------------------
@@ -736,7 +734,7 @@ function chartSection(flow: Flow, analysis: AnalysisResult) {
     "Assim estava o céu quando você nasceu",
     "No dia e na hora em que você nasceu, cada planeta estava passando por um signo do céu. Cada planeta cuida de uma parte da sua vida, e o signo mostra o jeito como essa parte funciona em você.",
   );
-  drawChart(flow, analysis, 300);
+  drawChart(flow, analysis, 262);
   planetList(flow, analysis);
 }
 
@@ -749,7 +747,7 @@ function freeReadingSections(flow: Flow, analysis: AnalysisResult) {
   for (const layer of reading.layers) {
     card(flow, [
       { type: "kicker", text: `${layer.role} em ${layer.sign}  ·  ${layer.question}` },
-      { type: "title", text: layer.headline, size: 18 },
+      { type: "title", text: layer.headline, size: 20 },
       { type: "text", text: layer.text },
       { type: "gap", size: 6 },
       { type: "chips", label: "No seu melhor", items: layer.gifts, tone: "violet" },
@@ -773,11 +771,11 @@ function freeReadingSections(flow: Flow, analysis: AnalysisResult) {
     flow,
     [
       { type: "kicker", text: "Seu superpoder", color: C.violetLight },
-      { type: "text", text: reading.superpower, size: 10.4 },
+      { type: "text", text: reading.superpower, size: 11.6 },
     ],
     [
       { type: "kicker", text: "Seu ponto de atenção" },
-      { type: "text", text: reading.attention, size: 10.4 },
+      { type: "text", text: reading.attention, size: 11.6 },
     ],
     [{ border: C.violet }, { border: C.gold }],
   );
@@ -810,11 +808,11 @@ function patternAndNumbers(flow: Flow, analysis: AnalysisResult) {
     flow,
     [
       { type: "big", text: String(analysis.numerology.lifePath), caption: "Número de destino" },
-      { type: "text", text: analysis.numerology.lifePathText, size: 10 },
+      { type: "text", text: analysis.numerology.lifePathText, size: 11.2 },
     ],
     [
       { type: "big", text: String(analysis.numerology.personalYear), caption: "Ano pessoal" },
-      { type: "text", text: analysis.numerology.personalYearText, size: 10 },
+      { type: "text", text: analysis.numerology.personalYearText, size: 11.2 },
     ],
   );
 }
@@ -832,7 +830,7 @@ function teaserSection(flow: Flow, analysis: AnalysisResult) {
   for (const teaser of reading.teasers) {
     card(flow, [
       { type: "kicker", text: teaser.label },
-      { type: "title", text: teaser.title, size: 17 },
+      { type: "title", text: teaser.title, size: 19 },
       { type: "text", text: teaser.opening },
       { type: "text", text: `${teaser.cliff}...`, color: C.muted },
       { type: "gap", size: 4 },
@@ -1030,21 +1028,6 @@ export async function createReportPdf(analysis: AnalysisResult, tier: ExportTier
     sectionHeading(flow, "Próxima descoberta", "Seu mapa completo continua daqui");
     loose(flow, [{ type: "text", text: "O mapa completo abre as outras áreas da sua vida e termina com um plano simples para aplicar a leitura." }]);
   }
-
-  loose(flow, [
-    { type: "gap", size: 8 },
-    {
-      type: "text",
-      size: 8.4,
-      color: C.muted,
-      text: [
-        `Nota: astrologia e numerologia servem aqui para reflexão e entretenimento. Não são ciência, não dizem com certeza o que vai acontecer e não substituem ajuda profissional. Zodíaco tropical e casas Placidus. Céu atual calculado em ${analysis.currentSky.dateLabel}.`,
-        ...(analysis.person.isMinor
-          ? ["Para crianças, leia o mapa como possibilidades, sem criar rótulos ou decidir o futuro por elas."]
-          : []),
-      ].join(" "),
-    },
-  ]);
 
   return document.save({ useObjectStreams: false });
 }

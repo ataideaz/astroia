@@ -6183,3 +6183,41 @@ footer {
   color: var(--muted) !important;
   margin: 2px 0 0 !important;
 }
+
+/* Celular: impede que a roda do mapa alargue os cartões além da tela */
+.fr {
+  grid-template-columns: minmax(0, 1fr);
+}
+.fr > *,
+.fr-teasers,
+.fr-layer,
+.fr-teaser {
+  min-width: 0;
+}
+.fr-chart .natal-chart {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.fr-chart .natal-chart-svg {
+  max-width: 100%;
+  height: auto;
+}
+.fr h2,
+.fr h3,
+.fr p,
+.fr-teasers h2,
+.fr-teasers p {
+  overflow-wrap: break-word;
+}
+@media (max-width: 640px) {
+  .fr p,
+  .fr-teasers p {
+    font-size: 17px;
+  }
+  .fr-traits li,
+  .fr-locked li,
+  .fr-planet-name {
+    font-size: 15px;
+  }
+}
