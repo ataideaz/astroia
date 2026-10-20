@@ -97,7 +97,7 @@ main {
 .brand {
   align-items: center;
   display: inline-flex;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 23px;
   font-weight: 600;
   gap: 10px;
@@ -183,7 +183,7 @@ main {
 .hero h1,
 .section h2,
 .preview-section h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -0.045em;
 }
@@ -330,7 +330,7 @@ main {
   border-radius: 50%;
   color: var(--gold);
   display: flex;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 17px;
   height: 34px;
   justify-content: center;
@@ -413,7 +413,7 @@ main {
 }
 
 .floating-card strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
 }
@@ -553,7 +553,7 @@ main {
   border-radius: 16px;
   color: var(--gold-light);
   display: flex;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 25px;
   height: 52px;
   justify-content: center;
@@ -561,7 +561,7 @@ main {
 }
 
 .step-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 23px;
   font-weight: 500;
   line-height: 1.25;
@@ -608,7 +608,7 @@ main {
   color: var(--gold-light);
   display: flex;
   flex: 0 0 auto;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 21px;
   height: 45px;
   justify-content: center;
@@ -691,7 +691,7 @@ main {
 
 .report-top span {
   color: #513170;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.1em;
 }
@@ -780,7 +780,7 @@ main {
 
 .report-person strong {
   display: block;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 37px;
   font-weight: 500;
   letter-spacing: -0.035em;
@@ -872,7 +872,7 @@ main {
 }
 
 .report-trio strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 16px;
   margin: 7px 0 4px;
 }
@@ -890,7 +890,7 @@ main {
   box-shadow: 0 7px 15px rgba(62, 36, 89, 0.15);
   color: #f1d18d;
   display: flex;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 14px;
   height: 27px;
   justify-content: center;
@@ -935,7 +935,7 @@ main {
 
 .report-card blockquote {
   color: #463454;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 13px;
   font-style: italic;
   line-height: 1.5;
@@ -1292,7 +1292,7 @@ main {
 
 .plan-option strong {
   color: var(--ink);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 500;
 }
@@ -1355,7 +1355,7 @@ main {
 
 .theme-option > span {
   color: var(--gold);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
 }
 
@@ -1520,7 +1520,7 @@ main {
 .analysis-cover h2,
 .analysis-section-heading h2,
 .theme-focus-card h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -0.04em;
 }
@@ -1556,7 +1556,7 @@ main {
 
 .analysis-summary {
   color: #d2c9e1;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 18px;
   line-height: 1.65;
   margin: 0;
@@ -1591,7 +1591,7 @@ main {
 }
 
 .theme-deep-heading h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: clamp(34px, 4.3vw, 53px);
   font-weight: 500;
   letter-spacing: -0.04em;
@@ -1640,7 +1640,7 @@ main {
 }
 
 .theme-deep-grid h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 500;
   line-height: 1.25;
@@ -1657,7 +1657,7 @@ main {
 .theme-deep-dive blockquote {
   border-left: 2px solid var(--gold);
   color: var(--gold-light);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 14px;
   line-height: 1.55;
   margin: 25px 0 0;
@@ -1721,7 +1721,7 @@ main {
 }
 
 .premium-introduction h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 30px;
   font-weight: 500;
   line-height: 1.15;
@@ -1846,7 +1846,7 @@ main {
 }
 
 .email-delivery-copy h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(28px, 3.4vw, 42px);
   font-weight: 500;
   letter-spacing: -0.04em;
@@ -1976,7 +1976,7 @@ main {
 }
 
 .big-three-explanation h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(27px, 3vw, 36px);
   font-weight: 500;
   letter-spacing: -0.035em;
@@ -2020,7 +2020,7 @@ main {
   color: var(--gold-light);
   display: flex;
   flex: 0 0 auto;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 28px;
   height: 62px;
   justify-content: center;
@@ -2038,7 +2038,7 @@ main {
 }
 
 .big-three-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 29px;
   font-weight: 500;
   margin: 7px 0 4px;
@@ -2117,7 +2117,7 @@ main {
 }
 
 .zodiac-portrait-heading h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: clamp(31px, 4vw, 47px);
   font-weight: 500;
   letter-spacing: -0.035em;
@@ -2175,7 +2175,7 @@ main {
   color: var(--gold-light);
   display: inline-flex;
   flex: 0 0 auto;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
   height: 38px;
   justify-content: center;
@@ -2191,7 +2191,7 @@ main {
 }
 
 .zodiac-layer-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 500;
   line-height: 1.15;
@@ -2249,7 +2249,7 @@ main {
 }
 
 .zodiac-premium-heading h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 31px;
   font-weight: 500;
   line-height: 1.2;
@@ -2281,13 +2281,13 @@ main {
 
 .zodiac-premium-preview > div > span {
   color: var(--gold-light);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 21px;
   grid-row: 1 / span 2;
 }
 
 .zodiac-premium-preview strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 500;
 }
@@ -2319,7 +2319,7 @@ main {
 }
 
 .pattern-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 31px;
   font-weight: 500;
   margin: 10px 0;
@@ -2482,7 +2482,7 @@ main {
 }
 
 .reading-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 500;
   line-height: 1.25;
@@ -2532,7 +2532,7 @@ main {
 .free-theme-points strong {
   color: var(--gold-light);
   display: block;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
   line-height: 1.3;
@@ -2547,7 +2547,7 @@ main {
 .theme-focus-card blockquote {
   border-left: 2px solid var(--gold);
   color: var(--gold-light);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 14px;
   line-height: 1.55;
   margin: 24px 0 0;
@@ -2578,7 +2578,7 @@ main {
 
 .chapter-number {
   color: rgba(228, 188, 114, 0.54);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 39px;
 }
 
@@ -2586,7 +2586,7 @@ main {
 .action-plan h2,
 .reflection-card h2,
 .free-upgrade-card h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 500;
   letter-spacing: -0.035em;
 }
@@ -2599,7 +2599,7 @@ main {
 
 .chapter-summary {
   color: #d6ccdf;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 16px;
   line-height: 1.65;
   margin: 0;
@@ -2632,7 +2632,7 @@ main {
 .premium-chapter blockquote {
   border-left: 2px solid var(--gold);
   color: var(--gold-light);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 14px;
   line-height: 1.62;
   margin: 23px 0 0;
@@ -2677,7 +2677,7 @@ main {
 }
 
 .action-plan-grid h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 500;
   margin: 11px 0;
@@ -2721,7 +2721,7 @@ main {
   align-items: flex-start;
   color: #cdc3da;
   display: flex;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 13px;
   gap: 13px;
   line-height: 1.5;
@@ -2913,7 +2913,7 @@ main {
   color: var(--gold-light);
   display: flex;
   flex: 0 0 auto;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 31px;
   height: 72px;
   justify-content: center;
@@ -2921,7 +2921,7 @@ main {
 }
 
 .number-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 500;
   margin: 9px 0 12px;
@@ -2945,12 +2945,12 @@ main {
 .aspect-card > span {
   color: var(--gold);
   flex: 0 0 45px;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 17px;
 }
 
 .aspect-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
   margin: 0 0 7px;
@@ -2993,7 +2993,7 @@ main {
   color: var(--gold-light);
   display: flex;
   flex: 0 0 auto;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 20px;
   height: 43px;
   justify-content: center;
@@ -3013,7 +3013,7 @@ main {
 }
 
 .placement-pill strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 500;
   margin-top: 4px;
@@ -3117,7 +3117,7 @@ main {
 
 .natal-chart-center-name {
   fill: var(--ink);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 14px;
 }
 
@@ -3165,7 +3165,7 @@ main {
 
 .natal-chart figcaption strong {
   color: var(--ink);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 500;
 }
@@ -3355,7 +3355,7 @@ blockquote,
   border-radius: 50%;
   color: var(--gold-light);
   display: flex;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 30px;
   height: 70px;
   justify-content: center;
@@ -3364,7 +3364,7 @@ blockquote,
 }
 
 .preview-grid strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 500;
 }
@@ -3702,7 +3702,7 @@ blockquote,
 }
 
 .price-card h3 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 29px;
   font-weight: 500;
   margin: 16px 0 19px;
@@ -3715,7 +3715,7 @@ blockquote,
 }
 
 .price strong {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 38px;
   font-weight: 500;
 }
@@ -3867,7 +3867,7 @@ blockquote,
 .checkout-brand {
   align-items: center;
   display: inline-flex;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 600;
   gap: 9px;
@@ -3929,7 +3929,7 @@ blockquote,
 
 .checkout-intro h2,
 .checkout-approved h2 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: clamp(29px, 4vw, 42px);
   font-weight: 500;
   letter-spacing: -0.035em;
@@ -4112,7 +4112,7 @@ blockquote,
 
 .checkout-product h3,
 .payment-heading h3 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 23px;
   font-weight: 500;
   margin: 0;
@@ -4191,7 +4191,7 @@ blockquote,
 
 .checkout-total strong {
   color: var(--gold-light);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 25px;
   font-weight: 500;
 }
@@ -4554,7 +4554,7 @@ blockquote,
 
 .approved-order strong {
   color: var(--gold-light);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 500;
 }
@@ -4583,7 +4583,7 @@ footer {
 
 .footer-content p {
   color: var(--muted);
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 14px;
   margin: 0;
 }
@@ -4629,7 +4629,7 @@ footer {
 }
 
 .legal-hero h1 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: clamp(40px, 7vw, 76px);
   margin: 14px 0 20px;
 }
@@ -4672,7 +4672,7 @@ footer {
 
 .legal-content h2,
 .privacy-request-card h2 {
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 22px;
   margin: 0 0 12px;
 }
@@ -5631,7 +5631,7 @@ footer {
 
   .print-brand strong {
     color: #5b3d7b;
-    font-family: Georgia, serif;
+    font-family: var(--font-display);
     font-size: 15px;
     letter-spacing: 0.08em;
   }
