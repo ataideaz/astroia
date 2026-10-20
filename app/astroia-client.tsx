@@ -511,7 +511,7 @@ function NatalChart({ analysis }: { analysis: AnalysisResult }) {
       </svg>
       <figcaption>
         <strong>Este é o desenho do seu céu de nascimento.</strong>
-        <span>Os símbolos mostram onde cada planeta estava; as linhas coloridas ligam aspectos entre eles. O anel externo marca os signos{hasHouses ? "; os números no anel interno são as casas." : "."}</span>
+        <span>Os símbolos mostram onde cada planeta estava{analysis.aspects.length > 0 ? "; as linhas coloridas ligam aspectos entre eles" : ""}. O anel externo marca os signos{hasHouses ? "; os números no anel interno são as casas." : "."}</span>
         {!hasHouses && <span className="natal-chart-time-note">Como o horário não foi informado com precisão, não exibimos Ascendente nem casas: eles dependem do horário.</span>}
       </figcaption>
       <div className="natal-chart-legend" aria-label="Legenda dos aspectos">
