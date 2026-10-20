@@ -173,7 +173,13 @@ export async function createPaymentPreference(input: {
     init_point?: string;
     sandbox_init_point?: string;
   };
-  const checkoutUrl = isTestMode() ? preference.sandbox_init_point || preference.init_point : preference.init_point;
+  // Credenciais antigas de teste (TEST-...) usam o checkout de sandbox.
+  // Credenciais das contas de teste atuais (APP_USR-...) usam o init_point normal;
+  // usar o sandbox com elas causa o erro de "conta de teste com conta real".
+  const legacyTestToken = getAccessToken().startsWith("TEST-");
+  const checkoutUrl = legacyTestToken
+    ? preference.sandbox_init_point || preference.init_point
+    : preference.init_point;
 
   if (!preference.id || !checkoutUrl) {
     throw new Error("O Mercado Pago não retornou o checkout.");
