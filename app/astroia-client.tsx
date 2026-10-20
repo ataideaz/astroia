@@ -525,6 +525,17 @@ function NatalChart({ analysis }: { analysis: AnalysisResult }) {
 
 type FreeReadingData = NonNullable<AnalysisResult["freeReading"]>;
 
+function ShareIcon() {
+  return (
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+    </svg>
+  );
+}
+
 const PLANET_SIMPLE: Record<string, string> = {
   sun: "quem você é por dentro",
   moon: "o que você sente",
@@ -678,16 +689,17 @@ function FreeReadingView({
     );
   }
 
-  async function shareStoryImage() {
+  async function shareStoryImage(target: "instagram" | "tiktok" | "download") {
+    const appName = target === "instagram" ? "Instagram" : target === "tiktok" ? "TikTok" : "";
     setShareStatus("");
     setIsMakingImage(true);
     try {
       const blob = await makeStoryImage();
       const file = new File([blob], "meu-arquetipo-astroia.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
+      if (target !== "download" && navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ files: [file], text: `${shareText} ${siteUrl}` });
-          setShareStatus("Pronto! Agora é só escolher onde postar.");
+          setShareStatus(`Pronto! Escolha o ${appName} e poste a imagem.`);
           return;
         } catch (error) {
           if (error instanceof DOMException && error.name === "AbortError") return;
@@ -700,9 +712,13 @@ function FreeReadingView({
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(link.href), 5000);
-      setShareStatus("Imagem baixada! Ela está na sua pasta de downloads, pronta para postar nos stories.");
+      setShareStatus(
+        appName
+          ? `Imagem baixada! Abra o ${appName} no celular e poste a imagem que está nos seus downloads.`
+          : "Imagem baixada! Ela está na sua pasta de downloads.",
+      );
     } catch {
-      setShareStatus("Não deu para criar a imagem neste navegador. Tente pelo celular ou use o botão do WhatsApp.");
+      setShareStatus("Não deu para criar a imagem neste navegador. Tente pelo celular ou use o WhatsApp.");
     } finally {
       setIsMakingImage(false);
     }
@@ -718,22 +734,36 @@ function FreeReadingView({
         <p className="fr-archetype-text">{reading.archetype.text}</p>
         <p className="fr-archetype-combos">{reading.archetype.combinations}</p>
         <div className="fr-share">
+          <p className="fr-share-title">Mostre o seu arquétipo para os amigos</p>
           <div className="fr-share-buttons">
+            <a className="fr-social fr-social-whatsapp" href={whatsappLink} rel="noreferrer" target="_blank">
+              <ShareIcon /> WhatsApp
+            </a>
             <button
-              className="analysis-button primary-analysis-button"
+              className="fr-social fr-social-instagram"
               disabled={isMakingImage}
-              onClick={shareStoryImage}
+              onClick={() => shareStoryImage("instagram")}
               type="button"
             >
-              {isMakingImage ? "Criando a imagem..." : "Criar imagem para os stories"}
+              <ShareIcon /> Instagram
             </button>
-            <a className="analysis-button" href={whatsappLink} rel="noreferrer" target="_blank">
-              Mandar no WhatsApp
-            </a>
+            <button
+              className="fr-social fr-social-tiktok"
+              disabled={isMakingImage}
+              onClick={() => shareStoryImage("tiktok")}
+              type="button"
+            >
+              <ShareIcon /> TikTok
+            </button>
           </div>
-          <p className="fr-share-hint">
-            Mostre o seu arquétipo e descubra o dos seus amigos.
-          </p>
+          <button
+            className="fr-share-download"
+            disabled={isMakingImage}
+            onClick={() => shareStoryImage("download")}
+            type="button"
+          >
+            {isMakingImage ? "Criando a imagem..." : "ou baixar a imagem para os stories"}
+          </button>
           {shareStatus && <p role="status">{shareStatus}</p>}
         </div>
       </section>
