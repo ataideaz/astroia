@@ -99,6 +99,15 @@ export const guestReports = sqliteTable("guest_reports", {
  analysisJson: text("analysis_json").notNull(),
  orderId: text("order_id"),
  checkoutUrl: text("checkout_url"),
+ compatJson: text("compat_json"),
+ createdAt: integer("created_at").notNull(),
+});
+// Cada pedido ligado a um mapa, com os produtos comprados (ex.: ["map","compat"]).
+export const reportOrders = sqliteTable("report_orders", {
+ orderId: text("order_id").primaryKey(),
+ tokenHash: text("token_hash").notNull(),
+ items: text("items").notNull(),
+ checkoutUrl: text("checkout_url"),
  createdAt: integer("created_at").notNull(),
 });
 export const guestLimits = sqliteTable("guest_limits", {

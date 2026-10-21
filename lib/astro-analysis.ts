@@ -6,6 +6,12 @@ import {
   MoonPhase,
 } from "astronomy-engine";
 import { buildFreeReading, type FreeReading } from "./free-reading";
+import {
+  buildPremiumReading,
+  type MonthSky,
+  type PremiumReading,
+  type SkyMove,
+} from "./premium-reading";
 
 type SignKey =
   | "aries"
@@ -167,6 +173,7 @@ export type AnalysisResult = {
       orb: number;
       text: string;
     }>;
+    moves?: SkyMove[];
   };
   numerology: {
     lifePath: number;
@@ -203,6 +210,8 @@ export type AnalysisResult = {
   notes: string[];
   /** Leitura grátis nova (ausente em relatórios antigos e em mapas de menores). */
   freeReading?: FreeReading | null;
+  /** Leitura nova do mapa completo (ausente em relatórios antigos e em mapas de menores). */
+  premiumReading?: PremiumReading | null;
 };
 
 const { Origin, Horoscope } = astroPackage as unknown as {
@@ -229,6 +238,7 @@ const { Origin, Horoscope } = astroPackage as unknown as {
     Ascendant: Record<string, unknown>;
     Midheaven: Record<string, unknown>;
     CelestialBodies: Record<string, Record<string, unknown>>;
+    CelestialPoints: Record<string, Record<string, unknown>>;
     Houses: Array<Record<string, unknown>>;
     Aspects: {
       all: Array<{
@@ -905,26 +915,31 @@ function anglePlacement(
 
 const TRANSIT_PLANETS = [
   {
+    key: "sun",
     body: Body.Sun,
     label: "Sol",
     meaning: "coloca luz e atenção sobre",
   },
   {
+    key: "venus",
     body: Body.Venus,
     label: "Vênus",
     meaning: "aproxima, harmoniza e ajuda a rever",
   },
   {
+    key: "mars",
     body: Body.Mars,
     label: "Marte",
     meaning: "ativa, acelera e pede atitude em",
   },
   {
+    key: "jupiter",
     body: Body.Jupiter,
     label: "Júpiter",
     meaning: "amplia possibilidades e confiança em",
   },
   {
+    key: "saturn",
     body: Body.Saturn,
     label: "Saturno",
     meaning: "pede estrutura, limite e amadurecimento em",
@@ -934,26 +949,31 @@ const TRANSIT_PLANETS = [
 const TRANSIT_ASPECTS = [
   {
     angle: 0,
+    key: "conjunction",
     label: "conjunção",
     meaning: "O assunto fica concentrado e mais difícil de ignorar.",
   },
   {
     angle: 60,
+    key: "sextile",
     label: "sextil",
     meaning: "Existe uma abertura favorável, desde que você participe.",
   },
   {
     angle: 90,
+    key: "square",
     label: "quadratura",
     meaning: "Um atrito pode mostrar o ajuste que estava faltando.",
   },
   {
     angle: 120,
+    key: "trine",
     label: "trígono",
     meaning: "Há um fluxo mais natural que pode ser bem aproveitado.",
   },
   {
     angle: 180,
+    key: "opposition",
     label: "oposição",
     meaning: "Dois lados pedem equilíbrio antes de uma decisão.",
   },
@@ -1034,6 +1054,8 @@ function buildCurrentSky(
       return [
         {
           planet: planet.label,
+          transitKey: planet.key,
+          kind: nearest.key,
           natalKey,
           title: `${planet.label} em ${nearest.label} com seu ${natal.label}`,
           orb: nearest.orb,
@@ -1062,6 +1084,11 @@ function buildCurrentSky(
     orb,
     text,
   }));
+  const moves = selected.map(({ transitKey, natalKey, kind }) => ({
+    transit: transitKey,
+    natal: natalKey,
+    kind,
+  }));
   const summary = highlights[0]
     ? `No céu de agora, o destaque mais próximo é ${highlights[0].title.toLowerCase()}. ${highlights[0].text}`
     : `O céu de agora está em ${moonPhase.label}. ${moonPhase.text}`;
@@ -1078,7 +1105,27 @@ function buildCurrentSky(
     },
     summary,
     highlights,
+    moves,
   };
+}
+
+function buildMonthSky(): MonthSky[] {
+  const now = new Date();
+  return Array.from({ length: 12 }, (_, index) => {
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth() + index;
+    const at = (day: number) => new Date(Date.UTC(year, month, day, 12));
+    const lon = (body: Body, date: Date) => Ecliptic(GeoVector(body, date, true)).elon;
+    const days = [4, 11, 18, 25];
+    const middle = at(15);
+    return {
+      year: middle.getUTCFullYear(),
+      month: middle.getUTCMonth() + 1,
+      venus: days.map((day) => lon(Body.Venus, at(day))),
+      mars: days.map((day) => lon(Body.Mars, at(day))),
+      jupiter: lon(Body.Jupiter, middle),
+    };
+  });
 }
 
 function addCurrentSkyToMoment(
@@ -3092,6 +3139,36 @@ export async function createAstroAnalysis(
         personalYear,
         skyMovements: currentSky.highlights.length,
       });
+  const northNodeRaw = horoscope.CelestialPoints?.northnode;
+  const chironRaw = horoscope.CelestialBodies?.chiron;
+  const premiumReading = isMinor
+    ? null
+    : buildPremiumReading({
+        firstName,
+        archetypeName: freeReading?.archetype.name ?? null,
+        birthDate: input.birthDate,
+        sun: byKey.sun,
+        moon: byKey.moon,
+        midheaven,
+        mercury: byKey.mercury,
+        venus: byKey.venus,
+        mars: byKey.mars,
+        jupiter: byKey.jupiter,
+        saturn: byKey.saturn,
+        northNode: northNodeRaw
+          ? placementFrom("northnode", northNodeRaw, exactTime, true)
+          : null,
+        chiron: chironRaw
+          ? placementFrom("chiron", chironRaw, exactTime, true)
+          : null,
+        secondHouseSign,
+        secondHouseLabel: secondHouseSign ? SIGNS[secondHouseSign].label : null,
+        personalYear,
+        lifePath,
+        skyMoves: currentSky.moves ?? [],
+        moonPhaseAngle: currentSky.moonPhase.angle,
+        monthSky: buildMonthSky(),
+      });
   const readings = isMinor
     ? themeDeepDive.sections.map((section, index) => ({
         id: `${themeDeepDive.id}-cuidado-${index}`,
@@ -3180,6 +3257,7 @@ export async function createAstroAnalysis(
     aspects: aspectResults,
     premium,
     freeReading,
+    premiumReading,
     notes: [
       "A análise utiliza zodíaco tropical e casas Placidus.",
       `O céu de ${currentSky.dateLabel} foi calculado para cruzar trânsitos atuais com as posições do nascimento.`,

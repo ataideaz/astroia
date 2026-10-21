@@ -5,17 +5,22 @@ export async function POST(request: Request) {
   try {
     const body = await request.json() as {token?: string; refresh?: boolean};
     let report = await getGuestReport(body.token);
-    if (body.refresh && report.orderId) {
+    if (body.refresh && report.pendingOrderIds.length) {
       await limitRequest(request, "payment-check", 120);
-      if (report.orderId.startsWith("asaas_")) {
-        const { refreshAsaasOrder } = await import("../../../lib/asaas");
-        await refreshAsaasOrder(report.orderId);
-      } else {
-        const { refreshPaymentOrder } = await import("../../../lib/mercado-pago");
-        await refreshPaymentOrder(report.orderId);
+      for (const orderId of report.pendingOrderIds) {
+        try {
+          if (orderId.startsWith("asaas_")) {
+            const { refreshAsaasOrder } = await import("../../../lib/asaas");
+            await refreshAsaasOrder(orderId);
+          } else {
+            const { refreshPaymentOrder } = await import("../../../lib/mercado-pago");
+            await refreshPaymentOrder(orderId);
+          }
+        } catch { /* Um pedido com problema não impede de consultar os outros. */ }
       }
       report = await getGuestReport(body.token);
     }
-    return Response.json(report, {headers:{"Cache-Control":"no-store", "Referrer-Policy":"no-referrer"}});
+    const { pendingOrderIds: _ignored, ...publicReport } = report;
+    return Response.json(publicReport, {headers:{"Cache-Control":"no-store", "Referrer-Policy":"no-referrer"}});
   } catch(error) { return Response.json({error:error instanceof Error ? error.message : "Link inválido."}, {status:400}); }
 }

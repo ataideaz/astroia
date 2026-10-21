@@ -6,6 +6,7 @@ import type {
   Placement,
   RecipientType,
 } from "../lib/astro-analysis";
+import { PremiumReport, type CompatState } from "./premium-report";
 
 const themes = [
   { id: "personalidade", label: "Personalidade", icon: "✦" },
@@ -676,7 +677,12 @@ function FreeReadingView({
       ctx.font = `700 28px ${sans}`;
       ctx.fillStyle = "#e4bc72";
       ctx.fillText(layer.role.replace(/^(Seu|Sua) /, "").toUpperCase(), x + boxWidth / 2, boxTop + 70);
-      ctx.font = `600 64px ${serif}`;
+      let signSize = 64;
+      ctx.font = `600 ${signSize}px ${serif}`;
+      while (ctx.measureText(layer.sign).width > boxWidth - 36 && signSize > 34) {
+        signSize -= 2;
+        ctx.font = `600 ${signSize}px ${serif}`;
+      }
       ctx.fillStyle = "#f7f1e8";
       ctx.fillText(layer.sign, x + boxWidth / 2, boxTop + 150);
     });
@@ -922,7 +928,8 @@ function FreeTeasers({
           <strong>Mapa completo · {price}</strong>
           <p>
             Pagamento único, sem assinatura. Você recebe na hora as quatro áreas
-            completas, o plano prático e o PDF para guardar.
+            completas, a sua missão, o seu dom, os próximos 12 meses e o PDF
+            para guardar.
           </p>
         </div>
         <button
@@ -937,8 +944,38 @@ function FreeTeasers({
   );
 }
 
-export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true }: { paymentAmountCents?: number; paymentsEnabled?: boolean }) {
-  const paymentPrice = (paymentAmountCents / 100).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+type Products = { map: boolean; compat: boolean };
+type ReportPayload = {
+  analysis: AnalysisResult;
+  reportTier: ReportTier;
+  products?: Products;
+  orderId?: string | null;
+  pendingItems?: string[];
+  compat?: CompatState;
+};
+
+function formatPrice(cents: number) {
+  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+export default function Home({
+  paymentAmountCents = 3790,
+  compatAmountCents = 3200,
+  compatEnabled = false,
+  paymentsEnabled = true,
+}: {
+  paymentAmountCents?: number;
+  compatAmountCents?: number;
+  compatEnabled?: boolean;
+  paymentsEnabled?: boolean;
+}) {
+  const paymentPrice = formatPrice(paymentAmountCents);
+  const compatPrice = formatPrice(compatAmountCents);
+  const [products, setProducts] = useState<Products>({ map: false, compat: false });
+  const [compat, setCompat] = useState<CompatState>(null);
+  const [pendingItems, setPendingItems] = useState<string[]>([]);
+  const [checkoutProduct, setCheckoutProduct] = useState<"map" | "compat">("map");
+  const [addCompat, setAddCompat] = useState(false);
   const paymentTest = paymentAmountCents === 100;
   const [awaitingPayment, setAwaitingPayment] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("personalidade");
@@ -1018,6 +1055,32 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
     : null;
   const newFreeReading =
     reportTier === "free" && analysis?.freeReading ? analysis.freeReading : null;
+  const newPremium =
+    reportTier === "premium" && analysis?.premiumReading && analysis.freeReading
+      ? analysis.premiumReading
+      : null;
+  const compatOffered =
+    compatEnabled && paymentsEnabled && Boolean(analysis) && !analysis?.person.isMinor;
+  const checkoutItems: Array<"map" | "compat"> =
+    checkoutProduct === "compat" ? ["compat"] : addCompat && compatOffered ? ["map", "compat"] : ["map"];
+  const checkoutTotal = formatPrice(
+    checkoutItems.reduce((sum, item) => sum + (item === "map" ? paymentAmountCents : compatAmountCents), 0),
+  );
+
+  function applyReport(payload: ReportPayload, token: string) {
+    setAnalysis(payload.analysis);
+    setReportTier(payload.reportTier);
+    setProducts(payload.products ?? { map: payload.reportTier === "premium", compat: false });
+    setCompat(payload.compat ?? null);
+    setPendingItems(payload.pendingItems ?? []);
+    saveMap(payload.analysis, payload.reportTier, token);
+  }
+
+  function openCompatCheckout() {
+    setCheckoutProduct("compat");
+    setCheckoutEmail((current) => current || form.email);
+    openCheckout(null, "upgrade");
+  }
 
   async function loadPrivateReport(token: string, refresh = true) {
     setReportOpeningStep(0);
@@ -1027,8 +1090,8 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
       const response = await fetch("/api/report", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({token, refresh})});
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error);
-      setReportToken(token); setAnalysis(payload.analysis); setReportTier(payload.reportTier); saveMap(payload.analysis, payload.reportTier, token); setAwaitingPayment(Boolean(payload.orderId) && payload.reportTier !== "premium");
-      setAccessStatus(payload.reportTier === "premium" ? "Pagamento confirmado. Seu mapa completo está disponível." : payload.orderId ? "Pagamento ainda não confirmado. Guarde este link e consulte novamente em instantes." : "Sua prévia está disponível. Guarde seu link privado.");
+      setReportToken(token); applyReport(payload, token); setAwaitingPayment(Boolean(payload.orderId));
+      setAccessStatus(payload.reportTier === "premium" ? "Seu mapa completo está aberto. Guarde este link para voltar quando quiser." : payload.orderId ? "Pagamento ainda não confirmado. Guarde este link e consulte novamente em instantes." : "Sua prévia está disponível. Guarde seu link privado.");
       window.setTimeout(() => document.getElementById("analise")?.scrollIntoView({behavior:"smooth"}), 100);
     } catch(error) { setAccessStatus(error instanceof Error ? error.message : "Não foi possível abrir o mapa."); }
     finally { window.setTimeout(() => setReportOpening(false), 2200); }
@@ -1066,15 +1129,23 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
       try {
         const response = await fetch("/api/report", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({token:reportToken, refresh: checks % 3 === 0})});
         if (!response.ok) return;
-        const payload = await response.json();
-        if (!cancelled && payload.reportTier === "premium") {
-          setAnalysis(payload.analysis); setReportTier("premium"); saveMap(payload.analysis, "premium", reportToken); setAwaitingPayment(false);
-          setAccessStatus("Pagamento confirmado! Seu mapa completo e o PDF estão liberados.");
+        const payload = await response.json() as ReportPayload;
+        if (cancelled) return;
+        const unlockedMap = payload.reportTier === "premium" && !products.map;
+        const unlockedCompat = Boolean(payload.products?.compat) && !products.compat;
+        if (unlockedMap || unlockedCompat || !payload.orderId) {
+          applyReport(payload, reportToken);
+          if (!payload.orderId) setAwaitingPayment(false);
+          if (unlockedMap) setAccessStatus("Pagamento confirmado! Seu mapa completo e o PDF estão liberados.");
+          else if (unlockedCompat) {
+            setAccessStatus("Pagamento confirmado! Agora é só preencher os dados do seu par.");
+            window.setTimeout(() => document.getElementById("compatibilidade")?.scrollIntoView({ behavior: "smooth" }), 150);
+          }
         }
       } catch { /* Manual consultation remains available. */ }
     }, 10000);
     return () => {cancelled = true; window.clearInterval(timer);};
-  }, [awaitingPayment, reportToken]);
+  }, [awaitingPayment, reportToken, products.map, products.compat]);
 
   useEffect(() => {
     if (!checkoutOpen) return;
@@ -1359,6 +1430,9 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
       setReturnedFromPayment(false);
       const result = payload as AnalysisResult;
       setAnalysis(result);
+      setProducts({ map: tier === "premium", compat: false });
+      setCompat(null);
+      setPendingItems([]);
       saveMap(result, tier, payload.reportToken);
       window.setTimeout(() => {
         document
@@ -1417,7 +1491,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          offerMode: "individual",
+          items: checkoutItems,
           reportToken,
           customerEmail: checkoutEmail || pendingAnalysis?.email || form.email,
           personName: checkoutPersonName,
@@ -1448,8 +1522,12 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
       );
       if (paymentWindow) paymentWindow.location.replace(payload.checkoutUrl);
       else window.location.assign(payload.checkoutUrl);
-      setCheckoutStatus("idle"); setCheckoutOpen(false); setAwaitingPayment(true);
-      setAccessStatus("Conclua o pagamento na aba do Mercado Pago. Esta página espera a confirmação e libera o seu mapa sozinha. Guarde o seu link.");
+      setCheckoutStatus("idle"); setCheckoutOpen(false); setAwaitingPayment(true); setPendingItems(checkoutItems);
+      setAccessStatus(
+        checkoutProduct === "compat"
+          ? "Conclua o pagamento na aba do Mercado Pago. Assim que ele for confirmado, a compatibilidade abre aqui sozinha."
+          : "Conclua o pagamento na aba do Mercado Pago. Esta página espera a confirmação e libera o seu mapa sozinha. Guarde o seu link.",
+      );
     } catch (error) {
       paymentWindow?.close();
       activeCheckoutOrderId.current = null;
@@ -1542,6 +1620,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
       const generated = await generateAnalysis(request, "free");
       if (!generated) return;
       setCheckoutEmail(request.email);
+      setCheckoutProduct("map");
       openCheckout(request, "upgrade");
       return;
     }
@@ -2159,7 +2238,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                 {analysis.person.isMinor
                   ? "Leitura infantojuvenil · uso responsável"
                   : reportTier === "premium"
-                    ? "Mapa Premium completo · cinco áreas"
+                    ? "Mapa completo"
                     : "Mapa essencial gratuito"}
               </span>
               <h2>
@@ -2167,7 +2246,9 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                 {analysis.person.isMinor
                   ? `este é um olhar cuidadoso sobre ${analysis.themeDeepDive.label.toLowerCase()}.`
                   : reportTier === "premium"
-                    ? `este é seu mapa completo: personalidade, amor, carreira, dinheiro e momento atual.`
+                    ? newPremium
+                      ? "este é o seu mapa completo."
+                      : `este é seu mapa completo: personalidade, amor, carreira, dinheiro e momento atual.`
                     : newFreeReading
                       ? "este é o seu mapa."
                       : `esta é sua leitura essencial sobre ${analysis.themeDeepDive.label.toLowerCase()}.`}
@@ -2295,6 +2376,28 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
             </section>
           )}
 
+          {newPremium && analysis.freeReading && (
+            <>
+              <FreeReadingView analysis={analysis} reading={analysis.freeReading} />
+              <PremiumReport
+                analysis={analysis}
+                compat={compat}
+                compatOffered={compatOffered}
+                compatOwned={products.compat}
+                compatPending={awaitingPayment && pendingItems.includes("compat")}
+                compatPrice={compatPrice}
+                onBuyCompat={openCompatCheckout}
+                onCompatSaved={(saved) => {
+                  setCompat(saved);
+                  setAccessStatus("");
+                }}
+                reading={newPremium}
+                reportToken={reportToken}
+              />
+            </>
+          )}
+
+          {!newPremium && (<>
           {reportTier === "premium" && (
             <article
               className={`theme-deep-dive theme-${analysis.themeDeepDive.id}`}
@@ -2741,6 +2844,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
               firstName={analysis.person.firstName}
               onUnlock={() => {
                 setOfferMode("individual");
+                setCheckoutProduct("map");
                 setCheckoutEmail(form.email);
                 openCheckout(null, "upgrade");
               }}
@@ -2776,6 +2880,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                 className="analysis-button primary-analysis-button"
                 onClick={() => {
                   setOfferMode("individual");
+                  setCheckoutProduct("map");
                   setCheckoutEmail(form.email);
                   openCheckout(null, "upgrade");
                 }}
@@ -2883,6 +2988,8 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
             </article>
           )}
 
+          </>)}
+
           <div className="analysis-notes">
             {analysis.notes.map((note) => (
               <p key={note}>✦ {note}</p>
@@ -2963,13 +3070,18 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
             </p>
             <ul>
               <li>✓ Tudo do Mapa Essencial</li>
-              <li>✓ Vênus, Mercúrio e Marte explicados</li>
-              <li>✓ Personalidade, amor, carreira, dinheiro e momento</li>
-              <li>✓ Seis capítulos aprofundados</li>
-              <li>✓ Trânsitos do céu atual cruzados com seu mapa</li>
-              <li>✓ Plano prático e perguntas guiadas</li>
-              <li>✓ PDF Premium diagramado</li>
+              <li>✓ Como você ama, pensa e conversa</li>
+              <li>✓ Trabalho e dinheiro, com exemplos do dia a dia</li>
+              <li>✓ Sua missão e o seu dom escondido</li>
+              <li>✓ O que este momento pede de você</li>
+              <li>✓ Seus próximos 12 meses</li>
+              <li>✓ PDF completo para guardar</li>
             </ul>
+            {compatEnabled && (
+              <p className="price-addon">
+                ♡ Na hora de pagar, você pode incluir a <strong>compatibilidade do casal</strong> por + {compatPrice}.
+              </p>
+            )}
             <button
               className="primary-button"
               onClick={() => prepareNewMap("self", "individual")}
@@ -3012,6 +3124,19 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
               personalidade, amor, carreira, dinheiro e momento atual. Todas as áreas estão incluídas no Premium.
             </p>
           </details>
+          {compatEnabled && (
+            <details>
+              <summary>O que é a compatibilidade do casal?</summary>
+              <p>
+                É uma leitura que cruza o seu mapa com o mapa de quem você ama e
+                mostra a sintonia de vocês no coração, na atração, na conversa e
+                no dia a dia, com uma dica para cada área. Ela custa + {compatPrice} e
+                pode ser incluída na hora de pagar o mapa completo ou depois, dentro
+                do seu mapa. É para conversar e se divertir: não decide o futuro de
+                ninguém.
+              </p>
+            </details>
+          )}
           <details>
             <summary>Posso criar mapas para marido, filhos ou familiares?</summary>
             <p>
@@ -3110,25 +3235,63 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
               </div>
             ) : (
               <div className="ck-body">
-                <span className="ck-kicker">
-                  Mapa completo{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
-                </span>
-                <h2 className="ck-title" id="checkout-title">
-                  Desbloqueie tudo o que o seu mapa guarda
-                </h2>
-
-                <div className="ck-price">
-                  <strong>{paymentPrice}</strong>
-                  <span>pagamento único · sem assinatura</span>
-                </div>
-
-                <ul className="ck-includes">
-                  <li>Amor, carreira, dinheiro e momento atual completos</li>
-                  <li>Vênus, Mercúrio e Marte explicados</li>
-                  <li>O céu de agora cruzado com o seu mapa</li>
-                  <li>Plano prático e perguntas para refletir</li>
-                  <li>PDF completo para guardar</li>
-                </ul>
+                {checkoutProduct === "compat" ? (
+                  <>
+                    <span className="ck-kicker">
+                      Compatibilidade{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
+                    </span>
+                    <h2 className="ck-title" id="checkout-title">
+                      Descubra como vocês combinam
+                    </h2>
+                    <div className="ck-price">
+                      <strong>{compatPrice}</strong>
+                      <span>pagamento único · sem assinatura</span>
+                    </div>
+                    <ul className="ck-includes">
+                      <li>A porcentagem de sintonia de vocês</li>
+                      <li>Coração, atração, conversa e dia a dia</li>
+                      <li>Uma dica prática para cada área</li>
+                      <li>Imagem para postar nos stories</li>
+                    </ul>
+                  </>
+                ) : (
+                  <>
+                    <span className="ck-kicker">
+                      Mapa completo{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
+                    </span>
+                    <h2 className="ck-title" id="checkout-title">
+                      Desbloqueie tudo o que o seu mapa guarda
+                    </h2>
+                    <div className="ck-price">
+                      <strong>{paymentPrice}</strong>
+                      <span>pagamento único · sem assinatura</span>
+                    </div>
+                    <ul className="ck-includes">
+                      <li>Como você ama, pensa e conversa</li>
+                      <li>Onde você brilha no trabalho e como o dinheiro chega</li>
+                      <li>Para que você veio e o seu dom escondido</li>
+                      <li>O que este momento pede e os seus próximos 12 meses</li>
+                      <li>PDF completo para guardar</li>
+                    </ul>
+                    {compatOffered && (
+                      <label className={`ck-bump ${addCompat ? "ck-bump-on" : ""}`}>
+                        <input
+                          checked={addCompat}
+                          onChange={(event) => setAddCompat(event.target.checked)}
+                          type="checkbox"
+                        />
+                        <span className="ck-bump-text">
+                          <strong>Sim! Quero também a compatibilidade do casal por + {compatPrice}</strong>
+                          <small>
+                            Veja como o seu mapa combina com o de quem você ama: a
+                            porcentagem de sintonia e uma dica para cada área. Você
+                            preenche os dados da outra pessoa depois.
+                          </small>
+                        </span>
+                      </label>
+                    )}
+                  </>
+                )}
 
                 <label className="ck-field">
                   <span>Seu e-mail</span>
@@ -3160,7 +3323,7 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                     : checkoutError
                       ? "Tentar de novo"
                       : paymentsEnabled
-                        ? `Pagar ${paymentPrice}`
+                        ? `Pagar ${checkoutTotal}`
                         : "Abrir mapa completo (teste)"}
                   <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
                 </button>
@@ -3180,9 +3343,11 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                   onClick={checkoutIntent === "generate" ? continueWithFreeMap : closeCheckout}
                   type="button"
                 >
-                  {checkoutIntent === "generate"
-                    ? "Prefiro continuar com o mapa grátis"
-                    : "Voltar ao meu mapa grátis"}
+                  {checkoutProduct === "compat"
+                    ? "Agora não, voltar ao meu mapa"
+                    : checkoutIntent === "generate"
+                      ? "Prefiro continuar com o mapa grátis"
+                      : "Voltar ao meu mapa grátis"}
                 </button>
               </div>
             )}

@@ -688,7 +688,7 @@ export function buildFreeReading(input: {
         title: "O que este ano pede de você",
         opening: `Você está no Ano Pessoal ${input.personalYear}: ${yearText}${sky}`,
         cliff: input.skyMovements > 0
-          ? "O mais importante deles fala de"
+          ? "O mais importante deles fala"
           : "E existe um passo simples que pode fazer este ano render muito mais. Ele começa por",
         locked: [
           "O tema principal deste momento",

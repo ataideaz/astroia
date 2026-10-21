@@ -9,6 +9,8 @@ import garamondBoldSource from "./fonts/EBGaramond-SemiBold.ttf?inline";
 import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
 import type { AnalysisResult, Placement, ThemeGuide } from "./astro-analysis";
 import type { ExportTier } from "./report-export";
+import type { CompatResult } from "./compatibility";
+import type { PremiumReading } from "./premium-reading";
 
 type Color = ReturnType<typeof rgb>;
 
@@ -843,7 +845,7 @@ function teaserSection(flow: Flow, analysis: AnalysisResult) {
       { type: "title", text: "Quer ler o resto?", size: 20, color: C.goldLight },
       {
         type: "text",
-        text: `Volte ao seu mapa no site e toque em "Desbloquear meu mapa completo". Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, o plano prático e o PDF completo.`,
+        text: `Volte ao seu mapa no site e toque em "Desbloquear meu mapa completo". Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, a sua missão, o seu dom, os próximos 12 meses e o PDF completo.`,
       },
       { type: "text", text: SITE, bold: true, color: C.goldLight },
     ],
@@ -987,10 +989,99 @@ function premiumSections(flow: Flow, analysis: AnalysisResult) {
   }
 }
 
+function newPremiumSections(flow: Flow, analysis: AnalysisResult, reading: PremiumReading, compat: CompatResult | null) {
+  newPage(flow, "Seu mapa completo");
+  sectionHeading(flow, "Seu mapa completo", reading.letter.title, reading.letter.text);
+
+  reading.chapters.forEach((chapter, index) => {
+    flow.label = chapter.label;
+    flow.y -= 10;
+    sectionHeading(flow, `${String(index + 1).padStart(2, "0")} · ${chapter.label}`, chapter.title);
+    loose(flow, [{ type: "text", text: chapter.intro, size: 12.6, color: C.ink }]);
+    if (chapter.payoff) {
+      card(
+        flow,
+        [
+          { type: "text", text: chapter.payoff.lead, color: C.muted },
+          { type: "text", text: chapter.payoff.rest, bold: true, color: C.goldLight },
+        ],
+        { fill: C.goldSoft, border: C.gold },
+      );
+    }
+    for (const block of chapter.blocks) {
+      const blocks: Block[] = [
+        { type: "title", text: block.title, size: 16 },
+        { type: "text", text: block.text },
+      ];
+      if (block.example) blocks.push({ type: "text", text: block.example, color: C.violetLight, size: 11.4 });
+      if (block.tip) blocks.push({ type: "text", text: `Experimente: ${block.tip}`, color: C.goldLight, size: 11.4 });
+      card(flow, blocks);
+    }
+    loose(flow, [{ type: "text", text: `De onde vem: ${chapter.source}`, color: C.muted, size: 9.4 }]);
+
+    if (chapter.id === "amor" && compat) compatSection(flow, compat);
+    if (chapter.id === "agora" && reading.months.length) monthsSection(flow, reading);
+  });
+
+  card(flow, [{ type: "quote", text: reading.closing, size: 14 }], { fill: C.goldSoft, border: C.gold, padding: 22 });
+}
+
+function monthsSection(flow: Flow, reading: PremiumReading) {
+  flow.label = "Seus próximos 12 meses";
+  flow.y -= 10;
+  sectionHeading(
+    flow,
+    "Seus próximos 12 meses",
+    "O tema de cada mês",
+    "Cada mês tem um número (pela numerologia) e, em alguns, os planetas dão uma ajudinha extra. Use como um calendário de intenções.",
+  );
+  for (let index = 0; index < reading.months.length; index += 2) {
+    const monthBlocks = (month: PremiumReading["months"][number]): Block[] => {
+      const blocks: Block[] = [
+        { type: "kicker", text: `${month.label} · mês ${month.number}` },
+        { type: "text", text: month.theme, bold: true, color: C.ink, size: 11.4 },
+      ];
+      if (month.tags.length) blocks.push({ type: "text", text: month.tags.map((tag) => tag.label).join(" · "), color: C.goldLight, size: 10 });
+      return blocks;
+    };
+    const left = reading.months[index];
+    const right = reading.months[index + 1];
+    if (right) cardRow(flow, monthBlocks(left), monthBlocks(right));
+    else card(flow, monthBlocks(left));
+  }
+}
+
+function compatSection(flow: Flow, compat: CompatResult) {
+  flow.label = "Compatibilidade";
+  flow.y -= 10;
+  sectionHeading(flow, "Compatibilidade do casal", `${compat.names[0]} + ${compat.names[1]}: ${compat.score}% de sintonia`, compat.summary);
+  card(
+    flow,
+    [
+      { type: "big", text: `${compat.score}%`, caption: "de sintonia" },
+      { type: "title", text: compat.headline, size: 18 },
+      {
+        type: "list",
+        items: compat.signs.map((person) => `${person.name}: Sol em ${person.sun}, Lua em ${person.moon}${person.ascendant ? `, Ascendente em ${person.ascendant}` : ""}`),
+      },
+    ],
+    { fill: C.goldSoft, border: C.gold, padding: 22 },
+  );
+  for (const area of compat.areas) {
+    card(flow, [
+      { type: "kicker", text: `${area.label} · ${area.score}%` },
+      { type: "title", text: area.title, size: 16 },
+      { type: "text", text: area.text },
+      { type: "text", text: `Dica para vocês: ${area.tip}`, color: C.goldLight, size: 11.4 },
+    ]);
+  }
+  loose(flow, [{ type: "text", text: compat.note, color: C.muted, size: 9.4 }]);
+}
+
 // ---------------------------------------------------------------------------
 // Documento
 // ---------------------------------------------------------------------------
-export async function createReportPdf(analysis: AnalysisResult, tier: ExportTier) {
+export async function createReportPdf(analysis: AnalysisResult, tier: ExportTier, compat: CompatResult | null = null) {
   const document = await PDFDocument.create();
   document.registerFontkit(fontkit);
   const fonts: Fonts = {
@@ -1018,9 +1109,12 @@ export async function createReportPdf(analysis: AnalysisResult, tier: ExportTier
   } else {
     legacyPortrait(flow, analysis);
   }
-  patternAndNumbers(flow, analysis);
+  const newPremium = tier === "premium" && analysis.freeReading && analysis.premiumReading ? analysis.premiumReading : null;
+  if (!newPremium) patternAndNumbers(flow, analysis);
 
-  if (tier === "premium") {
+  if (newPremium) {
+    newPremiumSections(flow, analysis, newPremium, compat);
+  } else if (tier === "premium") {
     premiumSections(flow, analysis);
   } else if (analysis.freeReading) {
     teaserSection(flow, analysis);

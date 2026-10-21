@@ -1,12 +1,10 @@
 import { env } from "cloudflare:workers";
-import { asaasAmountCents as priceCents } from "./asaas";
+import { PRODUCTS, productPrice, type ProductId } from "./products";
 import { readEnv } from "./runtime-env";
-
-export type PaymentOfferMode = "individual" | "additional";
 
 type PaymentOrder = {
   id: string;
-  offer_mode: PaymentOfferMode;
+  offer_mode: string;
   amount_cents: number;
   currency: string;
   status: string;
@@ -26,22 +24,6 @@ type MercadoPagoPayment = {
 
 const MERCADO_PAGO_API = "https://api.mercadopago.com";
 
-export const paymentOffers: Record<
-  PaymentOfferMode,
-  { title: string; description: string; amountCents: number }
-> = {
-  individual: {
-    title: "AstroIA Premium",
-    description: "Mapa astral completo com PDF. Pagamento único, sem assinatura.",
-    amountCents: 3790,
-  },
-  additional: {
-    title: "Novo Mapa Premium",
-    description: "Um perfil adicional com resultado separado",
-    amountCents: 3790,
-  },
-};
-
 function getAccessToken() {
   const token = readEnv("MERCADO_PAGO_ACCESS_TOKEN");
   if (!token) {
@@ -59,10 +41,6 @@ function getSiteUrl() {
 
 function isTestMode() {
   return readEnv("MERCADO_PAGO_MODE")?.toLowerCase() !== "production";
-}
-
-function isOfferMode(value: unknown): value is PaymentOfferMode {
-  return value === "individual" || value === "additional";
 }
 
 function cleanText(value: unknown, maximumLength: number) {
@@ -96,22 +74,17 @@ async function mercadoPagoFetch(path: string, init?: RequestInit) {
 }
 
 export async function createPaymentPreference(input: {
-  offerMode?: unknown;
+  items: ProductId[];
   customerEmail?: unknown;
   personName?: unknown;
-  themeLabel?: unknown;
   reportToken?: string;
 }) {
-  if (!isOfferMode(input.offerMode)) {
-    throw new Error("O plano selecionado não é válido.");
-  }
-
-
-  const offer = { ...paymentOffers[input.offerMode], amountCents: priceCents() };
+  if (!input.items.length) throw new Error("Escolha o que deseja comprar.");
+  const lines = input.items.map((id) => ({ id, ...PRODUCTS[id], amountCents: productPrice(id) }));
+  const totalCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
   const orderId = `ast_${crypto.randomUUID()}`;
   const customerEmail = cleanEmail(input.customerEmail);
   const personName = cleanText(input.personName, 100);
-  const themeLabel = cleanText(input.themeLabel, 80);
   const now = Date.now();
 
   await env.DB.prepare(
@@ -122,11 +95,11 @@ export async function createPaymentPreference(input: {
   )
     .bind(
       orderId,
-      input.offerMode,
-      offer.amountCents,
+      input.items.join("+"),
+      totalCents,
       customerEmail || null,
       personName || null,
-      themeLabel || null,
+      lines.map((line) => line.title).join(" + ").slice(0, 80),
       now,
       now,
     )
@@ -138,17 +111,15 @@ export async function createPaymentPreference(input: {
     method: "POST",
     headers: { "X-Idempotency-Key": orderId },
     body: JSON.stringify({
-      items: [
-        {
-          id: input.offerMode,
-          title: offer.title,
-          description: offer.description,
-          category_id: "services",
-          currency_id: "BRL",
-          quantity: 1,
-          unit_price: offer.amountCents / 100,
-        },
-      ],
+      items: lines.map((line) => ({
+        id: line.id,
+        title: line.title,
+        description: line.description,
+        category_id: "services",
+        currency_id: "BRL",
+        quantity: 1,
+        unit_price: line.amountCents / 100,
+      })),
       // No ambiente de teste, o comprador precisa ser identificado apenas pela
       // sessão do Buyer Test no Mercado Pago. Enviar aqui o e-mail real informado
       // no formulário mistura identidades reais e fictícias e bloqueia o checkout.
@@ -156,7 +127,7 @@ export async function createPaymentPreference(input: {
       external_reference: orderId,
       metadata: {
         astroia_order_id: orderId,
-        offer_mode: input.offerMode,
+        items: input.items.join("+"),
       },
       back_urls: {
         success: returnUrl,
