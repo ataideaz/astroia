@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     if (!paymentsEnabled()) throw new Error("O pagamento está temporariamente desativado para testes.");
-    await limitRequest(request, "checkout", 8);
     const raw = await request.text();
     if (raw.length > 12000) throw new Error("Solicitação muito grande.");
     const body = JSON.parse(raw) as {reportToken: string; customerEmail: string};
@@ -14,6 +13,12 @@ export async function POST(request: Request) {
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
     if (report.reportTier === "premium") throw new Error("Este relatório já está liberado. Use seu link privado.");
+    // Mesmo mapa, pagamento já criado no Mercado Pago: devolve o mesmo link
+    // (não cria outro pedido e não conta no limite).
+    if (report.orderId?.startsWith("ast_") && report.checkoutUrl?.startsWith("https://")) {
+      return Response.json({orderId: report.orderId, checkoutUrl: report.checkoutUrl}, {headers:{"Cache-Control":"no-store"}});
+    }
+    await limitRequest(request, "checkout", 30);
     if (readEnv("MERCADO_PAGO_ACCESS_TOKEN")) {
       const { createPaymentPreference } = await import("../../../lib/mercado-pago");
       const checkout = await createPaymentPreference({

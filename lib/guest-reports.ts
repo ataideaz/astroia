@@ -13,7 +13,7 @@ export async function limitRequest(request: Request, scope: string, limit: numbe
   const result = await (await database()).prepare(`INSERT INTO guest_limits (id, count, expires_at) VALUES (?, 1, ?)
     ON CONFLICT(id) DO UPDATE SET count = count + 1 WHERE count < ? RETURNING count`)
     .bind(key, Date.now() + 7200000, limit).first();
-  if (!result) throw new Error("Limite temporário atingido. Tente novamente em uma hora.");
+  if (!result) throw new Error("Muitas tentativas seguidas desta conexão. Aguarde alguns minutos e tente de novo.");
   await (await database()).prepare("DELETE FROM guest_limits WHERE expires_at < ?").bind(Date.now()).run();
 }
 export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremium = false) {

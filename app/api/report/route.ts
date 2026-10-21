@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const body = await request.json() as {token?: string; refresh?: boolean};
     let report = await getGuestReport(body.token);
     if (body.refresh && report.orderId) {
-      await limitRequest(request, "payment-check", 60);
+      await limitRequest(request, "payment-check", 120);
       if (report.orderId.startsWith("asaas_")) {
         const { refreshAsaasOrder } = await import("../../../lib/asaas");
         await refreshAsaasOrder(report.orderId);

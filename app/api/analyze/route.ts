@@ -4,7 +4,7 @@ import { paymentsEnabled } from "../../../lib/asaas";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
-    await limitRequest(request, "preview", 12);
+    await limitRequest(request, "preview", 40);
     const raw = await request.text();
     if (raw.length > 12000) return NextResponse.json({error: "Dados muito extensos."}, {status:413});
     const body = JSON.parse(raw);

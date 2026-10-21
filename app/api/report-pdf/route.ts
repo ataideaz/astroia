@@ -10,7 +10,7 @@ const MAX_REQUEST_BYTES = 900_000;
 
 export async function POST(request: Request) {
   try {
-    await limitRequest(request, "pdf", 20);
+    await limitRequest(request, "pdf", 40);
     const contentType = request.headers.get("content-type") ?? "";
     if (!contentType.includes("application/json")) {
       return Response.json(
