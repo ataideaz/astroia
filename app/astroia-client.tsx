@@ -3060,15 +3060,15 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
           <section
             aria-labelledby="checkout-title"
             aria-modal="true"
-            className="checkout-dialog"
+            className="checkout-dialog ck-dialog"
             role="dialog"
           >
-            <header className="checkout-header">
+            <header className="checkout-header ck-header">
               <a className="checkout-brand" href="#inicio" onClick={closeCheckout}>
                 <span aria-hidden="true">✦</span>
                 AstroIA
               </a>
-              <span className="checkout-demo-badge">{paymentsEnabled ? (paymentTest ? "ASAAS · TESTE REAL DE R$ 1,00" : "ASAAS") : "MODO DE TESTE · PAGAMENTO DESLIGADO"}</span>
+              {!paymentsEnabled && <span className="checkout-demo-badge">Pagamento desligado</span>}
               <button
                 aria-label="Fechar pagamento"
                 className="checkout-close"
@@ -3079,46 +3079,6 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                 ×
               </button>
             </header>
-
-            <div className="checkout-intro">
-              <span className="section-kicker">Seu mapa está quase pronto</span>
-              <h2 id="checkout-title">Revise e libere sua leitura Premium</h2>
-              <p>
-                {paymentsEnabled ? <>Você será levado ao Mercado Pago para pagar {paymentPrice} pelo mapa completo, por Pix ou cartão. Pagamento único, sem assinatura.</> : <>O pagamento está desligado neste momento. O mapa Premium será liberado apenas para validação do conteúdo.</>}
-              </p>
-            </div>
-
-            <ol className="checkout-progress" aria-label="Etapas da compra">
-              <li className="completed">
-                <span>✓</span>
-                <div>
-                  <strong>Dados</strong>
-                  <small>Concluídos</small>
-                </div>
-              </li>
-              <li
-                className={
-                  checkoutStatus === "approved" ? "completed" : "active"
-                }
-              >
-                <span>{checkoutStatus === "approved" ? "✓" : "2"}</span>
-                <div>
-                  <strong>Pagamento</strong>
-                  <small>
-                    {checkoutStatus === "approved" ? "Confirmado" : "Agora"}
-                  </small>
-                </div>
-              </li>
-              <li className={checkoutStatus === "approved" ? "active" : ""}>
-                <span>3</span>
-                <div>
-                  <strong>Seu mapa</strong>
-                  <small>
-                    {checkoutStatus === "approved" ? "Liberado" : "Próximo"}
-                  </small>
-                </div>
-              </li>
-            </ol>
 
             {checkoutStatus === "approved" ? (
               <div className="checkout-approved">
@@ -3149,114 +3109,81 @@ export default function Home({ paymentAmountCents = 3790, paymentsEnabled = true
                 </small>
               </div>
             ) : (
-              <div className="checkout-layout">
-                <aside className="checkout-summary">
-                  <span className="section-kicker">Resumo do pedido</span>
-                  <div className="checkout-product">
-                    <span className="checkout-product-mark" aria-hidden="true">
-                      ✦
-                    </span>
-                    <div>
-                      <h3>{checkoutOffer.name}</h3>
-                      <p>{checkoutOffer.description}</p>
-                    </div>
-                  </div>
+              <div className="ck-body">
+                <span className="ck-kicker">
+                  Mapa completo{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
+                </span>
+                <h2 className="ck-title" id="checkout-title">
+                  Desbloqueie tudo o que o seu mapa guarda
+                </h2>
 
-                  <dl className="checkout-details">
-                    <div>
-                      <dt>Perfil</dt>
-                      <dd>{checkoutPersonName || "Seu perfil"}</dd>
-                    </div>
-                    <div>
-                      <dt>Foco principal</dt>
-                      <dd>{checkoutThemeLabel}</dd>
-                    </div>
-                    <div>
-                      <dt>Incluído</dt>
-                      <dd>{checkoutOffer.quantity}</dd>
-                    </div>
-                  </dl>
-
-                  <ul className="checkout-includes">
-                    <li>✓ Cinco temas no mesmo mapa</li>
-                    <li>✓ Leitura completa e plano prático</li>
-                    <li>✓ PDF e acesso por link privado</li>
-                  </ul>
-
-                  <div className="checkout-total">
-                    <span>
-                      Total
-                      <small>Pagamento único · sem assinatura</small>
-                    </span>
-                    <strong>{checkoutOffer.price}</strong>
-                  </div>
-                </aside>
-
-                <div className="checkout-payment">
-                  <div className="payment-heading">
-                    <div>
-                      <span className="section-kicker">Pagamento único</span>
-                      <h3>{paymentsEnabled ? "Pagar com Mercado Pago" : "Validação do mapa Premium"}</h3>
-                    </div>
-                    <span className="secure-label">⌾ pagamento seguro pelo Mercado Pago</span>
-                  </div>
-
-                  <label className="field"><span>E-mail para identificar a compra (sem criar conta)</span><input type="email" value={checkoutEmail} onChange={event => setCheckoutEmail(event.target.value)} placeholder="voce@exemplo.com" /></label>
-                  <p>Antes de pagar, guarde seu <a href={`/#report=${reportToken}`} onClick={() => setCheckoutOpen(false)}>link privado do mapa</a>. Ele permite consultar o pagamento mesmo depois de fechar esta página.</p>
-                  <div className="mercado-pago-card">
-                    <span className="mercado-pago-mark" aria-hidden="true">Mercado Pago</span>
-                    <div>
-                      <h4>Pagamento único pelo mapa completo</h4>
-                      <p>
-                        {paymentsEnabled ? <>Pague por Pix ou cartão. O mapa completo é liberado assim que o Mercado Pago confirmar o pagamento.</> : <>O Asaas está desconectado para esta validação. Clique abaixo para abrir o mapa Premium sem cobrança.</>}
-                      </p>
-                    </div>
-                  </div>
-
-                  {checkoutError && (
-                    <p className="checkout-payment-message" role="alert">
-                      {checkoutError}
-                    </p>
-                  )}
-
-                  <button
-                    className="checkout-primary"
-                    disabled={checkoutStatus === "processing"}
-                    onClick={startAsaasCheckout}
-                    type="button"
-                  >
-                    {checkoutStatus === "processing"
-                      ? "Preparando pagamento..."
-                      : checkoutError
-                        ? "Tentar pagamento novamente"
-                        : paymentsEnabled ? `Gerar Pix de ${paymentPrice}` : "Abrir mapa Premium"}
-                    <span aria-hidden="true">
-                      {checkoutStatus === "processing" ? "◌" : "→"}
-                    </span>
-                  </button>
-
-                  <div className="checkout-simulation-note">
-                    <span aria-hidden="true">⌾</span>
-                    <p>
-                      {paymentsEnabled ? <><strong>Pagamento de {paymentPrice}.</strong> O mapa completo é liberado logo após a confirmação.</> : <><strong>Pagamento desativado.</strong> Esta versão é apenas para revisar o conteúdo do mapa Premium.</>}
-                    </p>
-                  </div>
-
-                  <button
-                    className="checkout-free-button"
-                    disabled={checkoutStatus === "processing"}
-                    onClick={
-                      checkoutIntent === "generate"
-                        ? continueWithFreeMap
-                        : closeCheckout
-                    }
-                    type="button"
-                  >
-                    {checkoutIntent === "generate"
-                      ? "Prefiro continuar com o mapa grátis"
-                      : "Voltar ao meu mapa grátis"}
-                  </button>
+                <div className="ck-price">
+                  <strong>{paymentPrice}</strong>
+                  <span>pagamento único · sem assinatura</span>
                 </div>
+
+                <ul className="ck-includes">
+                  <li>Amor, carreira, dinheiro e momento atual completos</li>
+                  <li>Vênus, Mercúrio e Marte explicados</li>
+                  <li>O céu de agora cruzado com o seu mapa</li>
+                  <li>Plano prático e perguntas para refletir</li>
+                  <li>PDF completo para guardar</li>
+                </ul>
+
+                <label className="ck-field">
+                  <span>Seu e-mail</span>
+                  <input
+                    autoComplete="email"
+                    inputMode="email"
+                    onChange={(event) => setCheckoutEmail(event.target.value)}
+                    placeholder="voce@exemplo.com"
+                    type="email"
+                    value={checkoutEmail}
+                  />
+                  <small>Usamos só para identificar a sua compra. Sem criar conta.</small>
+                </label>
+
+                {checkoutError && (
+                  <p className="checkout-payment-message" role="alert">
+                    {checkoutError}
+                  </p>
+                )}
+
+                <button
+                  className="checkout-primary ck-pay"
+                  disabled={checkoutStatus === "processing"}
+                  onClick={startAsaasCheckout}
+                  type="button"
+                >
+                  {checkoutStatus === "processing"
+                    ? "Abrindo o pagamento..."
+                    : checkoutError
+                      ? "Tentar de novo"
+                      : paymentsEnabled
+                        ? `Pagar ${paymentPrice}`
+                        : "Abrir mapa completo (teste)"}
+                  <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
+                </button>
+
+                <ul className="ck-trust" aria-label="Garantias do pagamento">
+                  <li>
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+                    Pagamento seguro pelo Mercado Pago
+                  </li>
+                  <li>Pix ou cartão</li>
+                  <li>Liberado na hora</li>
+                </ul>
+
+                <button
+                  className="checkout-free-button ck-back"
+                  disabled={checkoutStatus === "processing"}
+                  onClick={checkoutIntent === "generate" ? continueWithFreeMap : closeCheckout}
+                  type="button"
+                >
+                  {checkoutIntent === "generate"
+                    ? "Prefiro continuar com o mapa grátis"
+                    : "Voltar ao meu mapa grátis"}
+                </button>
               </div>
             )}
           </section>
