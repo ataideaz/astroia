@@ -1,6 +1,7 @@
 import { attachOrder, getGuestReport, limitRequest } from "../../../lib/guest-reports";
 import { normalizedEmail } from "../../../lib/site-auth";
 import { createAsaasCheckout, paymentsEnabled } from "../../../lib/asaas";
+import { readEnv } from "../../../lib/runtime-env";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
     if (report.reportTier === "premium") throw new Error("Este relatório já está liberado. Use seu link privado.");
-    if (process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim()) {
+    if (readEnv("MERCADO_PAGO_ACCESS_TOKEN")) {
       const { createPaymentPreference } = await import("../../../lib/mercado-pago");
       const checkout = await createPaymentPreference({
         offerMode: "individual",

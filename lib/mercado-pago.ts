@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { asaasAmountCents as priceCents } from "./asaas";
+import { readEnv } from "./runtime-env";
 
 export type PaymentOfferMode = "individual" | "additional";
 
@@ -42,7 +43,7 @@ export const paymentOffers: Record<
 };
 
 function getAccessToken() {
-  const token = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim();
+  const token = readEnv("MERCADO_PAGO_ACCESS_TOKEN");
   if (!token) {
     throw new Error("O ambiente de pagamento ainda não está configurado.");
   }
@@ -51,13 +52,13 @@ function getAccessToken() {
 
 function getSiteUrl() {
   return (
-    process.env.ASTROIA_SITE_URL?.trim().replace(/\/$/, "") ||
+    readEnv("ASTROIA_SITE_URL")?.replace(/\/$/, "") ||
     "https://meuastroia.com.br"
   );
 }
 
 function isTestMode() {
-  return process.env.MERCADO_PAGO_MODE?.trim().toLowerCase() !== "production";
+  return readEnv("MERCADO_PAGO_MODE")?.toLowerCase() !== "production";
 }
 
 function isOfferMode(value: unknown): value is PaymentOfferMode {
