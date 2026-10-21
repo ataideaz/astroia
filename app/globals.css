@@ -6423,3 +6423,19 @@ footer {
 .ck-back {
   align-self: center;
 }
+
+.checkout-header.ck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ck-header .checkout-demo-badge {
+  margin-left: auto;
+}
+.ck-trust li + li::before {
+  margin-right: 6px;
+}
+.ck-trust {
+  gap: 6px 10px;
+}
