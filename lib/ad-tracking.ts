@@ -92,6 +92,8 @@ export function loadMetaPixel(pixelId: string) {
   script.async = true;
   script.src = "https://connect.facebook.net/en_US/fbevents.js";
   document.head.appendChild(script);
+  // Sem eventos "adivinhados" pela Meta (ex.: Subscribe em cliques): só os nossos.
+  fbq("set", "autoConfig", false, pixelId);
   fbq("init", pixelId);
   fbq("track", "PageView");
 }
