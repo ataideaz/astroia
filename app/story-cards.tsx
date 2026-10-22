@@ -53,6 +53,63 @@ function star(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, co
   ctx.fill();
 }
 
+function heart(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y + size * 0.3);
+  ctx.bezierCurveTo(x, y, x - size * 0.5, y, x - size * 0.5, y + size * 0.3);
+  ctx.bezierCurveTo(x - size * 0.5, y + size * 0.6, x, y + size * 0.78, x, y + size);
+  ctx.bezierCurveTo(x, y + size * 0.78, x + size * 0.5, y + size * 0.6, x + size * 0.5, y + size * 0.3);
+  ctx.bezierCurveTo(x + size * 0.5, y, x, y, x, y + size * 0.3);
+  ctx.fill();
+}
+
+/** Passa um texto escrito para "você" para a primeira pessoa (para a pessoa postar). */
+function firstPerson(text: string) {
+  // \b não funciona com letras acentuadas, por isso a busca é por "letra vizinha".
+  const word = (value: string) => new RegExp(`(?<!\\p{L})${value}(?!\\p{L})`, "gu");
+  const swaps: Array<[string, string]> = [
+    ["Para você", "Para mim"], ["para você", "para mim"], ["com você", "comigo"],
+    ["em você", "em mim"], ["de você", "de mim"], ["você", "eu"], ["Você", "Eu"],
+    ["te", "me"], ["seus", "meus"], ["suas", "minhas"], ["seu", "meu"], ["sua", "minha"],
+  ];
+  return swaps.reduce((current, [from, to]) => current.replace(word(from), to), text);
+}
+
+/** Um story de uma ideia só: título grande + frase. */
+function quoteCard(opts: {
+  bg: string;
+  ink: string;
+  accent: string;
+  tag: string;
+  titleLines: string[];
+  text: string;
+  hook: string;
+  decorate: (ctx: CanvasRenderingContext2D) => void;
+}): Draw {
+  return (ctx, fonts, host) => {
+    ctx.fillStyle = opts.bg;
+    ctx.fillRect(0, 0, W, H);
+    opts.decorate(ctx);
+    header(ctx, fonts, opts.ink, opts.tag);
+    setFont(ctx, 800, 116, fonts.sans);
+    ctx.fillStyle = opts.ink;
+    ctx.textAlign = "left";
+    let y = 760;
+    for (const line of opts.titleLines) {
+      fit(ctx, line, 800, 116, fonts.sans, W - 160);
+      ctx.fillText(line, 80, y);
+      y += 128;
+    }
+    const clean = opts.text.charAt(0).toLocaleUpperCase("pt-BR") + opts.text.slice(1);
+    paragraph(ctx, clean, 80, y + 50, {
+      weight: 600, size: clean.length > 150 ? 60 : 70, family: fonts.serif, color: opts.ink, max: W - 160,
+      lineHeight: clean.length > 150 ? 70 : 82,
+    });
+    footer(ctx, fonts, host, opts.hook, opts.ink, opts.accent);
+  };
+}
+
 function stripes(ctx: CanvasRenderingContext2D, y: number, height: number, color: string, angle = -0.18) {
   ctx.save();
   ctx.translate(W / 2, y);
@@ -246,7 +303,72 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
     },
   ];
 
+  cards.push({
+    id: "ponto-fraco",
+    label: "Meu ponto fraco",
+    draw: quoteCard({
+      bg: COLORS.yellow,
+      ink: COLORS.navy,
+      accent: COLORS.violet,
+      tag: "sem filtro",
+      titleLines: ["Meu ponto", "fraco 😅"],
+      text: firstPerson(
+        reading.attention
+          .replace(/^Cuidado para não /, "às vezes eu posso ")
+          .replace(/, nem /, " ou ")
+          .replace(/o que sente/g, "o que sinto"),
+      ),
+      hook: "Confessa: qual é o seu?",
+      decorate: (ctx) => {
+        circle(ctx, W - 60, 420, 260, COLORS.orange);
+        circle(ctx, 40, H - 470, 150, COLORS.pink);
+        star(ctx, 860, 1500, 60, COLORS.navy);
+      },
+    }),
+  });
+
   if (premium) {
+    const loveIntro = premium.chapters.find((chapter) => chapter.id === "amor")?.intro;
+    const mission = premium.chapters.find((chapter) => chapter.id === "missao")?.intro;
+    if (loveIntro) {
+      cards.push({
+        id: "amor",
+        label: "Como eu amo",
+        draw: quoteCard({
+          bg: COLORS.cyan,
+          ink: COLORS.navy,
+          accent: COLORS.violet,
+          tag: "meu jeito de amar",
+          titleLines: ["Como eu", "amo:"],
+          text: firstPerson(loveIntro.replace(/^Com Vênus em [^,]+, você /, "")),
+          hook: "E você, ama de que jeito?",
+          decorate: (ctx) => {
+            heart(ctx, W - 230, 230, 330, COLORS.pink);
+            heart(ctx, 170, 1450, 150, COLORS.white);
+          },
+        }),
+      });
+    }
+    if (mission) {
+      cards.push({
+        id: "missao",
+        label: "Para que eu vim",
+        draw: quoteCard({
+          bg: COLORS.navy,
+          ink: COLORS.white,
+          accent: COLORS.yellow,
+          tag: "minha missão",
+          titleLines: ["Eu vim", "para..."],
+          text: firstPerson(mission.replace(/^O seu mapa mostra que você veio para /, "").replace(/\. A sua missão é .*$/, ".")),
+          hook: "Descubra a sua missão",
+          decorate: (ctx) => {
+            star(ctx, W - 220, 420, 230, COLORS.yellow, 8);
+            circle(ctx, 60, H - 420, 230, COLORS.violet);
+            stripes(ctx, 1560, 60, COLORS.pink, 0.12);
+          },
+        }),
+      });
+    }
     const pick = (id: string) => premium.months.find((month) => month.tags.some((tag) => tag.id === id));
     const love = pick("amor");
     const luck = pick("sorte");
@@ -371,6 +493,24 @@ export function compatCards(result: CompatResult): StoryCard[] {
         }
         footer(ctx, fonts, host, "E vocês, que casal são?", COLORS.white, COLORS.lime);
       },
+    },
+    {
+      id: "encontro",
+      label: "Nosso encontro",
+      draw: quoteCard({
+        bg: COLORS.violet,
+        ink: COLORS.white,
+        accent: COLORS.lime,
+        tag: `${A} + ${B}`,
+        titleLines: ["Nosso encontro", "perfeito:"],
+        text: result.date.replace(/^O encontro perfeito para vocês: /, ""),
+        hook: "Marca quem topa 👀",
+        decorate: (ctx) => {
+          heart(ctx, W - 200, 250, 280, COLORS.pink);
+          circle(ctx, 80, H - 440, 200, COLORS.lime);
+          star(ctx, 880, 1520, 56, COLORS.yellow);
+        },
+      }),
     },
     {
       id: "areas",
