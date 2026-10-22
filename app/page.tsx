@@ -14,6 +14,7 @@ export default function Home() {
       compatEnabled={Boolean(readEnv("MERCADO_PAGO_ACCESS_TOKEN"))}
       nameAmountCents={productPrice("name")}
       paymentsEnabled={paymentsEnabled()}
+      directPayments={Boolean(readEnv("MERCADO_PAGO_PUBLIC_KEY") && readEnv("MERCADO_PAGO_ACCESS_TOKEN"))}
     />
     </>
   );

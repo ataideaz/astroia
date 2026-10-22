@@ -202,6 +202,12 @@ async function applyPaymentToOrder(order: PaymentOrder, payment: MercadoPagoPaym
 
   const status = providerStatus === "approved" ? "approved" : providerStatus;
   const now = Date.now();
+
+  // Pedido já pago: uma tentativa antiga recusada (ex.: cartão antes do Pix)
+  // não pode desfazer a aprovação. Reembolso do pagamento aprovado continua valendo.
+  if (order.status === "approved" && status !== "approved" && order.provider_payment_id && order.provider_payment_id !== paymentId) {
+    return { orderId: order.id, status: order.status, providerStatus: order.provider_status, approved: true };
+  }
   await env.DB.prepare(
     `UPDATE payment_orders
      SET status = ?, provider_payment_id = ?, provider_status = ?,
@@ -267,5 +273,150 @@ export async function refreshPaymentOrder(orderIdInput: unknown) {
     status: order.status,
     providerStatus: order.provider_status,
     approved: false,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Pagamento direto no site (Checkout Bricks): Pix e cartão sem sair do AstroIA
+// e sem login no Mercado Pago.
+
+export function directCheckoutEnabled() {
+  return Boolean(readEnv("MERCADO_PAGO_PUBLIC_KEY") && readEnv("MERCADO_PAGO_ACCESS_TOKEN"));
+}
+
+export function mercadoPagoPublicKey() {
+  return readEnv("MERCADO_PAGO_PUBLIC_KEY") || "";
+}
+
+/** Cria só o pedido no AstroIA (o pagamento é criado depois, pelo formulário no site). */
+export async function createDirectOrder(input: { items: ProductId[]; customerEmail?: unknown; personName?: unknown }) {
+  if (!input.items.length) throw new Error("Escolha o que deseja comprar.");
+  const lines = input.items.map((id) => ({ id, ...PRODUCTS[id], amountCents: productPrice(id) }));
+  const totalCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
+  const orderId = `ast_${crypto.randomUUID()}`;
+  const now = Date.now();
+  await env.DB.prepare(
+    `INSERT INTO payment_orders (
+      id, offer_mode, amount_cents, currency, customer_email, person_name,
+      theme_label, status, created_at, updated_at
+    ) VALUES (?, ?, ?, 'BRL', ?, ?, ?, 'pending', ?, ?)`,
+  ).bind(
+    orderId, input.items.join("+"), totalCents,
+    cleanEmail(input.customerEmail) || null, cleanText(input.personName, 100) || null,
+    lines.map((line) => line.title).join(" + ").slice(0, 80), now, now,
+  ).run();
+  return { orderId, amountCents: totalCents };
+}
+
+type BrickFormData = {
+  token?: unknown;
+  issuer_id?: unknown;
+  payment_method_id?: unknown;
+  installments?: unknown;
+  payer?: {
+    email?: unknown;
+    first_name?: unknown;
+    last_name?: unknown;
+    identification?: { type?: unknown; number?: unknown };
+  };
+};
+
+const REJECTION_TEXT: Record<string, string> = {
+  cc_rejected_insufficient_amount: "O cartão não tem limite suficiente. Tente outro cartão ou pague com Pix.",
+  cc_rejected_bad_filled_security_code: "O código de segurança (CVV) está incorreto. Confira e tente de novo.",
+  cc_rejected_bad_filled_date: "A data de validade está incorreta. Confira e tente de novo.",
+  cc_rejected_bad_filled_card_number: "O número do cartão está incorreto. Confira e tente de novo.",
+  cc_rejected_bad_filled_other: "Algum dado do cartão está incorreto. Confira e tente de novo.",
+  cc_rejected_call_for_authorize: "O banco pediu para você autorizar esta compra. Ligue para o banco ou use o Pix.",
+  cc_rejected_card_disabled: "Este cartão está bloqueado para compras online. Ative no app do banco ou use o Pix.",
+  cc_rejected_duplicated_payment: "Este pagamento já foi feito. Confira o seu mapa em instantes.",
+  cc_rejected_high_risk: "O pagamento foi recusado por segurança. Tente com o Pix, que é aprovado na hora.",
+  cc_rejected_max_attempts: "Muitas tentativas com este cartão. Use outro cartão ou o Pix.",
+};
+
+export function rejectionMessage(detail?: string) {
+  return (detail && REJECTION_TEXT[detail]) || "O pagamento não foi aprovado. Tente outro cartão ou pague com Pix.";
+}
+
+/** Envia ao Mercado Pago o pagamento preenchido no site, sempre com o valor do servidor. */
+export async function payDirectOrder(orderIdInput: unknown, formData: BrickFormData) {
+  const orderId = cleanText(orderIdInput, 80);
+  if (!/^ast_[0-9a-f-]{36}$/i.test(orderId)) throw new Error("Pedido inválido.");
+  const order = await getOrder(orderId);
+  if (!order) throw new Error("Pedido não encontrado.");
+  if (order.status === "approved") return { orderId, status: "approved", approved: true };
+
+  const method = cleanText(formData.payment_method_id, 40);
+  if (!/^[a-z_]{2,40}$/.test(method)) throw new Error("Escolha a forma de pagamento.");
+  const isPix = method === "pix";
+  const cardToken = cleanText(formData.token, 200);
+  if (!isPix && !cardToken) throw new Error("Confira os dados do cartão.");
+
+  const stored = await env.DB.prepare("SELECT customer_email, person_name FROM payment_orders WHERE id = ?")
+    .bind(orderId).first<{ customer_email: string | null; person_name: string | null }>();
+  const email = cleanEmail(formData.payer?.email) || stored?.customer_email || "";
+  if (!email) throw new Error("Informe o seu e-mail.");
+  const docType = cleanText(formData.payer?.identification?.type, 10).toUpperCase();
+  const docNumber = cleanText(formData.payer?.identification?.number, 20).replace(/\D/g, "");
+  const items = order.offer_mode.split("+") as ProductId[];
+  const siteUrl = getSiteUrl();
+
+  const body = {
+    transaction_amount: order.amount_cents / 100,
+    description: items.map((id) => PRODUCTS[id]?.title || id).join(" + ").slice(0, 120),
+    payment_method_id: method,
+    ...(isPix ? {} : {
+      token: cardToken,
+      installments: 1,
+      ...(cleanText(String(formData.issuer_id ?? ""), 20) ? { issuer_id: cleanText(String(formData.issuer_id), 20) } : {}),
+    }),
+    payer: {
+      email,
+      ...(cleanText(formData.payer?.first_name, 60) ? { first_name: cleanText(formData.payer?.first_name, 60) } : {}),
+      ...(cleanText(formData.payer?.last_name, 60) ? { last_name: cleanText(formData.payer?.last_name, 60) } : {}),
+      ...(docType && docNumber ? { identification: { type: docType, number: docNumber } } : {}),
+    },
+    external_reference: orderId,
+    notification_url: `${siteUrl}/api/mercado-pago/webhook`,
+    statement_descriptor: "ASTROIA",
+    metadata: { astroia_order_id: orderId, items: order.offer_mode },
+    additional_info: {
+      items: items.map((id) => ({
+        id, title: PRODUCTS[id]?.title || id, category_id: "services", quantity: 1, unit_price: productPrice(id) / 100,
+      })),
+    },
+    ...(isPix ? { date_of_expiration: new Date(Date.now() + 30 * 60000).toISOString().replace("Z", "-00:00") } : {}),
+  };
+
+  const response = await fetch(`${MERCADO_PAGO_API}/v1/payments`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAccessToken()}`,
+      "Content-Type": "application/json",
+      // Mesmo cartão (token) ou mesmo Pix do mesmo pedido: nunca cobra duas vezes.
+      "X-Idempotency-Key": `${orderId}:${isPix ? `pix${Math.floor(Date.now() / 1800000)}` : cardToken.slice(-40)}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const payment = (await response.json().catch(() => ({}))) as MercadoPagoPayment & {
+    message?: string;
+    point_of_interaction?: { transaction_data?: { qr_code?: string; qr_code_base64?: string; ticket_url?: string } };
+  };
+  if (!response.ok || !payment.id) {
+    console.warn("MP /v1/payments", response.status, JSON.stringify(payment).slice(0, 400));
+    throw new Error(isPix
+      ? "Não foi possível gerar o Pix agora. Confira o e-mail e tente de novo."
+      : "O Mercado Pago não aceitou os dados do cartão. Confira e tente de novo, ou pague com Pix.");
+  }
+
+  await env.DB.prepare("UPDATE payment_orders SET customer_email = COALESCE(customer_email, ?) WHERE id = ?").bind(email, orderId).run();
+  const result = await applyPaymentToOrder(order, payment);
+  const pix = payment.point_of_interaction?.transaction_data;
+  return {
+    orderId,
+    status: result.status,
+    approved: result.approved,
+    message: result.approved ? "" : payment.status === "rejected" ? rejectionMessage(payment.status_detail) : "",
+    pix: isPix && pix?.qr_code ? { code: pix.qr_code, image: pix.qr_code_base64 || "", url: pix.ticket_url || "" } : null,
   };
 }

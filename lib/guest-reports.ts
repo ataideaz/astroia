@@ -103,7 +103,7 @@ export async function findOpenOrder(token: string, items: ProductId[]) {
   return orders.find((order) =>
     (order.status === null || OPEN_STATUSES.has(order.status)) &&
     order.order_id.startsWith("ast_") &&
-    order.checkout_url?.startsWith("https://") &&
+    (order.checkout_url?.startsWith("https://") || order.checkout_url === "direct") &&
     parseItems(order.items).join(",") === key) ?? null;
 }
 
@@ -119,6 +119,14 @@ export async function attachOrder(token: string, orderId: string, checkoutUrl = 
   if (items.includes("map")) {
     await db.prepare("UPDATE guest_reports SET order_id = ?, checkout_url = ? WHERE token_hash = ?").bind(orderId, checkoutUrl, tokenHash).run();
   }
+}
+
+/** Confere se o pedido pertence a este mapa (o link privado é a prova de posse). */
+export async function orderBelongsToReport(token: unknown, orderId: string) {
+  if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) return false;
+  const row = await (await database()).prepare("SELECT 1 AS ok FROM report_orders WHERE order_id = ? AND token_hash = ?")
+    .bind(orderId, await digest(token)).first<{ ok: number }>();
+  return Boolean(row);
 }
 
 export async function readStoredCompat(token: string) {

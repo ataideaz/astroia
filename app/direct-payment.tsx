@@ -1,0 +1,168 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+// Pagamento dentro do AstroIA (Checkout Bricks do Mercado Pago): Pix e cartão,
+// sem login e sem criar conta. Os dados do cartão ficam nos campos seguros do
+// Mercado Pago; o nosso servidor recebe só um token.
+
+type BrickController = { unmount: () => void };
+type MercadoPagoSdk = new (publicKey: string, options?: { locale?: string }) => {
+  bricks: () => { create: (type: string, containerId: string, settings: unknown) => Promise<BrickController> };
+};
+declare global {
+  interface Window { MercadoPago?: MercadoPagoSdk }
+}
+
+let sdkPromise: Promise<void> | null = null;
+function loadSdk() {
+  if (window.MercadoPago) return Promise.resolve();
+  if (!sdkPromise) {
+    sdkPromise = new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://sdk.mercadopago.com/js/v2";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => { sdkPromise = null; reject(new Error("sdk")); };
+      document.head.appendChild(script);
+    });
+  }
+  return sdkPromise;
+}
+
+export type PixInfo = { code: string; image: string; url: string };
+
+type Props = {
+  publicKey: string;
+  amount: number;
+  email: string;
+  orderId: string;
+  reportToken: string;
+  onApproved: () => void;
+  onPix: (pix: PixInfo) => void;
+  onFallback: () => void;
+};
+
+export function DirectPayment({ publicKey, amount, email, orderId, reportToken, onApproved, onPix, onFallback }: Props) {
+  const [message, setMessage] = useState("");
+  const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [pix, setPix] = useState<PixInfo | null>(null);
+  const [copied, setCopied] = useState(false);
+  const controller = useRef<BrickController | null>(null);
+  // Callbacks em ref: re-renderizar a tela não recria o formulário de pagamento.
+  const callbacks = useRef({ onApproved, onPix });
+  callbacks.current = { onApproved, onPix };
+  const containerId = `mp-brick-${orderId.slice(-8)}-${attempt}`;
+
+  useEffect(() => {
+    if (pix) return;
+    let cancelled = false;
+    setReady(false);
+    (async () => {
+      try {
+        await loadSdk();
+        if (cancelled || !window.MercadoPago) return;
+        const mp = new window.MercadoPago(publicKey, { locale: "pt-BR" });
+        const brick = await mp.bricks().create("payment", containerId, {
+          initialization: { amount, payer: { email } },
+          customization: {
+            visual: { style: { theme: "dark" }, hideFormTitle: true },
+            paymentMethods: { bankTransfer: "all", creditCard: "all", debitCard: "all", maxInstallments: 1 },
+          },
+          callbacks: {
+            onReady: () => { if (!cancelled) setReady(true); },
+            onError: (error: { type?: string }) => {
+              console.warn("Mercado Pago Brick", error);
+              if (error?.type === "critical" && !cancelled) setFailed(true);
+            },
+            onSubmit: async ({ formData }: { formData: unknown }) => {
+              setMessage("");
+              try {
+                const response = await fetch("/api/pay", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ reportToken, orderId, formData }),
+                });
+                const result = await response.json() as { approved?: boolean; status?: string; message?: string; error?: string; pix?: PixInfo | null };
+                if (!response.ok) throw new Error(result.error || "Não foi possível processar o pagamento.");
+                if (result.approved) { callbacks.current.onApproved(); return; }
+                if (result.pix) { setPix(result.pix); callbacks.current.onPix(result.pix); return; }
+                if (result.status === "in_process" || result.status === "pending") {
+                  setMessage("O banco está analisando o pagamento. Assim que ele aprovar, o conteúdo abre aqui sozinho.");
+                  callbacks.current.onPix({ code: "", image: "", url: "" });
+                  return;
+                }
+                throw new Error(result.message || "O pagamento não foi aprovado. Tente outro cartão ou pague com Pix.");
+              } catch (error) {
+                setMessage(error instanceof Error ? error.message : "Não foi possível processar o pagamento.");
+                // Recria o formulário para a pessoa tentar de novo.
+                window.setTimeout(() => setAttempt((value) => value + 1), 50);
+              }
+            },
+          },
+        });
+        if (cancelled) brick.unmount(); else controller.current = brick;
+      } catch {
+        if (!cancelled) setFailed(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      try { controller.current?.unmount(); } catch { /* já desmontado */ }
+      controller.current = null;
+    };
+  }, [publicKey, amount, email, orderId, reportToken, containerId, pix]);
+
+  async function copyPix() {
+    if (!pix?.code) return;
+    try {
+      await navigator.clipboard.writeText(pix.code);
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = pix.code; document.body.appendChild(area); area.select();
+      try { document.execCommand("copy"); } catch { /* sem cópia */ }
+      area.remove();
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2500);
+  }
+
+  if (pix?.code) {
+    return (
+      <div className="dp-pix">
+        <h3>Pague com Pix</h3>
+        <ol>
+          <li>Toque em <strong>Copiar código Pix</strong>.</li>
+          <li>Abra o app do seu banco → Pix → <strong>Pix Copia e Cola</strong>.</li>
+          <li>Cole e confirme. Pronto: aqui libera sozinho em segundos.</li>
+        </ol>
+        <button className="checkout-primary dp-copy" onClick={copyPix} type="button">
+          {copied ? "✓ Código copiado!" : "Copiar código Pix"}
+        </button>
+        {pix.image ? <img alt="QR Code do Pix" className="dp-qr" src={`data:image/png;base64,${pix.image}`} /> : null}
+        <p className="dp-hint">No computador? Aponte a câmera do celular para o QR Code no app do banco.</p>
+        <p className="dp-wait"><span className="dp-dot" aria-hidden="true" /> Esperando o pagamento… o código vale por 30 minutos.</p>
+      </div>
+    );
+  }
+
+  if (failed) {
+    return (
+      <div className="dp-fallback">
+        <p>Não conseguimos abrir o formulário de pagamento aqui.</p>
+        <button className="checkout-primary" onClick={onFallback} type="button">Pagar pelo site do Mercado Pago →</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dp-wrap">
+      {!ready ? <p className="dp-loading">Carregando pagamento seguro…</p> : null}
+      {message ? <p className="checkout-payment-message" role="alert">{message}</p> : null}
+      <div id={containerId} key={containerId} />
+      <button className="dp-alt" onClick={onFallback} type="button">Prefiro pagar pelo site do Mercado Pago</button>
+    </div>
+  );
+}

@@ -1,7 +1,7 @@
 import { attachOrder, findOpenOrder, getGuestReport, limitRequest } from "../../../lib/guest-reports";
 import { normalizedEmail } from "../../../lib/site-auth";
 import { createAsaasCheckout, paymentsEnabled } from "../../../lib/asaas";
-import { cleanItems } from "../../../lib/products";
+import { cleanItems, productPrice } from "../../../lib/products";
 import { readEnv } from "../../../lib/runtime-env";
 import { cleanAdSignals, cleanAttribution } from "../../../lib/attribution";
 import { recordSiteEvent } from "../../../lib/site-events";
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!paymentsEnabled()) throw new Error("O pagamento está temporariamente desativado para testes.");
     const raw = await request.text();
     if (raw.length > 12000) throw new Error("Solicitação muito grande.");
-    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown};
+    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown; mode?: string};
     const email = normalizedEmail(body.customerEmail);
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
@@ -32,19 +32,29 @@ export async function POST(request: Request) {
 
     // Mesmo mapa e mesmos produtos, com pagamento já criado: devolve o mesmo link
     // (não cria outro pedido e não conta no limite).
+    const mp = readEnv("MERCADO_PAGO_ACCESS_TOKEN") ? await import("../../../lib/mercado-pago") : null;
+    // Pagamento no próprio site (Pix e cartão sem login), a não ser que a pessoa peça o site do Mercado Pago.
+    const direct = Boolean(mp?.directCheckoutEnabled()) && body.mode !== "redirect";
+    const directInfo = (orderId: string) => ({
+      orderId, mode: "direct", items, email,
+      amount: items.reduce((sum, item) => sum + productPrice(item), 0) / 100,
+      publicKey: mp?.mercadoPagoPublicKey() ?? "",
+    });
     const open = await findOpenOrder(body.reportToken, items);
-    if (open?.checkout_url) {
+    if (open?.checkout_url && (open.checkout_url === "direct") === direct) {
+      if (direct) return Response.json(directInfo(open.order_id), {headers:{"Cache-Control":"no-store"}});
       return Response.json({orderId: open.order_id, checkoutUrl: open.checkout_url, items}, {headers:{"Cache-Control":"no-store"}});
     }
     await limitRequest(request, "checkout", 30);
-    if (readEnv("MERCADO_PAGO_ACCESS_TOKEN")) {
-      const { createPaymentPreference } = await import("../../../lib/mercado-pago");
-      const checkout = await createPaymentPreference({
-        items,
-        customerEmail: email,
-        personName: report.analysis.person.fullName,
-        reportToken: body.reportToken,
-      });
+    if (mp) {
+      const checkout = direct
+        ? { ...(await mp.createDirectOrder({ items, customerEmail: email, personName: report.analysis.person.fullName })), checkoutUrl: "direct" }
+        : await mp.createPaymentPreference({
+            items,
+            customerEmail: email,
+            personName: report.analysis.person.fullName,
+            reportToken: body.reportToken,
+          });
       const signals = cleanAdSignals(body.ad);
       const attribution = cleanAttribution(body.attribution);
       await attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl, items, {
@@ -54,7 +64,8 @@ export async function POST(request: Request) {
         userAgent: request.headers.get("user-agent")?.slice(0, 400) || undefined,
       });
       await recordSiteEvent("checkout", attribution);
-      return Response.json({...checkout, items}, {headers:{"Cache-Control":"no-store"}});
+      if (direct) return Response.json(directInfo(checkout.orderId), {headers:{"Cache-Control":"no-store"}});
+      return Response.json({orderId: checkout.orderId, checkoutUrl: checkout.checkoutUrl, items}, {headers:{"Cache-Control":"no-store"}});
     }
     if (items.some((item) => item !== "map")) throw new Error("Este produto ainda não está disponível neste meio de pagamento.");
     const checkout = await createAsaasCheckout(body.reportToken, email, report.analysis.person.fullName);
