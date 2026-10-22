@@ -815,6 +815,18 @@ function formatPrice(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** Repete a requisição se a rede falhar (comum no celular ao trocar de app/aba). */
+async function fetchWithRetry(url: string, init: RequestInit, attempts = 3): Promise<Response> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 600 * attempt));
+    }
+  }
+}
+
 export default function Home({
   paymentAmountCents = 3790,
   compatAmountCents = 3200,
@@ -1380,7 +1392,10 @@ export default function Home({
       setCheckoutStatus("approved");
       return;
     }
-    const paymentWindow = window.open("about:blank", "_blank");
+    // No celular, abrir outra aba antes da resposta faz o Safari pausar esta página
+    // e a requisição falha ("Load failed"). Lá o pagamento abre na mesma aba.
+    const sameTab = window.matchMedia?.("(pointer: coarse)").matches || window.innerWidth < 820;
+    const paymentWindow = sameTab ? null : window.open("about:blank", "_blank");
     if (paymentWindow) paymentWindow.opener = null;
     activeCheckoutOrderId.current = null;
     window.sessionStorage.removeItem(PAYMENT_CHECKOUT_STORAGE_KEY);
@@ -1388,7 +1403,7 @@ export default function Home({
     setCheckoutError("");
 
     try {
-      const response = await fetch("/api/checkout", {
+      const response = await fetchWithRetry("/api/checkout", {
         method: "POST",
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
@@ -1427,7 +1442,7 @@ export default function Home({
         JSON.stringify(checkoutSession),
       );
       if (paymentWindow) paymentWindow.location.replace(payload.checkoutUrl);
-      else window.location.assign(payload.checkoutUrl);
+      else { window.location.assign(payload.checkoutUrl); return; }
       setCheckoutStatus("idle"); setCheckoutOpen(false); setAwaitingPayment(true); setPendingItems(checkoutItems);
       setAccessStatus(
         checkoutProduct === "compat"
@@ -1441,10 +1456,11 @@ export default function Home({
       activeCheckoutOrderId.current = null;
       window.sessionStorage.removeItem(PAYMENT_CHECKOUT_STORAGE_KEY);
       setCheckoutStatus("idle");
+      const message = error instanceof Error ? error.message : "";
       setCheckoutError(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível iniciar o pagamento.",
+        !message || /load failed|failed to fetch|networkerror|network request/i.test(message)
+          ? "A conexão falhou por um instante. Toque em \"Tentar de novo\"."
+          : message,
       );
     }
   }
