@@ -7242,3 +7242,154 @@ footer {
   border-color: rgba(239, 143, 191, 0.6);
   color: #ffd3e8;
 }
+
+/* Numerologia do Nome */
+.nm {
+  margin: 28px 0;
+  border: 1px solid rgba(255, 106, 26, 0.4);
+  border-radius: 24px;
+  padding: clamp(20px, 4vw, 36px);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 106, 26, 0.16), transparent 380px),
+    radial-gradient(circle at 0% 100%, rgba(198, 244, 50, 0.08), transparent 380px),
+    var(--panel);
+}
+.nm > * { min-width: 0; }
+.nm .pr-kicker { color: #ffb27a; }
+.nm h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(30px, 5vw, 44px);
+  line-height: 1.05;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.nm h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(21px, 3.2vw, 26px);
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.nm p {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.65;
+  color: #ddd6ea;
+  margin: 0 0 12px;
+}
+.nm-intro { max-width: 760px; }
+.nm-numbers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 10px;
+  margin: 18px 0 22px;
+}
+.nm-number {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 18px;
+  text-decoration: none;
+  background: var(--deep);
+  border: 1px solid rgba(255, 106, 26, 0.3);
+}
+.nm-number strong {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 38px;
+  line-height: 1;
+  background: linear-gradient(135deg, #ffd23f, #ff6a1a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.nm-number span {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.nm-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+.nm-card {
+  min-width: 0;
+  border: 1px solid var(--soft-line);
+  border-radius: 18px;
+  background: var(--deep);
+  padding: 18px;
+}
+.nm-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.nm-badge {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 20px;
+  color: #140a3a;
+  background: linear-gradient(135deg, #ffd23f, #ff6a1a);
+}
+.nm-card-top small {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffb27a;
+}
+.nm-card-top span {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--muted);
+}
+.nm-power {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.nm-power article {
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(255, 106, 26, 0.16), rgba(255, 210, 63, 0.08));
+  border: 1px solid rgba(255, 106, 26, 0.35);
+}
+.nm-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+.nm-days span {
+  min-width: 56px;
+  height: 56px;
+  padding: 0 10px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 26px;
+  color: #c6f432;
+  background: #140a3a;
+}
+.nm-offer-buy {
+  border-color: rgba(255, 106, 26, 0.45) !important;
+}
