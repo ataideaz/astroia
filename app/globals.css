@@ -7481,3 +7481,12 @@ footer {
 .dp-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gold-light); animation: dpPulse 1.2s ease-in-out infinite; }
 @keyframes dpPulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
 .dp-fallback { display: grid; gap: 10px; text-align: center; }
+.pn-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 18px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.pn-tabs button { background: none; border: 0; color: rgba(236,232,255,.7); font: 700 14px var(--font-ui); padding: 10px 12px; cursor: pointer; border-bottom: 3px solid transparent; }
+.pn-tabs button.on { color: #fff; border-bottom-color: var(--gold-light); }
+.pn-tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+.pn-tools input { flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: inherit; font: inherit; }
+.pn-badge { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+.pn-badge.ok { background: rgba(120,220,140,.18); color: #9ef0b0; }
+.pn-badge.bad { background: rgba(255,120,120,.18); color: #ffaaaa; }
+.pn-badge.warn { background: rgba(240,214,157,.18); color: var(--gold-light); }

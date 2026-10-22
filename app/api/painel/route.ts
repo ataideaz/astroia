@@ -1,19 +1,8 @@
 import { env } from "cloudflare:workers";
 import { cleanAttribution, dayInBrazil, sourceOf, type Attribution } from "../../../lib/attribution";
-import { limitRequest } from "../../../lib/guest-reports";
+import { checkAdmin } from "../../../lib/admin-auth";
 import { readEnv } from "../../../lib/runtime-env";
 export const dynamic = "force-dynamic";
-
-async function sha256(value: string) {
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return new Uint8Array(hash);
-}
-async function sameSecret(a: string, b: string) {
-  const [x, y] = await Promise.all([sha256(a), sha256(b)]);
-  let diff = 0;
-  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
-  return diff === 0;
-}
 
 type Row = { day: string; type: string; source: string; campaign: string | null; total: number };
 type Sale = { id: string; offer_mode: string; amount_cents: number; approved_at: number; ro_attr: string | null; gr_attr: string | null };
@@ -22,15 +11,8 @@ type Sale = { id: string; offer_mode: string; amount_cents: number; approved_at:
 const SALES_SINCE = Date.parse("2026-10-22T15:00:00Z");
 
 export async function GET(request: Request) {
-  const expected = readEnv("ADMIN_KEY");
-  if (!expected || expected.length < 12) {
-    return Response.json({ error: "Painel ainda não configurado: crie o segredo ADMIN_KEY na Cloudflare." }, { status: 503 });
-  }
-  try { await limitRequest(request, "painel", 120); } catch {
-    return Response.json({ error: "Muitas tentativas. Aguarde alguns minutos." }, { status: 429 });
-  }
-  const key = request.headers.get("x-admin-key") || "";
-  if (!(await sameSecret(key, expected))) return Response.json({ error: "Chave incorreta." }, { status: 401 });
+  const denied = await checkAdmin(request);
+  if (denied) return denied;
 
   const url = new URL(request.url);
   const days = Math.min(90, Math.max(1, Number(url.searchParams.get("dias")) || 30));
