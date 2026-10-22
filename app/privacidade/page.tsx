@@ -63,7 +63,7 @@ export default function PrivacyPage() {
       </header>
 
       <section className="legal-hero shell">
-        <span className="section-kicker">Última atualização: 20/09/2026</span>
+        <span className="section-kicker">Última atualização: 22/10/2026</span>
         <h1>Política de Privacidade</h1>
         <p>
           Entenda, em linguagem simples, quais dados o AstroIA utiliza, para
@@ -77,10 +77,10 @@ export default function PrivacyPage() {
             <h2>1. Quem controla os dados</h2>
             <p>
               O controlador é o <strong>AstroIA</strong>, serviço digital
-              brasileiro de astrologia e autoconhecimento. Durante a fase de
-              protótipo, o canal oficial de privacidade é o formulário desta
-              página. A identificação empresarial será atualizada antes do
-              lançamento comercial.
+              brasileiro de astrologia e autoconhecimento. Para qualquer
+              assunto sobre os seus dados, use o formulário desta página ou
+              escreva para{" "}
+              <a href="mailto:contato@meuastroia.com.br">contato@meuastroia.com.br</a>.
             </p>
           </section>
 

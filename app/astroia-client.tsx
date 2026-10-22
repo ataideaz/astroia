@@ -3057,6 +3057,15 @@ export default function Home({
             </p>
           </details>
           <details>
+            <summary>E se eu não gostar?</summary>
+            <p>
+              Você tem garantia de 7 dias: escreva para
+              contato@meuastroia.com.br com o e-mail da compra e o nome do mapa,
+              e devolvemos 100% do valor pelo Mercado Pago, sem perguntas. Veja
+              os detalhes nos <a href="/termos#garantia">Termos de Uso</a>.
+            </p>
+          </details>
+          <details>
             <summary>Usa inteligência artificial?</summary>
             <p>
               O cálculo do mapa é astronômico, feito com a posição real dos
@@ -3327,7 +3336,12 @@ export default function Home({
                   </li>
                   <li>Pix ou cartão</li>
                   <li>Liberado na hora</li>
+                  <li>Garantia de 7 dias</li>
                 </ul>
+                <p className="ck-terms">
+                  Não gostou? Devolvemos o seu dinheiro em até 7 dias. Ao pagar, você concorda com os{" "}
+                  <a href="/termos" rel="noreferrer" target="_blank">Termos de Uso</a>.
+                </p>
 
                 <button
                   className="checkout-free-button ck-back"
@@ -3364,6 +3378,8 @@ export default function Home({
             Conteúdo para entretenimento e autoconhecimento.
           </small>
           <div className="footer-links">
+            <a href="/termos">Termos de Uso</a>
+            <a href="/termos#garantia">Garantia de 7 dias</a>
             <a href="/privacidade">Política de Privacidade</a>
             <a href="/descadastrar">Cancelar e-mails</a>
           </div>

@@ -4686,7 +4686,8 @@ footer {
   line-height: 1.8;
 }
 
-.legal-content ul {
+.legal-content ul,
+.legal-content ol {
   padding-left: 18px;
 }
 
@@ -7393,3 +7394,12 @@ footer {
 .nm-offer-buy {
   border-color: rgba(255, 106, 26, 0.45) !important;
 }
+.ck-terms {
+  margin: 10px 0 0;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--muted);
+}
+.ck-terms a { color: var(--gold-light); }
