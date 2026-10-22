@@ -7221,3 +7221,16 @@ footer {
     height: 213px;
   }
 }
+.fr-compat-teaser {
+  margin-top: 16px;
+  border: 1px solid rgba(239, 143, 191, 0.45);
+  border-radius: 20px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(239, 143, 191, 0.18), transparent 320px),
+    var(--deep);
+}
+.fr-compat-teaser .fr-teaser-top span,
+.fr-compat-teaser .fr-teaser-top small {
+  color: #ef8fbf;
+}

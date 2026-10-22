@@ -6,7 +6,7 @@ import type {
   Placement,
   RecipientType,
 } from "../lib/astro-analysis";
-import { PremiumReport, type CompatState } from "./premium-report";
+import { CompatSection, PremiumReport, type CompatState } from "./premium-report";
 import { StoryShare, personalCards } from "./story-cards";
 import type { PremiumReading } from "../lib/premium-reading";
 
@@ -675,11 +675,15 @@ function FreeTeasers({
   firstName,
   price,
   onUnlock,
+  compatPrice,
+  onUnlockWithCompat,
 }: {
   reading: FreeReadingData;
   firstName: string;
   price: string;
   onUnlock: () => void;
+  compatPrice?: string;
+  onUnlockWithCompat?: () => void;
 }) {
   return (
     <section className="fr-teasers" aria-labelledby="fr-teasers-title">
@@ -715,6 +719,28 @@ function FreeTeasers({
           </article>
         ))}
       </div>
+      {onUnlockWithCompat && compatPrice && (
+        <article className="fr-compat-teaser">
+          <div className="fr-teaser-top">
+            <span aria-hidden="true">♡</span>
+            <small>Compatibilidade do casal</small>
+          </div>
+          <h3>E como você combina com o seu par?</h3>
+          <p>
+            Cruze o seu mapa com o de quem você ama e descubra a porcentagem de
+            sintonia de vocês, o arquétipo do casal, como cada pessoa se sente
+            amada e como fazer as pazes depois de uma briga.
+          </p>
+          <ul className="fr-locked">
+            <li><span aria-hidden="true">🔒</span> A sintonia de vocês, em porcentagem</li>
+            <li><span aria-hidden="true">🔒</span> Coração, atração, conversa e dia a dia</li>
+            <li><span aria-hidden="true">🔒</span> Stories do casal para postar</li>
+          </ul>
+          <button className="fr-teaser-unlock" onClick={onUnlockWithCompat} type="button">
+            Quero o mapa + compatibilidade (+ {compatPrice})
+          </button>
+        </article>
+      )}
       <div className="fr-unlock-box">
         <div>
           <strong>Mapa completo · {price}</strong>
@@ -2642,6 +2668,18 @@ export default function Home({
               }}
               price={paymentPrice}
               reading={newFreeReading}
+              compatPrice={compatOffered ? compatPrice : undefined}
+              onUnlockWithCompat={
+                compatOffered
+                  ? () => {
+                      setOfferMode("individual");
+                      setCheckoutProduct("map");
+                      setAddCompat(true);
+                      setCheckoutEmail(form.email);
+                      openCheckout(null, "upgrade");
+                    }
+                  : undefined
+              }
             />
           )}
 
@@ -2767,9 +2805,9 @@ export default function Home({
                   <p>Um novo Premium completo, salvo como perfil separado.</p>
                 </div>
                 <div>
-                  <span>EM BREVE</span>
+                  <span>{products.compat ? "LIBERADA" : `+ ${compatPrice}`}</span>
                   <h3>Compatibilidade</h3>
-                  <p>O encontro entre dois mapas, pontos de apoio e desafios.</p>
+                  <p><a href="#compatibilidade">O encontro entre dois mapas: sintonia, pontos fortes e dicas para o casal.</a></p>
                 </div>
                 <div>
                   <span>EM BREVE</span>
@@ -2778,6 +2816,22 @@ export default function Home({
                 </div>
               </div>
             </article>
+          )}
+
+          {reportTier === "premium" && !newPremium && (
+            <CompatSection
+              compat={compat}
+              compatOffered={compatOffered}
+              compatOwned={products.compat}
+              compatPending={awaitingPayment && pendingItems.includes("compat")}
+              compatPrice={compatPrice}
+              onBuyCompat={openCompatCheckout}
+              onCompatSaved={(saved) => {
+                setCompat(saved);
+                setAccessStatus("");
+              }}
+              reportToken={reportToken}
+            />
           )}
 
           </>)}

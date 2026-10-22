@@ -349,7 +349,12 @@ function CompatForm({
   );
 }
 
-function CompatSection(props: Props) {
+export type CompatSectionProps = Pick<
+  Props,
+  "compatOwned" | "compatOffered" | "compatPrice" | "compat" | "compatPending" | "onBuyCompat" | "reportToken" | "onCompatSaved"
+>;
+
+export function CompatSection(props: CompatSectionProps) {
   const { compatOwned, compatOffered, compatPrice, compat, compatPending, onBuyCompat, reportToken, onCompatSaved } = props;
   const [editing, setEditing] = useState(false);
   if (!compatOwned && !compatOffered) return null;
