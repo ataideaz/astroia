@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import type { AnalysisResult } from "../lib/astro-analysis";
 import type { CompatResult } from "../lib/compatibility";
 import type { PremiumChapter, PremiumReading } from "../lib/premium-reading";
+import { StoryShare, compatCards } from "./story-cards";
 
 export type CompatState = {
   result: CompatResult;
@@ -101,136 +102,6 @@ function Months({ reading }: { reading: PremiumReading }) {
   );
 }
 
-async function makeCompatImage(result: CompatResult): Promise<Blob> {
-  const width = 1080;
-  const height = 1920;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas");
-  const root = getComputedStyle(document.documentElement);
-  const serif = root.getPropertyValue("--font-cormorant").trim() || "Georgia, serif";
-  const sans = root.getPropertyValue("--font-manrope").trim() || "Arial, sans-serif";
-  await Promise.all([
-    document.fonts.load(`600 120px ${serif}`),
-    document.fonts.load(`400 40px ${sans}`),
-    document.fonts.load(`700 40px ${sans}`),
-  ]).catch(() => undefined);
-
-  const bg = ctx.createLinearGradient(0, 0, 0, height);
-  bg.addColorStop(0, "#1a0f2e");
-  bg.addColorStop(1, "#070916");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
-  const glow = ctx.createRadialGradient(width / 2, 760, 40, width / 2, 760, 700);
-  glow.addColorStop(0, "rgba(232, 120, 170, 0.35)");
-  glow.addColorStop(1, "rgba(232, 120, 170, 0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, width, height);
-  let seed = result.score * 97 + 13;
-  const random = () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / 233280;
-  };
-  for (let index = 0; index < 130; index += 1) {
-    ctx.globalAlpha = 0.25 + random() * 0.6;
-    ctx.fillStyle = random() > 0.7 ? "#f0d69d" : "#f7f1e8";
-    ctx.beginPath();
-    ctx.arc(random() * width, random() * height, 1 + random() * 2.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-  ctx.textAlign = "center";
-
-  const fit = (text: string, weight: string, size: number, family: string, max: number) => {
-    let current = size;
-    ctx.font = `${weight} ${current}px ${family}`;
-    while (ctx.measureText(text).width > max && current > 30) {
-      current -= 4;
-      ctx.font = `${weight} ${current}px ${family}`;
-    }
-  };
-
-  ctx.fillStyle = "#f0d69d";
-  ctx.beginPath();
-  ctx.arc(width / 2 - 118, 196, 16, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.font = `600 54px ${serif}`;
-  ctx.fillStyle = "#f7f1e8";
-  ctx.fillText("AstroIA", width / 2, 214);
-
-  ctx.font = `700 34px ${sans}`;
-  ctx.fillStyle = "#e4bc72";
-  ctx.fillText("NOSSA COMPATIBILIDADE", width / 2, 430);
-
-  const names = `${result.names[0]} + ${result.names[1]}`;
-  fit(names, "600", 110, serif, 940);
-  ctx.fillStyle = "#f7f1e8";
-  ctx.fillText(names, width / 2, 570);
-
-  // Anel do placar
-  const cx = width / 2;
-  const cy = 860;
-  const radius = 210;
-  ctx.lineWidth = 34;
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.stroke();
-  const ring = ctx.createLinearGradient(cx - radius, 0, cx + radius, 0);
-  ring.addColorStop(0, "#f0d69d");
-  ring.addColorStop(1, "#ef8fbf");
-  ctx.strokeStyle = ring;
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * result.score) / 100);
-  ctx.stroke();
-  ctx.font = `600 170px ${serif}`;
-  ctx.fillStyle = "#f7f1e8";
-  ctx.fillText(`${result.score}%`, cx, cy + 58);
-  ctx.font = `700 34px ${sans}`;
-  ctx.fillStyle = "#e4bc72";
-  ctx.fillText("DE SINTONIA", cx, cy + 300);
-
-  const tagline = result.archetype?.name ?? result.headline;
-  fit(tagline, "600", 76, serif, 940);
-  ctx.fillStyle = "#f7f1e8";
-  ctx.fillText(tagline, width / 2, 1290);
-
-  // Áreas
-  const top = 1370;
-  result.areas.forEach((area, index) => {
-    const y = top + index * 66;
-    ctx.textAlign = "left";
-    ctx.font = `700 34px ${sans}`;
-    ctx.fillStyle = "#ddd6ea";
-    ctx.fillText(area.label, 150, y + 12);
-    ctx.fillStyle = "rgba(255,255,255,0.12)";
-    ctx.beginPath();
-    ctx.roundRect(430, y - 14, 420, 26, 13);
-    ctx.fill();
-    ctx.fillStyle = "#ef8fbf";
-    ctx.beginPath();
-    ctx.roundRect(430, y - 14, Math.max(26, (420 * area.score) / 100), 26, 13);
-    ctx.fill();
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#f7f1e8";
-    ctx.fillText(`${area.score}%`, 960, y + 12);
-  });
-  ctx.textAlign = "center";
-  ctx.font = `400 36px ${sans}`;
-  ctx.fillStyle = "#b6aec5";
-  ctx.fillText("Descubra a sua em", width / 2, 1720);
-  ctx.font = `700 44px ${sans}`;
-  ctx.fillStyle = "#f0d69d";
-  ctx.fillText(window.location.host, width / 2, 1782);
-
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("blob"))), "image/png"),
-  );
-}
-
 function CompatResultView({
   compat,
   onEdit,
@@ -239,41 +110,6 @@ function CompatResultView({
   onEdit: () => void;
 }) {
   const { result } = compat;
-  const [status, setStatus] = useState("");
-  const [busy, setBusy] = useState(false);
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const whatsapp = `https://wa.me/?text=${encodeURIComponent(`${result.shareText} ${siteUrl}`)}`;
-
-  async function shareImage() {
-    setBusy(true);
-    setStatus("");
-    try {
-      const blob = await makeCompatImage(result);
-      const file = new File([blob], "nossa-compatibilidade-astroia.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], text: `${result.shareText} ${siteUrl}` });
-          setStatus("Pronto! Escolha onde quer postar.");
-          return;
-        } catch (error) {
-          if (error instanceof DOMException && error.name === "AbortError") return;
-        }
-      }
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "nossa-compatibilidade-astroia.png";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(link.href), 5000);
-      setStatus("Imagem baixada! Ela está na sua pasta de downloads.");
-    } catch {
-      setStatus("Não deu para criar a imagem neste navegador. Tente pelo celular ou use o WhatsApp.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <div className="cp-result">
       <div className="cp-hero">
@@ -406,18 +242,13 @@ function CompatResultView({
         </article>
       )}
 
-      <div className="cp-share">
-        <p className="fr-share-title">Mostre a compatibilidade de vocês</p>
-        <div className="fr-share-buttons cp-share-buttons">
-          <a className="fr-social fr-social-whatsapp" href={whatsapp} rel="noreferrer" target="_blank">
-            <img alt="" className="fr-social-glyph" src="/icons/whatsapp-glyph-white.svg" /> WhatsApp
-          </a>
-          <button className="fr-social fr-social-instagram" disabled={busy} onClick={shareImage} type="button">
-            <img alt="" className="fr-social-glyph" src="/icons/instagram-glyph-white.svg" /> Stories
-          </button>
-        </div>
-        {status && <p role="status">{status}</p>}
-      </div>
+      <StoryShare
+        cards={compatCards(result)}
+        filePrefix="nossa-compatibilidade-astroia"
+        shareText={result.shareText}
+        subtitle="Três stories com a sintonia de vocês, o arquétipo do casal e o que mais une vocês. Marque o seu par e desafie os amigos a fazer o deles 💞"
+        title="Postem a compatibilidade de vocês"
+      />
       <p className="cp-note">{result.note}</p>
       {compat.canEdit && (
         <button className="fr-share-download" onClick={onEdit} type="button">
@@ -627,6 +458,15 @@ export function PremiumReport(props: Props) {
         <span aria-hidden="true">✦</span>
         <p>{reading.closing}</p>
       </section>
+
+      <a className="st-reminder" href="#fr-archetype-title">
+        <span aria-hidden="true">📲</span>
+        <span>
+          <strong>Gostou do seu mapa?</strong> Os seus stories estão prontos lá em cima. Poste e
+          descubra quais amigos têm o mesmo arquétipo que você.
+        </span>
+        <span aria-hidden="true">↑</span>
+      </a>
     </div>
   );
 }
