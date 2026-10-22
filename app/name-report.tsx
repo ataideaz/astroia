@@ -1,7 +1,6 @@
 "use client";
 
 import type { NameReading } from "../lib/name-numerology";
-import { StoryShare, nameCards } from "./story-cards";
 
 export function NameReadingView({ reading }: { reading: NameReading }) {
   return (
@@ -52,13 +51,14 @@ export function NameReadingView({ reading }: { reading: NameReading }) {
         </article>
       </div>
 
-      <StoryShare
-        cards={nameCards(reading)}
-        filePrefix="meu-nome-astroia"
-        shareText={`Meu nome vibra no número ${reading.numbers.expression} ✦ Descubra o que o seu nome revela:`}
-        subtitle="Stories com o número do seu nome, a sua alma e os seus dias de poder. Desafie os amigos a descobrir o deles 👀"
-        title="Poste o que o seu nome revela"
-      />
+      <a className="st-reminder" href="#fr-archetype-title">
+        <span aria-hidden="true">📲</span>
+        <span>
+          <strong>Os stories do seu nome já estão prontos</strong> junto com os outros, lá em cima. Poste
+          e desafie os amigos a descobrir o número do nome deles.
+        </span>
+        <span aria-hidden="true">↑</span>
+      </a>
       <p className="pr-source">{reading.closing}</p>
     </section>
   );

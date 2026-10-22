@@ -7,7 +7,7 @@ import type {
   RecipientType,
 } from "../lib/astro-analysis";
 import { CompatSection, PremiumReport, type CompatState } from "./premium-report";
-import { StoryShare, personalCards } from "./story-cards";
+import { StoryShare, nameCards, personalCards } from "./story-cards";
 import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
 import type { PremiumReading } from "../lib/premium-reading";
@@ -543,39 +543,67 @@ const PLANET_SIMPLE: Record<string, string> = {
   pluto: "onde você se transforma",
 };
 
+function kidPlanetSimple(name: string): Record<string, string> {
+  return {
+    sun: `quem ${name} é por dentro`,
+    moon: `o que ${name} sente`,
+    mercury: `como ${name} aprende e conversa`,
+    venus: "o carinho e as amizades",
+    mars: "a energia e as birras",
+    jupiter: "os talentos e dons",
+    saturn: "onde precisa de mais apoio",
+    uranus: "o lado criativo e diferente",
+    neptune: "a imaginação",
+    pluto: "a força interior",
+  };
+}
+
 function FreeReadingView({
   analysis,
   reading,
   premium,
+  nameReading,
 }: {
   analysis: AnalysisResult;
   reading: FreeReadingData;
   premium?: PremiumReading | null;
+  nameReading?: NameReading | null;
 }) {
+  const kid = reading.audience === "child";
+  const kidName = analysis.person.firstName;
+  const planetSimple = kid ? kidPlanetSimple(kidName) : PLANET_SIMPLE;
   return (
     <div className="fr">
       <section className="fr-archetype" aria-labelledby="fr-archetype-title">
-        <span className="fr-kicker">Seu arquétipo</span>
+        <span className="fr-kicker">{kid ? `O arquétipo de ${kidName}` : "Seu arquétipo"}</span>
         <h2 id="fr-archetype-title">{reading.archetype.name}</h2>
         <p className="fr-archetype-text">{reading.archetype.text}</p>
         <p className="fr-archetype-combos">{reading.archetype.combinations}</p>
         <StoryShare
-          cards={personalCards(reading, premium ?? null)}
+          cards={[...personalCards(reading, premium ?? null, analysis.person), ...(nameReading ? nameCards(nameReading) : [])]}
           filePrefix="meu-mapa-astroia"
-          shareText={`Meu arquétipo no AstroIA é ${reading.archetype.name} ✦ Descubra o seu:`}
-          subtitle="Fizemos stories com o seu arquétipo, o seu trio e o seu superpoder. Poste e veja quantos amigos vão querer descobrir o deles 👀"
-          title="Mostre o seu mapa para os amigos"
+          shareText={
+            kid
+              ? `Aqui em casa mora ${reading.archetype.name} ✦ Descubra o da sua criança:`
+              : `Meu arquétipo no AstroIA é ${reading.archetype.name} ✦ Descubra o seu:`
+          }
+          subtitle={
+            kid
+              ? `Stories com o arquétipo, o trio e o superpoder de ${kidName}. Mostre para a família e para os amigos 💛`
+              : "Fizemos stories com o seu arquétipo, o seu trio e o seu superpoder. Poste e veja quantos amigos vão querer descobrir o deles 👀"
+          }
+          title={kid ? `Mostre o mapa de ${kidName}` : "Mostre o seu mapa para os amigos"}
         />
       </section>
 
       {analysis.placements.length > 0 && (
         <section className="fr-chart" aria-labelledby="fr-chart-title">
           <span className="fr-kicker">Seu céu de nascimento</span>
-          <h2 id="fr-chart-title">Assim estava o céu quando você nasceu</h2>
+          <h2 id="fr-chart-title">{kid ? `Assim estava o céu quando ${kidName} nasceu` : "Assim estava o céu quando você nasceu"}</h2>
           <p>
-            No dia e na hora em que você nasceu, cada planeta estava passando
-            por um signo do céu. Cada planeta cuida de uma parte da sua vida, e
-            o signo mostra o jeito como essa parte funciona em você.
+            {kid
+              ? `No dia e na hora em que ${kidName} nasceu, cada planeta estava passando por um signo do céu. Cada planeta cuida de uma parte do jeito de ser, e o signo mostra como essa parte aparece em ${kidName}.`
+              : "No dia e na hora em que você nasceu, cada planeta estava passando por um signo do céu. Cada planeta cuida de uma parte da sua vida, e o signo mostra o jeito como essa parte funciona em você."}
           </p>
           <NatalChart analysis={analysis} />
           <ul className="fr-planet-list">
@@ -585,7 +613,7 @@ function FreeReadingView({
                 <span className="fr-planet-name">
                   Ascendente em <strong>{analysis.bigThree.ascendant.sign}</strong>
                 </span>
-                <small>como os outros veem você</small>
+                <small>{kid ? `como ${kidName} chega nos lugares` : "como os outros veem você"}</small>
               </li>
             )}
             {analysis.placements.map((placement) => (
@@ -594,7 +622,7 @@ function FreeReadingView({
                 <span className="fr-planet-name">
                   {placement.label} em <strong>{placement.sign}</strong>
                 </span>
-                <small>{PLANET_SIMPLE[placement.key] ?? ""}</small>
+                <small>{planetSimple[placement.key] ?? ""}</small>
               </li>
             ))}
           </ul>
@@ -602,7 +630,7 @@ function FreeReadingView({
       )}
 
       <section className="fr-layers" aria-labelledby="fr-layers-title">
-        <span className="fr-kicker">As partes mais importantes do seu mapa</span>
+        <span className="fr-kicker">{kid ? `As partes mais importantes do mapa de ${kidName}` : "As partes mais importantes do seu mapa"}</span>
         <h2 id="fr-layers-title">{reading.mirror.title}</h2>
         <div className="fr-layer-grid">
           {reading.layers.map((layer) => (
@@ -622,7 +650,7 @@ function FreeReadingView({
               <p>{layer.text}</p>
               <div className="fr-traits">
                 <div>
-                  <strong>No seu melhor</strong>
+                  <strong>{kid ? "Pontos fortes" : "No seu melhor"}</strong>
                   <ul>
                     {layer.gifts.map((gift) => (
                       <li key={gift}>{gift}</li>
@@ -630,7 +658,7 @@ function FreeReadingView({
                   </ul>
                 </div>
                 <div>
-                  <strong>Quando pesa</strong>
+                  <strong>{kid ? "Pode ficar difícil" : "Quando pesa"}</strong>
                   <ul className="fr-shadow-list">
                     {layer.shadows.map((shadow) => (
                       <li key={shadow}>{shadow}</li>
@@ -646,7 +674,7 @@ function FreeReadingView({
 
       <section className="fr-mirror" aria-labelledby="fr-mirror-title">
         <span className="fr-kicker">Juntando tudo</span>
-        <h2 id="fr-mirror-title">Como as suas partes conversam</h2>
+        <h2 id="fr-mirror-title">{kid ? `Como as partes de ${kidName} conversam` : "Como as suas partes conversam"}</h2>
         <p className="fr-mirror-text">{reading.mirror.text}</p>
         <p>{reading.mirror.harmony}</p>
         {reading.mirror.sameSign && (
@@ -659,12 +687,12 @@ function FreeReadingView({
       <section className="fr-duo" aria-label="Seu superpoder e seu ponto de atenção">
         <article className="fr-duo-power">
           <span aria-hidden="true">⚡</span>
-          <h3>Seu superpoder</h3>
+          <h3>{kid ? `Superpoder de ${kidName}` : "Seu superpoder"}</h3>
           <p>{reading.superpower}</p>
         </article>
         <article className="fr-duo-attention">
           <span aria-hidden="true">◐</span>
-          <h3>Seu ponto de atenção</h3>
+          <h3>{kid ? "Fique de olho" : "Seu ponto de atenção"}</h3>
           <p>{reading.attention}</p>
         </article>
       </section>
@@ -689,12 +717,16 @@ function FreeTeasers({
 }) {
   return (
     <section className="fr-teasers" aria-labelledby="fr-teasers-title">
-      <span className="fr-kicker">O que o seu mapa ainda guarda</span>
+      <span className="fr-kicker">
+        {reading.audience === "child" ? `O que o mapa de ${firstName} ainda guarda` : "O que o seu mapa ainda guarda"}
+      </span>
       <h2 id="fr-teasers-title">
-        {firstName}, isso foi só o começo
+        {reading.audience === "child" ? "Isso foi só o começo" : `${firstName}, isso foi só o começo`}
       </h2>
       <p className="fr-teasers-intro">
-        Olha o começo do que o seu mapa diz sobre as outras áreas da sua vida.
+        {reading.audience === "child"
+          ? `Olha o começo do que o mapa diz sobre como ${firstName} aprende, faz amigos, gasta energia e quais são os talentos.`
+          : "Olha o começo do que o seu mapa diz sobre as outras áreas da sua vida."}
       </p>
       <div className="fr-teaser-grid">
         {reading.teasers.map((teaser) => (
@@ -747,9 +779,9 @@ function FreeTeasers({
         <div>
           <strong>Mapa completo · {price}</strong>
           <p>
-            Pagamento único, sem assinatura. Você recebe na hora as quatro áreas
-            completas, a sua missão, o seu dom, os próximos 12 meses e o PDF
-            para guardar.
+            {reading.audience === "child"
+              ? `Pagamento único, sem assinatura. Você recebe na hora as quatro partes completas, como acalmar ${firstName}, o número de destino e dicas práticas para quem cuida, com o PDF para guardar.`
+              : "Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, a sua missão, o seu dom, os próximos 12 meses e o PDF para guardar."}
           </p>
         </div>
         <button
@@ -757,7 +789,7 @@ function FreeTeasers({
           onClick={onUnlock}
           type="button"
         >
-          Desbloquear meu mapa completo
+          {reading.audience === "child" ? `Desbloquear o mapa completo de ${firstName}` : "Desbloquear meu mapa completo"}
         </button>
       </div>
     </section>
@@ -2104,6 +2136,9 @@ export default function Home({
                     : "Mapa essencial gratuito"}
               </span>
               <h2>
+                {analysis.person.isMinor && analysis.freeReading ? (
+                  reportTier === "premium" ? `O mapa completo de ${analysis.person.firstName}.` : `O mapa de ${analysis.person.firstName}.`
+                ) : (<>
                 {analysis.person.firstName},{" "}
                 {analysis.person.isMinor
                   ? `este é um olhar cuidadoso sobre ${analysis.themeDeepDive.label.toLowerCase()}.`
@@ -2114,6 +2149,7 @@ export default function Home({
                     : newFreeReading
                       ? "este é o seu mapa."
                       : `esta é sua leitura essencial sobre ${analysis.themeDeepDive.label.toLowerCase()}.`}
+                </>)}
               </h2>
               <p className="profile-context-label">
                 {analysis.person.relationshipLabel}
@@ -2240,7 +2276,7 @@ export default function Home({
 
           {newPremium && analysis.freeReading && (
             <>
-              <FreeReadingView analysis={analysis} premium={newPremium} reading={analysis.freeReading} />
+              <FreeReadingView analysis={analysis} nameReading={nameReading} premium={newPremium} reading={analysis.freeReading} />
               <PremiumReport
                 analysis={analysis}
                 compat={compat}
@@ -2294,7 +2330,7 @@ export default function Home({
           )}
 
           {newFreeReading && (
-            <FreeReadingView analysis={analysis} reading={newFreeReading} />
+            <FreeReadingView analysis={analysis} nameReading={nameReading} reading={newFreeReading} />
           )}
           {newFreeReading && nameReading && <NameReadingView reading={nameReading} />}
 
@@ -2496,6 +2532,7 @@ export default function Home({
           )}
           </>)}
 
+          {newFreeReading?.audience !== "child" && (<>
           <article className="pattern-card">
             <div>
               <span className="section-kicker">Seu padrão dominante</span>
@@ -2713,6 +2750,7 @@ export default function Home({
               </div>
             </article>
           </div>
+          </>)}
 
           {newFreeReading && (
             <FreeTeasers
@@ -3187,19 +3225,29 @@ export default function Home({
                       Mapa completo{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
                     </span>
                     <h2 className="ck-title" id="checkout-title">
-                      Desbloqueie tudo o que o seu mapa guarda
+                      {analysis?.person.isMinor ? `Desbloqueie tudo o que o mapa de ${analysis.person.firstName} guarda` : "Desbloqueie tudo o que o seu mapa guarda"}
                     </h2>
                     <div className="ck-price">
                       <strong>{paymentPrice}</strong>
                       <span>pagamento único · sem assinatura</span>
                     </div>
-                    <ul className="ck-includes">
-                      <li>Como você ama, pensa e conversa</li>
-                      <li>Onde você brilha no trabalho e como o dinheiro chega</li>
-                      <li>Para que você veio e o seu dom escondido</li>
-                      <li>O que este momento pede e os seus próximos 12 meses</li>
-                      <li>PDF completo para guardar</li>
-                    </ul>
+                    {analysis?.person.isMinor ? (
+                      <ul className="ck-includes">
+                        <li>Como {analysis.person.firstName} aprende e o que ajuda nos estudos</li>
+                        <li>Amizades, energia e como lidar com as birras</li>
+                        <li>Como acalmar {analysis.person.firstName} nas horas difíceis</li>
+                        <li>Talentos para incentivar e onde precisa de apoio</li>
+                        <li>Dicas práticas para quem cuida e PDF para guardar</li>
+                      </ul>
+                    ) : (
+                      <ul className="ck-includes">
+                        <li>Como você ama, pensa e conversa</li>
+                        <li>Onde você brilha no trabalho e como o dinheiro chega</li>
+                        <li>Para que você veio e o seu dom escondido</li>
+                        <li>O que este momento pede e os seus próximos 12 meses</li>
+                        <li>PDF completo para guardar</li>
+                      </ul>
+                    )}
                     {compatOffered && (
                       <label className={`ck-bump ${addCompat ? "ck-bump-on" : ""}`}>
                         <input

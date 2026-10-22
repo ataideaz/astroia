@@ -206,8 +206,14 @@ function upper(text: string) {
 // ---------------------------------------------------------------------------
 // Stories do mapa
 // ---------------------------------------------------------------------------
-export function personalCards(reading: FreeReading, premium: PremiumReading | null): StoryCard[] {
+export function personalCards(
+  reading: FreeReading,
+  premium: PremiumReading | null,
+  person?: { firstName: string },
+): StoryCard[] {
   const year = new Date().getFullYear();
+  const kid = reading.audience === "child";
+  const kidName = person?.firstName ?? "";
   const words = reading.archetype.name.split(" ");
   const nameLines = words.length >= 3 ? [words.slice(0, 2).join(" "), words.slice(2).join(" ")] : [reading.archetype.name];
   const combos = reading.layers.length >= 3 ? "1 em 1.728" : "1 em 144";
@@ -224,11 +230,12 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
         stripes(ctx, 1260, 120, COLORS.orange, -0.12);
         star(ctx, 860, 1100, 70, COLORS.yellow);
         star(ctx, 940, 1600, 44, COLORS.white);
-        header(ctx, fonts, COLORS.white, `meu céu ${year}`);
+        header(ctx, fonts, COLORS.white, kid ? `o céu de ${kidName}` : `meu céu ${year}`);
         setFont(ctx, 800, 96, fonts.sans);
         ctx.fillStyle = COLORS.white;
         ctx.textAlign = "left";
-        ctx.fillText("Eu sou", 80, 720);
+        fit(ctx, kid ? "Aqui em casa mora" : "Eu sou", 800, 96, fonts.sans, W - 160);
+        ctx.fillText(kid ? "Aqui em casa mora" : "Eu sou", 80, 720);
         let y = 900;
         for (const line of nameLines) {
           const size = fit(ctx, upper(line), 800, 170, fonts.sans, W - 160);
@@ -239,7 +246,7 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
           y += size * 1.02;
         }
         pill(ctx, `${combos} combinações`, 80, y + 60, fonts, COLORS.white, COLORS.navy, 42);
-        footer(ctx, fonts, host, "E você, qual é o seu?", COLORS.white, COLORS.lime);
+        footer(ctx, fonts, host, kid ? "Descubra o da sua criança" : "E você, qual é o seu?", COLORS.white, COLORS.lime);
       },
     },
     {
@@ -277,7 +284,7 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
           ctx.fillText(upper(layer.sign), 44, 64 + size * 0.95);
           ctx.restore();
         });
-        footer(ctx, fonts, host, "Descubra o seu trio", COLORS.navy, COLORS.white);
+        footer(ctx, fonts, host, kid ? "Descubra o trio da sua criança" : "Descubra o seu trio", COLORS.navy, COLORS.white);
       },
     },
     {
@@ -293,18 +300,24 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
         setFont(ctx, 800, 120, fonts.sans);
         ctx.fillStyle = COLORS.navy;
         ctx.textAlign = "left";
-        ctx.fillText("Meu", 80, 820);
-        ctx.fillText("superpoder:", 80, 950);
-        const power = reading.superpower.replace(/^Seu superpoder é /, "").replace(/\.$/, "");
+        if (kid) {
+          ctx.fillText("Superpoder", 80, 820);
+          fit(ctx, `de ${kidName}:`, 800, 120, fonts.sans, W - 160);
+          ctx.fillText(`de ${kidName}:`, 80, 950);
+        } else {
+          ctx.fillText("Meu", 80, 820);
+          ctx.fillText("superpoder:", 80, 950);
+        }
+        const power = reading.superpower.replace(/^Seu superpoder é /, "").replace(/^O superpoder de .+? é /, "").replace(/\.$/, "");
         paragraph(ctx, upper(power.charAt(0)) + power.slice(1), 80, 1110, {
           weight: 600, size: 76, family: fonts.serif, color: COLORS.navy, max: W - 160, lineHeight: 86,
         });
-        footer(ctx, fonts, host, "Qual é o seu?", COLORS.navy, COLORS.violet);
+        footer(ctx, fonts, host, kid ? "Qual é o da sua criança?" : "Qual é o seu?", COLORS.navy, COLORS.violet);
       },
     },
   ];
 
-  cards.push({
+  if (!kid) cards.push({
     id: "ponto-fraco",
     label: "Meu ponto fraco",
     draw: quoteCard({
@@ -328,7 +341,7 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
     }),
   });
 
-  if (premium) {
+  if (premium && !kid) {
     const loveIntro = premium.chapters.find((chapter) => chapter.id === "amor")?.intro;
     const mission = premium.chapters.find((chapter) => chapter.id === "missao")?.intro;
     if (loveIntro) {

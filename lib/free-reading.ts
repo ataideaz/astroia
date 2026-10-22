@@ -52,6 +52,8 @@ type AscText = PointText & {
 };
 
 export type FreeReading = {
+  /** "child" quando o mapa é de uma criança ou adolescente (textos para quem cuida). */
+  audience?: "adult" | "child";
   archetype: {
     name: string;
     text: string;

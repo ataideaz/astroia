@@ -516,6 +516,21 @@ const PLANET_SIMPLE: Record<string, string> = {
   pluto: "onde você se transforma",
 };
 
+function kidPlanetSimple(name: string): Record<string, string> {
+  return {
+    sun: `quem ${name} é por dentro`,
+    moon: `o que ${name} sente`,
+    mercury: `como ${name} aprende e conversa`,
+    venus: "o carinho e as amizades",
+    mars: "a energia e as birras",
+    jupiter: "os talentos e dons",
+    saturn: "onde precisa de mais apoio",
+    uranus: "o lado criativo e diferente",
+    neptune: "a imaginação",
+    pluto: "a força interior",
+  };
+}
+
 function drawChart(flow: Flow, analysis: AnalysisResult, size = 380) {
   const panelHeight = size + 30;
   ensureSpace(flow, panelHeight + 14);
@@ -630,10 +645,10 @@ function drawChart(flow: Flow, analysis: AnalysisResult, size = 380) {
 function planetList(flow: Flow, analysis: AnalysisResult) {
   const items: Array<{ title: string; text: string }> = [];
   if (analysis.bigThree.ascendant) {
-    items.push({ title: `Ascendente em ${analysis.bigThree.ascendant.sign}`, text: "como os outros veem você" });
+    items.push({ title: `Ascendente em ${analysis.bigThree.ascendant.sign}`, text: analysis.person.isMinor ? `como ${analysis.person.firstName} chega nos lugares` : "como os outros veem você" });
   }
   for (const placement of analysis.placements) {
-    items.push({ title: `${placement.label} em ${placement.sign}`, text: PLANET_SIMPLE[placement.key] ?? "" });
+    items.push({ title: `${placement.label} em ${placement.sign}`, text: (analysis.person.isMinor ? kidPlanetSimple(analysis.person.firstName) : PLANET_SIMPLE)[placement.key] ?? "" });
   }
   const gap = 10;
   const width = (CONTENT_WIDTH - gap) / 2;
@@ -667,7 +682,7 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
   page.drawText("AstroIA", { x: width / 2 - 22, y: height - 65, size: 15, font: fonts.serifBold, color: C.ink });
 
   const reading = analysis.freeReading;
-  centerText(page, tier === "premium" ? "SEU MAPA ASTRAL COMPLETO" : "SEU MAPA ASTRAL", fonts.bold, 8, height - 132, C.gold);
+  centerText(page, analysis.person.isMinor ? (tier === "premium" ? "MAPA ASTRAL COMPLETO" : "MAPA ASTRAL") : tier === "premium" ? "SEU MAPA ASTRAL COMPLETO" : "SEU MAPA ASTRAL", fonts.bold, 8, height - 132, C.gold);
 
   let y = height - 182;
   for (const line of wrapText(analysis.person.firstName, fonts.serifBold, 50, CONTENT_WIDTH).slice(0, 2)) {
@@ -683,7 +698,7 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
 
   if (reading) {
     const panel: Block[] = [
-      { type: "kicker", text: "Seu arquétipo" },
+      { type: "kicker", text: analysis.person.isMinor ? `O arquétipo de ${analysis.person.firstName}` : "Seu arquétipo" },
       { type: "title", text: reading.archetype.name, size: 34, color: C.goldLight },
       { type: "gap", size: 4 },
       { type: "text", text: reading.archetype.text, size: 12.6, color: C.body },
@@ -705,7 +720,7 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
       roundedRect(page, x, y, badgeWidth, 64, { fill: C.deep, border: C.line, radius: 14 });
       centerText(page, layer.role.replace(/^(Seu|Sua) /, "").toUpperCase(), fonts.bold, 7.2, y - 20, C.gold, x + badgeWidth / 2);
       centerText(page, layer.sign, fonts.serifBold, 18, y - 42, C.ink, x + badgeWidth / 2);
-      centerText(page, layer.question.toLowerCase(), fonts.body, 7.4, y - 55, C.muted, x + badgeWidth / 2);
+      centerText(page, analysis.person.isMinor ? layer.question : layer.question.toLowerCase(), fonts.body, 7.4, y - 55, C.muted, x + badgeWidth / 2);
     });
   } else {
     drawCardAt(page, fonts, [
@@ -730,12 +745,16 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
 // ---------------------------------------------------------------------------
 function chartSection(flow: Flow, analysis: AnalysisResult) {
   if (!analysis.placements.length) return;
-  newPage(flow, "Seu céu de nascimento");
+  const kid = analysis.freeReading?.audience === "child";
+  const name = analysis.person.firstName;
+  newPage(flow, kid ? "Céu de nascimento" : "Seu céu de nascimento");
   sectionHeading(
     flow,
-    "Seu céu de nascimento",
-    "Assim estava o céu quando você nasceu",
-    "No dia e na hora em que você nasceu, cada planeta estava passando por um signo do céu. Cada planeta cuida de uma parte da sua vida, e o signo mostra o jeito como essa parte funciona em você.",
+    kid ? `O céu de nascimento de ${name}` : "Seu céu de nascimento",
+    kid ? `Assim estava o céu quando ${name} nasceu` : "Assim estava o céu quando você nasceu",
+    kid
+      ? `No dia e na hora em que ${name} nasceu, cada planeta estava passando por um signo do céu. Cada planeta cuida de uma parte do jeito de ser, e o signo mostra como essa parte aparece em ${name}.`
+      : "No dia e na hora em que você nasceu, cada planeta estava passando por um signo do céu. Cada planeta cuida de uma parte da sua vida, e o signo mostra o jeito como essa parte funciona em você.",
   );
   drawChart(flow, analysis, 262);
   planetList(flow, analysis);
@@ -745,21 +764,23 @@ function freeReadingSections(flow: Flow, analysis: AnalysisResult) {
   const reading = analysis.freeReading;
   if (!reading) return;
 
+  const kid = reading.audience === "child";
+  const name = analysis.person.firstName;
   newPage(flow, reading.mirror.title);
-  sectionHeading(flow, "As partes mais importantes do seu mapa", reading.mirror.title);
+  sectionHeading(flow, kid ? `As partes mais importantes do mapa de ${name}` : "As partes mais importantes do seu mapa", reading.mirror.title);
   for (const layer of reading.layers) {
     card(flow, [
       { type: "kicker", text: `${layer.role} em ${layer.sign}  ·  ${layer.question}` },
       { type: "title", text: layer.headline, size: 20 },
       { type: "text", text: layer.text },
       { type: "gap", size: 6 },
-      { type: "chips", label: "No seu melhor", items: layer.gifts, tone: "violet" },
-      { type: "chips", label: "Quando pesa", items: layer.shadows, tone: "gold" },
+      { type: "chips", label: kid ? "Pontos fortes" : "No seu melhor", items: layer.gifts, tone: "violet" },
+      { type: "chips", label: kid ? "Pode ficar difícil" : "Quando pesa", items: layer.shadows, tone: "gold" },
     ]);
   }
   if (reading.noTimeNote) loose(flow, [{ type: "text", text: reading.noTimeNote, color: C.muted, size: 9.4 }]);
 
-  sectionHeading(flow, "Juntando tudo", "Como as suas partes conversam");
+  sectionHeading(flow, "Juntando tudo", kid ? `Como as partes de ${name} conversam` : "Como as suas partes conversam");
   const mirror: Block[] = [
     { type: "quote", text: reading.mirror.text },
     { type: "gap", size: 6 },
@@ -773,11 +794,11 @@ function freeReadingSections(flow: Flow, analysis: AnalysisResult) {
   cardRow(
     flow,
     [
-      { type: "kicker", text: "Seu superpoder", color: C.violetLight },
+      { type: "kicker", text: kid ? `Superpoder de ${name}` : "Seu superpoder", color: C.violetLight },
       { type: "text", text: reading.superpower, size: 11.6 },
     ],
     [
-      { type: "kicker", text: "Seu ponto de atenção" },
+      { type: "kicker", text: kid ? "Fique de olho" : "Seu ponto de atenção" },
       { type: "text", text: reading.attention, size: 11.6 },
     ],
     [{ border: C.violet }, { border: C.gold }],
@@ -823,12 +844,16 @@ function patternAndNumbers(flow: Flow, analysis: AnalysisResult) {
 function teaserSection(flow: Flow, analysis: AnalysisResult) {
   const reading = analysis.freeReading;
   if (!reading) return;
-  newPage(flow, "O que o seu mapa ainda guarda");
+  const kid = reading.audience === "child";
+  const name = analysis.person.firstName;
+  newPage(flow, "O que o mapa ainda guarda");
   sectionHeading(
     flow,
-    "O que o seu mapa ainda guarda",
-    `${analysis.person.firstName}, isso foi só o começo`,
-    "Olha o começo do que o seu mapa diz sobre as outras áreas da sua vida.",
+    kid ? `O que o mapa de ${name} ainda guarda` : "O que o seu mapa ainda guarda",
+    kid ? "Isso foi só o começo" : `${name}, isso foi só o começo`,
+    kid
+      ? `Olha o começo do que o mapa diz sobre como ${name} aprende, faz amigos, gasta energia e quais são os talentos.`
+      : "Olha o começo do que o seu mapa diz sobre as outras áreas da sua vida.",
   );
   for (const teaser of reading.teasers) {
     card(flow, [
@@ -846,7 +871,9 @@ function teaserSection(flow: Flow, analysis: AnalysisResult) {
       { type: "title", text: "Quer ler o resto?", size: 20, color: C.goldLight },
       {
         type: "text",
-        text: `Volte ao seu mapa no site e toque em "Desbloquear meu mapa completo". Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, a sua missão, o seu dom, os próximos 12 meses e o PDF completo.`,
+        text: kid
+          ? `Volte ao mapa no site e toque em "Desbloquear o mapa completo de ${name}". Pagamento único, sem assinatura. Você recebe na hora as quatro partes completas, como acalmar ${name}, o número de destino e dicas práticas para quem cuida.`
+          : `Volte ao seu mapa no site e toque em "Desbloquear meu mapa completo". Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, a sua missão, o seu dom, os próximos 12 meses e o PDF completo.`,
       },
       { type: "text", text: SITE, bold: true, color: C.goldLight },
     ],

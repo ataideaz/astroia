@@ -36,8 +36,8 @@ export type NameReading = {
   headline: string;
   intro: string;
   sections: Array<{
-    id: "alma" | "personalidade" | "expressao" | "destino" | "maturidade" | "desafio";
-    number: number;
+    id: "alma" | "personalidade" | "expressao" | "destino" | "maturidade" | "desafio" | "letra" | "forca" | "licoes" | "combinacao";
+    number: number | string;
     label: string;
     question: string;
     title: string;
@@ -173,6 +173,135 @@ const LUCKY: Record<number, string> = {
   9: "Use o 9 para encerrar: terminar projetos, doar, fazer as pazes com o passado.",
 };
 
+// Um segundo exemplo para cada número: dois nomes com o mesmo número não
+// recebem o mesmo exemplo (a escolha depende das letras do nome).
+const SOUL_EXAMPLE_2: Record<number, string> = {
+  1: "Na vida real: você prefere errar do seu jeito a acertar do jeito dos outros.",
+  2: "Na vida real: um elogio de quem você ama vale mais do que qualquer prêmio.",
+  3: "Na vida real: você fica mais feliz numa mesa cheia de risada do que num lugar chique e silencioso.",
+  4: "Na vida real: ver a casa arrumada e a agenda organizada te dá uma paz enorme.",
+  5: "Na vida real: só de planejar uma viagem você já fica de bom humor.",
+  6: "Na vida real: o seu domingo perfeito tem família reunida e comida na mesa.",
+  7: "Na vida real: uma boa conversa a dois vale mais do que uma festa inteira.",
+  8: "Na vida real: você gosta de ter um objetivo claro e ver o progresso subindo.",
+  9: "Na vida real: ajudar alguém sem que a pessoa saiba te deixa em paz.",
+  11: "Na vida real: você sente quando alguém está mal, mesmo pela tela do celular.",
+  22: "Na vida real: os seus sonhos sempre envolvem mais gente do que só você.",
+  33: "Na vida real: cuidar de alguém doente ou triste é algo que você faz com naturalidade.",
+};
+const PERSONALITY_EXAMPLE_2: Record<number, string> = {
+  1: "Na vida real: as pessoas acham que você nunca tem dúvida, mesmo quando tem.",
+  2: "Na vida real: você é quem chamam para acalmar uma discussão.",
+  3: "Na vida real: dizem que a sua risada é fácil de reconhecer.",
+  4: "Na vida real: chefes e professores confiam em você logo de cara.",
+  5: "Na vida real: as pessoas sempre perguntam \"e aí, qual é a novidade?\".",
+  6: "Na vida real: você é quem oferece um café assim que alguém chega.",
+  7: "Na vida real: as pessoas acham que você está sempre pensando em algo importante.",
+  8: "Na vida real: num lugar novo, logo acham que você é quem manda.",
+  9: "Na vida real: até desconhecidos te pedem conselho.",
+  11: "Na vida real: as pessoas dizem que você tem uma energia diferente.",
+  22: "Na vida real: te veem como quem resolve o que parecia impossível.",
+  33: "Na vida real: as pessoas se sentem mais calmas só de estar perto de você.",
+};
+const EXPRESSION_EXAMPLE_2: Record<number, string> = {
+  1: "Na vida real: quando ninguém sabe por onde começar, você já começou.",
+  2: "Na vida real: você percebe o que a outra pessoa precisa antes de ela pedir.",
+  3: "Na vida real: as suas mensagens e posts costumam fazer as pessoas sorrirem.",
+  4: "Na vida real: as suas listas e planos funcionam de verdade.",
+  5: "Na vida real: você aprende o básico de qualquer coisa em pouco tempo.",
+  6: "Na vida real: as pessoas dizem que você tem \"mão boa\" para cuidar de plantas, bichos e gente.",
+  7: "Na vida real: quando você explica um assunto, dá para ver que estudou de verdade.",
+  8: "Na vida real: você negocia bem, até no preço da feira.",
+  9: "Na vida real: as pessoas se inspiram no seu jeito de tratar os outros.",
+  11: "Na vida real: as suas ideias parecem chegar antes de todo mundo.",
+  22: "Na vida real: você enxerga o projeto inteiro enquanto os outros ainda olham uma parte.",
+  33: "Na vida real: as pessoas aprendem com você sem nem perceber que estão aprendendo.",
+};
+
+// A primeira letra do primeiro nome mostra como você começa as coisas.
+const CORNERSTONE: Record<string, string> = {
+  A: "Você começa as coisas com coragem e independência: prefere dar o primeiro passo a ficar esperando.",
+  B: "Você começa as coisas com cuidado e sensibilidade: gosta de sentir o clima antes de agir.",
+  C: "Você começa as coisas com alegria e conversa: o primeiro passo costuma ser falar sobre a ideia.",
+  D: "Você começa as coisas com os pés no chão: primeiro o plano, depois a ação.",
+  E: "Você começa as coisas com curiosidade: quer experimentar e ver no que dá.",
+  F: "Você começa as coisas pensando nas pessoas: quer saber como aquilo vai afetar quem você ama.",
+  G: "Você começa as coisas com reflexão: pensa bastante antes de se jogar.",
+  H: "Você começa as coisas com ambição: já imagina onde aquilo pode chegar.",
+  I: "Você começa as coisas com o coração: precisa sentir que aquilo tem sentido.",
+  J: "Você começa as coisas com energia e justiça: gosta que tudo seja feito do jeito certo.",
+  K: "Você começa as coisas com intuição: muitas vezes sabe o caminho antes de explicar por quê.",
+  L: "Você começa as coisas com leveza: gosta de ir aprendendo enquanto faz.",
+  M: "Você começa as coisas com dedicação: quando decide, vai até o fim.",
+  N: "Você começa as coisas com criatividade: sempre acha um jeito diferente de fazer.",
+  O: "Você começa as coisas com responsabilidade: sente que precisa cuidar de tudo direitinho.",
+  P: "Você começa as coisas com inteligência: gosta de entender bem antes de agir.",
+  Q: "Você começa as coisas com força interior: não desiste fácil do que começa.",
+  R: "Você começa as coisas com emoção: se envolve de corpo e alma.",
+  S: "Você começa as coisas com entusiasmo: o seu brilho anima quem está perto.",
+  T: "Você começa as coisas com sensibilidade e calma: gosta de construir aos poucos.",
+  U: "Você começa as coisas com generosidade: costuma pensar no grupo inteiro.",
+  V: "Você começa as coisas com visão: enxerga longe e quer construir algo que dure.",
+  W: "Você começa as coisas com expressão: gosta de mostrar o que pensa e sente.",
+  X: "Você começa as coisas com originalidade: não segue fórmulas prontas.",
+  Y: "Você começa as coisas com liberdade: precisa sentir que a escolha é sua.",
+  Z: "Você começa as coisas com determinação: quando quer, ninguém segura.",
+};
+
+// O número que mais aparece nas letras do nome.
+const STRONGEST: Record<number, string> = {
+  1: "1, que traz força para começar, decidir e liderar",
+  2: "2, que traz delicadeza, escuta e jeito para parcerias",
+  3: "3, que traz alegria, criatividade e facilidade com as palavras",
+  4: "4, que traz organização, persistência e pé no chão",
+  5: "5, que traz curiosidade, movimento e vontade de liberdade",
+  6: "6, que traz cuidado, carinho e senso de família",
+  7: "7, que traz intuição, estudo e vontade de entender tudo",
+  8: "8, que traz força, ambição e jeito para dinheiro",
+  9: "9, que traz generosidade, empatia e vontade de ajudar",
+};
+
+// Números que não aparecem no nome: o que a vida te convida a aprender.
+const LESSON: Record<number, string> = {
+  1: "aprender a confiar em si e a tomar decisões sem esperar aprovação",
+  2: "aprender a ter paciência e a trabalhar em parceria",
+  3: "aprender a se expressar e a mostrar o que sente",
+  4: "aprender a ter rotina e a terminar o que começa",
+  5: "aprender a lidar com mudanças sem medo",
+  6: "aprender a assumir responsabilidades em casa e com quem você ama",
+  7: "aprender a confiar na sua intuição e a ficar bem na própria companhia",
+  8: "aprender a cuidar do dinheiro e a valorizar o seu trabalho",
+  9: "aprender a perdoar e a deixar ir o que já passou",
+};
+
+const SOUL_SHORT: Record<number, string> = {
+  1: "liberdade para fazer do seu jeito", 2: "paz e companhia", 3: "alegria e expressão",
+  4: "segurança e um chão firme", 5: "novidade e movimento", 6: "amor e família",
+  7: "entender a vida", 8: "conquistar", 9: "fazer o bem",
+  11: "inspirar", 22: "construir algo que fique", 33: "cuidar com amor",
+};
+const EXPRESSION_SHORT: Record<number, string> = {
+  1: "começar e liderar", 2: "unir pessoas", 3: "se comunicar", 4: "organizar e construir",
+  5: "se adaptar", 6: "cuidar", 7: "pensar fundo", 8: "realizar", 9: "inspirar e ajudar",
+  11: "iluminar o caminho dos outros", 22: "construir em grande escala", 33: "ensinar com amor",
+};
+
+function combination(soul: number, expression: number) {
+  const s = reduce(soul, false);
+  const e = reduce(expression, false);
+  const intro = `Por dentro, você quer ${SOUL_SHORT[soul] ?? SOUL_SHORT[s]}. Por fora, o seu talento é ${EXPRESSION_SHORT[expression] ?? EXPRESSION_SHORT[e]}.`;
+  if (s === e) return `${intro} O que você deseja e o que você sabe fazer apontam para o mesmo lado: quando você segue o coração, o talento vem junto.`;
+  const diff = Math.abs(s - e);
+  if (diff % 3 === 0) return `${intro} Esses dois números se dão muito bem: usar o seu talento costuma ser o caminho mais rápido para realizar o seu desejo.`;
+  if (diff === 1 || diff === 8) return `${intro} São números vizinhos: um completa o outro, e a sua força aparece quando você junta os dois.`;
+  return `${intro} São números diferentes, e isso às vezes dá um conflito interno. O segredo é usar o talento a serviço do desejo, e não o contrário.`;
+}
+
+/** Número simples a partir das letras, para escolher variações de texto. */
+function pickFrom(chars: string[], salt: number) {
+  return chars.reduce((sum, letter, index) => sum + letter.charCodeAt(0) * (index + 1 + salt), 0);
+}
+
 // ---------------------------------------------------------------------------
 // Cálculo
 // ---------------------------------------------------------------------------
@@ -196,6 +325,13 @@ export function buildNameReading(fullName: string, birthDate: string): NameReadi
   const powerDays = Array.from({ length: 31 }, (_, index) => index + 1).filter((value) => reduce(value, false) === destinySingle);
 
   const first = fullName.trim().split(/\s+/)[0] ?? fullName;
+  const firstLetter = letters(first)[0] ?? chars[0] ?? "A";
+  const counts = Array.from({ length: 10 }, () => 0);
+  for (const letter of chars) counts[LETTER_VALUE[letter] ?? 0] += 1;
+  const strongestCount = Math.max(...counts.slice(1));
+  const strongest = counts.findIndex((count, index) => index > 0 && count === strongestCount);
+  const missing = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((value) => counts[value] === 0);
+  const variant = (salt: number, a: string, b: string) => (pickFrom(chars, salt) % 2 === 0 ? a : b);
   const soulText = SOUL[soul] ?? SOUL[reduce(soul, false)];
   const personalityText = PERSONALITY[personality] ?? PERSONALITY[reduce(personality, false)];
   const expressionText = EXPRESSION[expression] ?? EXPRESSION[reduce(expression, false)];
@@ -217,7 +353,7 @@ export function buildNameReading(fullName: string, birthDate: string): NameReadi
         question: "O que você deseja lá no fundo",
         title: soulText.title,
         text: soulText.text,
-        example: soulText.example,
+        example: variant(1, soulText.example, SOUL_EXAMPLE_2[soul] ?? soulText.example),
         extra: "Vem das vogais do seu nome.",
       },
       {
@@ -227,7 +363,7 @@ export function buildNameReading(fullName: string, birthDate: string): NameReadi
         question: "Como os outros te veem",
         title: personalityText.title,
         text: personalityText.text,
-        example: personalityText.example,
+        example: variant(2, personalityText.example, PERSONALITY_EXAMPLE_2[personality] ?? personalityText.example),
         extra: "Vem das consoantes do seu nome.",
       },
       {
@@ -237,8 +373,35 @@ export function buildNameReading(fullName: string, birthDate: string): NameReadi
         question: "Os seus talentos naturais",
         title: expressionText.title,
         text: expressionText.text,
-        example: expressionText.example,
+        example: variant(3, expressionText.example, EXPRESSION_EXAMPLE_2[expression] ?? expressionText.example),
         extra: `Onde esse talento costuma brilhar: ${expressionText.where}.`,
+      },
+      {
+        id: "combinacao",
+        number: `${soul}+${expression}`,
+        label: "Alma + Expressão",
+        question: "Como o seu desejo e o seu talento se encontram",
+        title: "O encontro do seu desejo com o seu talento",
+        text: combination(soul, expression),
+        example: `Pense nisso quando for escolher um trabalho, um curso ou um projeto: ele junta ${SOUL_SHORT[soul] ?? SOUL_SHORT[reduce(soul, false)]} com ${EXPRESSION_SHORT[expression] ?? EXPRESSION_SHORT[reduce(expression, false)]}?`,
+      },
+      {
+        id: "letra",
+        number: firstLetter,
+        label: `Primeira letra · ${firstLetter}`,
+        question: "Como você começa as coisas",
+        title: `O seu nome começa com ${firstLetter}`,
+        text: CORNERSTONE[firstLetter] ?? CORNERSTONE.A,
+        example: `Na numerologia, a primeira letra do primeiro nome (${first}) mostra o seu jeito de dar a largada.`,
+      },
+      {
+        id: "forca",
+        number: strongest,
+        label: "Número mais forte do nome",
+        question: "A energia que mais se repete em você",
+        title: `O número que mais aparece no seu nome é o ${strongest}`,
+        text: `Das ${chars.length} letras do seu nome, ${strongestCount} têm o valor ${strongest}. Por isso, o seu nome carrega muita energia do número ${STRONGEST[strongest]}.`,
+        example: strongestCount >= 4 ? "Quando um número aparece tantas vezes, essa qualidade fica bem visível para quem convive com você." : "É uma qualidade discreta, mas que aparece nas horas importantes.",
       },
       {
         id: "destino",
@@ -267,6 +430,23 @@ export function buildNameReading(fullName: string, birthDate: string): NameReadi
         title: challengeText.title,
         text: challengeText.text,
         example: challengeText.tip,
+      },
+      {
+        id: "licoes",
+        number: missing.length ? missing.join(" · ") : "✓",
+        label: "Lições do nome",
+        question: "Os números que faltam no seu nome",
+        title: missing.length
+          ? missing.length === 1
+            ? `Falta um número no seu nome: o ${missing[0]}`
+            : `Faltam ${missing.length} números no seu nome`
+          : "O seu nome tem todos os números de 1 a 9",
+        text: missing.length
+          ? `Quando um número não aparece nas letras, ele vira uma lição para a vida. A sua é ${missing.map((value) => LESSON[value]).join("; e também ")}.`
+          : "Isso é raro: cada número de 1 a 9 aparece pelo menos uma vez nas letras do seu nome. Quer dizer que você tem um pouco de cada energia para usar quando precisar.",
+        example: missing.length
+          ? "Lição não é defeito: é um músculo que fica mais forte quanto mais você treina."
+          : "Na vida real: você costuma se virar bem em situações bem diferentes umas das outras.",
       },
     ],
     powerDays,

@@ -419,7 +419,7 @@ export function PremiumReport(props: Props) {
   return (
     <div className="pr">
       <section className="pr-letter" aria-labelledby="pr-letter-title">
-        <span className="pr-kicker">Seu mapa completo</span>
+        <span className="pr-kicker">{props.analysis.person.isMinor ? "Mapa completo" : "Seu mapa completo"}</span>
         <h2 id="pr-letter-title">{reading.letter.title}</h2>
         <p>{reading.letter.text}</p>
         <nav className="pr-index" aria-label="Partes do seu mapa completo">
@@ -428,9 +428,11 @@ export function PremiumReport(props: Props) {
               <span aria-hidden="true">{chapter.symbol}</span> {chapter.label}
             </a>
           ))}
-          <a href="#pr-meses">
-            <span aria-hidden="true">◷</span> Próximos 12 meses
-          </a>
+          {reading.months.length > 0 && (
+            <a href="#pr-meses">
+              <span aria-hidden="true">◷</span> Próximos 12 meses
+            </a>
+          )}
           {props.nameSlot && (
             <a href="#numerologia-nome">
               <span aria-hidden="true">✦</span> Seu nome
@@ -475,8 +477,11 @@ export function PremiumReport(props: Props) {
       <a className="st-reminder" href="#fr-archetype-title">
         <span aria-hidden="true">📲</span>
         <span>
-          <strong>Gostou do seu mapa?</strong> Os seus stories estão prontos lá em cima. Poste e
-          descubra quais amigos têm o mesmo arquétipo que você.
+          {props.analysis.person.isMinor ? (
+            <><strong>Os stories de {props.analysis.person.firstName} estão prontos</strong> lá em cima. Mostre para a família e os amigos.</>
+          ) : (
+            <><strong>Gostou do seu mapa?</strong> Os seus stories estão prontos lá em cima. Poste e descubra quais amigos têm o mesmo arquétipo que você.</>
+          )}
         </span>
         <span aria-hidden="true">↑</span>
       </a>

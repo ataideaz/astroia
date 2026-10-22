@@ -6,6 +6,7 @@ import {
   MoonPhase,
 } from "astronomy-engine";
 import { buildFreeReading, type FreeReading } from "./free-reading";
+import { buildKidFreeReading, buildKidPremiumReading } from "./kid-reading";
 import {
   buildPremiumReading,
   type MonthSky,
@@ -3125,10 +3126,19 @@ export async function createAstroAnalysis(
         }
       : baseThemeFocus;
   const summary = isMinor
-    ? `Esta leitura começa por ${themeDeepDive.label.toLowerCase()}. ${themeDeepDive.introduction} O padrão dominante combina ${dominantElement.toLowerCase()} e movimento ${dominantMode.toLowerCase()}. Use esses pontos para observar ${firstName} com curiosidade, nunca para criar rótulos.`
+    ? `O mapa de ${firstName} junta Sol em ${byKey.sun.sign}, Lua em ${byKey.moon.sign}${ascendant ? ` e Ascendente em ${ascendant.sign}` : ""}. Role a página para conhecer ${firstName} um pouco melhor, sempre com carinho e sem rótulos.`
     : `Seu mapa junta Sol em ${byKey.sun.sign}, Lua em ${byKey.moon.sign}${ascendant ? ` e Ascendente em ${ascendant.sign}` : ""}. Role a página para descobrir o que cada um diz sobre você.`;
   const freeReading = isMinor
-    ? null
+    ? buildKidFreeReading({
+        firstName,
+        sun: byKey.sun,
+        moon: byKey.moon,
+        ascendant,
+        mercury: byKey.mercury,
+        venus: byKey.venus,
+        mars: byKey.mars,
+        jupiter: byKey.jupiter,
+      })
     : buildFreeReading({
         sun: byKey.sun,
         moon: byKey.moon,
@@ -3142,7 +3152,16 @@ export async function createAstroAnalysis(
   const northNodeRaw = horoscope.CelestialPoints?.northnode;
   const chironRaw = horoscope.CelestialBodies?.chiron;
   const premiumReading = isMinor
-    ? null
+    ? buildKidPremiumReading({
+        firstName,
+        moon: byKey.moon,
+        mercury: byKey.mercury,
+        venus: byKey.venus,
+        mars: byKey.mars,
+        jupiter: byKey.jupiter,
+        saturn: byKey.saturn,
+        lifePath,
+      })
     : buildPremiumReading({
         firstName,
         archetypeName: freeReading?.archetype.name ?? null,

@@ -26,7 +26,13 @@ export type PremiumChapterId =
   | "missao"
   | "dom"
   | "agora"
-  | "numero";
+  | "numero"
+  // Mapas de criança
+  | "aprender"
+  | "amizades"
+  | "energia"
+  | "emocoes"
+  | "talentos";
 
 export type PremiumChapter = {
   id: PremiumChapterId;
