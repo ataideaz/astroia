@@ -7234,3 +7234,11 @@ footer {
 .fr-compat-teaser .fr-teaser-top small {
   color: #ef8fbf;
 }
+.fr-compat-teaser .fr-teaser-unlock {
+  height: auto;
+  min-height: 48px;
+  padding: 12px 22px;
+  white-space: normal;
+  border-color: rgba(239, 143, 191, 0.6);
+  color: #ffd3e8;
+}
