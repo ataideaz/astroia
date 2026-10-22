@@ -6,6 +6,8 @@ import {
   MoonPhase,
 } from "astronomy-engine";
 import { buildFreeReading, type FreeReading } from "./free-reading";
+import { formatPersonName } from "./name-format";
+export { formatPersonName };
 import { buildKidFreeReading, buildKidPremiumReading } from "./kid-reading";
 import { buildTeenFreeReading, buildTeenPremiumReading } from "./teen-reading";
 import {
@@ -2867,7 +2869,7 @@ function calculateAge(birthDate: string) {
 }
 
 function validate(input: AnalyzeRequest) {
-  const name = String(input.name ?? "").trim().slice(0, 100);
+  const name = formatPersonName(String(input.name ?? "")).slice(0, 100);
   const birthDate = String(input.birthDate ?? "");
   const birthTime = String(input.birthTime ?? "");
   const city = String(input.city ?? "").trim().slice(0, 100);

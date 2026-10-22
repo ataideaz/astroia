@@ -5,6 +5,7 @@ import type { AnalysisResult } from "../lib/astro-analysis";
 import type { CompatResult } from "../lib/compatibility";
 import type { PremiumChapter, PremiumReading } from "../lib/premium-reading";
 import { StoryShare, compatCards } from "./story-cards";
+import { formatPersonName } from "../lib/name-format";
 
 export type CompatState = {
   result: CompatResult;
@@ -313,7 +314,15 @@ function CompatForm({
       <div className="cp-form-grid">
         <label className="ck-field">
           <span>Nome</span>
-          <input name="name" required maxLength={80} autoComplete="off" placeholder="Nome da pessoa" />
+          <input
+            name="name"
+            required
+            maxLength={80}
+            autoCapitalize="words"
+            autoComplete="off"
+            placeholder="Nome completo da pessoa"
+            onBlur={(event) => { event.currentTarget.value = formatPersonName(event.currentTarget.value); }}
+          />
         </label>
         <label className="ck-field">
           <span>Data de nascimento</span>

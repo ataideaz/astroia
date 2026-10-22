@@ -10,6 +10,7 @@ import { CompatSection, PremiumReport, type CompatState } from "./premium-report
 import { StoryShare, nameCards, personalCards } from "./story-cards";
 import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
+import { formatPersonName } from "../lib/name-format";
 import type { PremiumReading } from "../lib/premium-reading";
 
 const themes = [
@@ -1872,13 +1873,15 @@ export default function Home({
                   required
                   name="name"
                   type="text"
+                  autoCapitalize="words"
                   placeholder={
                     recipientType === "self"
-                      ? "Como você gostaria de ser chamado?"
-                      : "Nome de quem receberá o mapa"
+                      ? "Seu nome completo"
+                      : "Nome completo de quem receberá o mapa"
                   }
                   value={form.name}
                   onChange={(event) => updateField("name", event.target.value)}
+                  onBlur={(event) => updateField("name", formatPersonName(event.target.value))}
                 />
               </label>
             </div>

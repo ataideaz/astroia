@@ -1,4 +1,4 @@
-import { createAstroAnalysis } from "../../../lib/astro-analysis";
+import { createAstroAnalysis, formatPersonName } from "../../../lib/astro-analysis";
 import { buildCompatibility, type CompatPerson } from "../../../lib/compatibility";
 import { getGuestReport, limitRequest, readStoredCompat, saveCompat } from "../../../lib/guest-reports";
 import type { AnalysisResult } from "../../../lib/astro-analysis";
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     await limitRequest(request, "compat", 20);
 
     const partner = {
-      name: clean(body.partner?.name, 80),
+      name: formatPersonName(clean(body.partner?.name, 80)),
       birthDate: clean(body.partner?.birthDate, 10),
       birthTime: clean(body.partner?.birthTime, 5),
       city: clean(body.partner?.city, 80),
