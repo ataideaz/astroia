@@ -6990,3 +6990,46 @@ footer {
     font-size: 20px !important;
   }
 }
+.pr-month .pr-month-theme {
+  font-weight: 700;
+  color: var(--ink) !important;
+  margin-bottom: 4px !important;
+}
+.pr-month .pr-month-tip {
+  color: var(--muted) !important;
+}
+.cp-extras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.cp-extra {
+  min-width: 0;
+  border: 1px solid rgba(239, 143, 191, 0.25);
+  border-radius: 18px;
+  background: var(--deep);
+  padding: 18px;
+}
+.cp-extra-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  color: #ef8fbf;
+  background: rgba(239, 143, 191, 0.12);
+  font-size: 18px;
+}
+.cp-year-number {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: #14112a;
+  background: linear-gradient(135deg, var(--gold-light), #ef8fbf);
+}
+.cp-extra small {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--muted);
+}

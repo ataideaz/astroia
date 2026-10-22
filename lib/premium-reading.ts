@@ -46,6 +46,7 @@ export type PremiumMonth = {
   label: string;
   number: number;
   theme: string;
+  tip: string;
   tags: Array<{ id: "amor" | "sorte" | "energia" | "aniversario"; label: string }>;
 };
 
@@ -665,16 +666,53 @@ const PERSONAL_YEAR: Record<number, { first: string; act: string; rhythm: string
   },
 };
 
-const PERSONAL_MONTH: Record<number, string> = {
-  1: "Mês de começar algo novo",
-  2: "Mês de paciência e parcerias",
-  3: "Mês de se expressar e se divertir",
-  4: "Mês de organizar e trabalhar",
-  5: "Mês de mudança e novidade",
-  6: "Mês de família e cuidado",
-  7: "Mês de pensar e descansar",
-  8: "Mês de conquistas e dinheiro",
-  9: "Mês de encerrar e limpar",
+// Três jeitos de dizer cada número, para o mesmo número nunca repetir o texto.
+const PERSONAL_MONTH: Record<number, Array<{ theme: string; tip: string }>> = {
+  1: [
+    { theme: "Mês de começar algo novo", tip: "Escolha um projeto e dê o primeiro passo." },
+    { theme: "Mês de dar a largada", tip: "Aquilo que você vem adiando? Comece agora." },
+    { theme: "Mês de plantar sementes", tip: "Uma ideia pequena pode virar algo grande." },
+  ],
+  2: [
+    { theme: "Mês de paciência e parcerias", tip: "Peça ajuda e faça junto com alguém." },
+    { theme: "Mês de escutar mais", tip: "Uma boa conversa resolve o que a pressa não resolve." },
+    { theme: "Mês de cuidar de quem anda com você", tip: "Agradeça e fortaleça as suas parcerias." },
+  ],
+  3: [
+    { theme: "Mês de se expressar e se divertir", tip: "Saia, crie e mostre o que você faz." },
+    { theme: "Mês de alegria e criatividade", tip: "Dê espaço para o que te faz rir." },
+    { theme: "Mês de aparecer", tip: "Fale, poste, se mostre: é a sua vez." },
+  ],
+  4: [
+    { theme: "Mês de organizar e trabalhar", tip: "Arrume a casa, as contas e a rotina." },
+    { theme: "Mês de pôr a mão na massa", tip: "O esforço de agora vira resultado depois." },
+    { theme: "Mês de construir a base", tip: "Pequenos passos todo dia valem mais que um grande." },
+  ],
+  5: [
+    { theme: "Mês de mudança e novidade", tip: "Diga sim a algo diferente." },
+    { theme: "Mês de movimento", tip: "Uma viagem ou uma mudança pode aparecer: abrace." },
+    { theme: "Mês de liberdade", tip: "Saia da rotina sem medo." },
+  ],
+  6: [
+    { theme: "Mês de família e cuidado", tip: "Reúna quem você ama." },
+    { theme: "Mês do lar", tip: "Cuide da casa e cuide de você." },
+    { theme: "Mês de fazer as pazes", tip: "Uma conversa carinhosa resolve muita coisa." },
+  ],
+  7: [
+    { theme: "Mês de pensar e descansar", tip: "Desacelere e ouça a sua intuição." },
+    { theme: "Mês de estudar", tip: "Um livro ou um curso rende muito agora." },
+    { theme: "Mês de olhar para dentro", tip: "Silêncio também é avanço." },
+  ],
+  8: [
+    { theme: "Mês de conquistas e dinheiro", tip: "Vá atrás de um objetivo concreto." },
+    { theme: "Mês de colher", tip: "O esforço dos últimos meses começa a aparecer." },
+    { theme: "Mês de força", tip: "Negocie, peça o que é seu, lidere." },
+  ],
+  9: [
+    { theme: "Mês de encerrar e limpar", tip: "Termine o que está pela metade." },
+    { theme: "Mês de desapegar", tip: "Doe, perdoe e solte o que pesa." },
+    { theme: "Mês de fechar ciclos", tip: "Abra espaço para o que vem por aí." },
+  ],
 };
 
 const NATAL_AREA: Record<string, { area: string; of: string; title: string }> = {
@@ -811,13 +849,17 @@ function angleBetween(a: number, b: number) {
   return Math.min(distance, 360 - distance);
 }
 
-function touches(transit: number | number[], natal: number | undefined, orb: number) {
-  if (typeof natal !== "number") return false;
+
+/** Menor distância (em graus) até um aspecto bom: conjunção, sextil ou trígono. */
+function bestOrb(transit: number | number[], natal: number | undefined) {
+  if (typeof natal !== "number") return 99;
   const samples = Array.isArray(transit) ? transit : [transit];
-  return samples.some((longitude) => {
-    const distance = angleBetween(longitude, natal);
-    return [0, 60, 120].some((angle) => Math.abs(distance - angle) <= orb);
-  });
+  return Math.min(
+    ...samples.map((longitude) => {
+      const distance = angleBetween(longitude, natal);
+      return Math.min(...[0, 60, 120].map((angle) => Math.abs(distance - angle)));
+    }),
+  );
 }
 
 function capitalize(text: string) {
@@ -1073,26 +1115,36 @@ export function buildPremiumReading(input: {
 
   // Próximos 12 meses -----------------------------------------------------
   const [, birthMonth, birthDay] = input.birthDate.split("-").map(Number);
-  const months: PremiumMonth[] = input.monthSky.map((sky) => {
+  // Os selos só vão para os meses mais fortes de cada tipo (no máximo 2),
+  // para não virar um selo em todo mês.
+  const strongest = (orbs: number[], limit: number) =>
+    orbs
+      .map((orb, index) => ({ orb, index }))
+      .filter((item) => item.orb <= limit)
+      .sort((a, b) => a.orb - b.orb)
+      .slice(0, 2)
+      .map((item) => item.index);
+  const loveMonths = strongest(input.monthSky.map((sky) => Math.min(bestOrb(sky.venus, venus.longitude), bestOrb(sky.venus, sun.longitude) + 1)), 3);
+  const luckMonths = strongest(input.monthSky.map((sky) => Math.min(bestOrb(sky.jupiter, sun.longitude), bestOrb(sky.jupiter, midheaven?.longitude), bestOrb(sky.jupiter, venus.longitude) + 1)), 5);
+  const energyMonths = strongest(input.monthSky.map((sky) => Math.min(bestOrb(sky.mars, sun.longitude), bestOrb(sky.mars, mars.longitude) + 1)), 3);
+  const seen: Record<number, number> = {};
+  const months: PremiumMonth[] = input.monthSky.map((sky, index) => {
     const yearSum = String(sky.year).split("").reduce((sum, digit) => sum + Number(digit), 0);
     const personalYear = reduce(birthMonth + birthDay + yearSum);
     const number = reduce(personalYear + sky.month);
+    const variants = PERSONAL_MONTH[number] ?? PERSONAL_MONTH[1];
+    const variant = variants[(seen[number] = (seen[number] ?? -1) + 1) % variants.length];
     const tags: PremiumMonth["tags"] = [];
     if (sky.month === birthMonth) tags.push({ id: "aniversario", label: "Seu aniversário: um ano novo só seu" });
-    if (touches(sky.venus, venus.longitude, 4) || touches(sky.venus, sun.longitude, 3)) {
-      tags.push({ id: "amor", label: "Amor em alta" });
-    }
-    if (touches(sky.jupiter, sun.longitude, 5) || touches(sky.jupiter, midheaven?.longitude, 5) || touches(sky.jupiter, venus.longitude, 4)) {
-      tags.push({ id: "sorte", label: "Sorte e crescimento" });
-    }
-    if (touches(sky.mars, sun.longitude, 3) || touches(sky.mars, mars.longitude, 2)) {
-      tags.push({ id: "energia", label: "Energia de sobra" });
-    }
+    if (loveMonths.includes(index)) tags.push({ id: "amor", label: "Mês forte para o amor" });
+    if (luckMonths.includes(index)) tags.push({ id: "sorte", label: "Sorte em alta" });
+    if (energyMonths.includes(index)) tags.push({ id: "energia", label: "Energia de sobra" });
     return {
       key: `${sky.year}-${String(sky.month).padStart(2, "0")}`,
       label: `${MONTH_NAMES[sky.month - 1]} ${sky.year}`,
       number,
-      theme: PERSONAL_MONTH[number] ?? PERSONAL_MONTH[1],
+      theme: variant.theme,
+      tip: variant.tip,
       tags,
     };
   });

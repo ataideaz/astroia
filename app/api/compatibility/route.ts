@@ -19,6 +19,7 @@ function person(analysis: AnalysisResult): CompatPerson {
     venus: byKey.venus,
     mars: byKey.mars,
     ascendant: analysis.bigThree.ascendant,
+    personalYear: analysis.numerology.personalYear,
   };
 }
 
@@ -35,7 +36,10 @@ export async function POST(request: Request) {
     if (!report.products.compat) throw new Error("A compatibilidade ainda não foi liberada neste mapa.");
     if (body.consent !== true) throw new Error("Confirme que a outra pessoa concorda em usar os dados dela.");
     const stored = await readStoredCompat(String(body.token));
-    if (stored && stored.saves >= 2) throw new Error("A compatibilidade deste mapa já foi feita. Ela fica salva no seu link.");
+    // Resultados da versão antiga podem ser refeitos sem gastar a correção.
+    const oldVersion = stored?.result.version === 1;
+    const usedSaves = oldVersion ? 0 : stored?.saves ?? 0;
+    if (usedSaves >= 2) throw new Error("A compatibilidade deste mapa já foi feita. Ela fica salva no seu link.");
     await limitRequest(request, "compat", 20);
 
     const partner = {
@@ -56,14 +60,16 @@ export async function POST(request: Request) {
     });
     if (partnerAnalysis.person.isMinor) throw new Error("A compatibilidade de casal é só para maiores de 18 anos.");
 
-    const result = buildCompatibility(person(report.analysis), person(partnerAnalysis));
+    const people = { a: person(report.analysis), b: person(partnerAnalysis) };
+    const result = buildCompatibility(people.a, people.b);
     await saveCompat(String(body.token), {
       partner,
+      people,
       result,
-      saves: (stored?.saves ?? 0) + 1,
+      saves: usedSaves + 1,
       updatedAt: Date.now(),
     });
-    return Response.json({ result, partnerName: partner.name, canEdit: (stored?.saves ?? 0) + 1 < 2 }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ result, partnerName: partner.name, canEdit: usedSaves + 1 < 2 }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Não foi possível calcular a compatibilidade." }, { status: 400 });
   }

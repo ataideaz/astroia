@@ -83,7 +83,8 @@ function Months({ reading }: { reading: PremiumReading }) {
                 {month.number}
               </span>
             </div>
-            <p>{month.theme}</p>
+            <p className="pr-month-theme">{month.theme}</p>
+            {month.tip && <p className="pr-month-tip">{month.tip}</p>}
             {month.tags.length > 0 && (
               <ul className="pr-month-tags">
                 {month.tags.map((tag) => (
@@ -318,6 +319,45 @@ function CompatResultView({
             </p>
           </article>
         ))}
+      </div>
+
+      <div className="cp-extras">
+        {result.love?.length > 0 && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">♡</span>
+            <h4>Como cada um se sente amado</h4>
+            {result.love.map((item) => <p key={item.name}>{item.text}</p>)}
+          </article>
+        )}
+        {result.makeUp?.length > 0 && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">☮</span>
+            <h4>Como fazer as pazes</h4>
+            {result.makeUp.map((item) => <p key={item.name}>{item.text}</p>)}
+          </article>
+        )}
+        {result.gifts?.length > 0 && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">✦</span>
+            <h4>O que um ensina ao outro</h4>
+            {result.gifts.map((gift) => <p key={gift}>{gift}</p>)}
+          </article>
+        )}
+        {result.date && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">☕</span>
+            <h4>O encontro perfeito</h4>
+            <p>{result.date.replace(/^O encontro perfeito para vocês: /, "")}</p>
+          </article>
+        )}
+        {result.coupleYear && (
+          <article className="cp-extra cp-extra-year">
+            <span className="cp-extra-icon cp-year-number" aria-hidden="true">{result.coupleYear.number}</span>
+            <h4>O ano de vocês</h4>
+            <p>{result.coupleYear.text}</p>
+            <small>Pela numerologia: a soma do ano pessoal de cada um.</small>
+          </article>
+        )}
       </div>
 
       <div className="cp-share">

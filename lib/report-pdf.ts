@@ -1041,6 +1041,7 @@ function monthsSection(flow: Flow, reading: PremiumReading) {
         { type: "kicker", text: `${month.label} · mês ${month.number}` },
         { type: "text", text: month.theme, bold: true, color: C.ink, size: 11.4 },
       ];
+      if (month.tip) blocks.push({ type: "text", text: month.tip, color: C.muted, size: 10 });
       if (month.tags.length) blocks.push({ type: "text", text: month.tags.map((tag) => tag.label).join(" · "), color: C.goldLight, size: 10 });
       return blocks;
     };
@@ -1074,6 +1075,17 @@ function compatSection(flow: Flow, compat: CompatResult) {
       { type: "text", text: area.text },
       { type: "text", text: `Dica para vocês: ${area.tip}`, color: C.goldLight, size: 11.4 },
     ]);
+  }
+  const extras: Array<[string, string[]]> = [
+    ["Como cada um se sente amado", (compat.love ?? []).map((item) => item.text)],
+    ["Como fazer as pazes", (compat.makeUp ?? []).map((item) => item.text)],
+    ["O que um ensina ao outro", compat.gifts ?? []],
+    ["O encontro perfeito", compat.date ? [compat.date.replace(/^O encontro perfeito para vocês: /, "")] : []],
+    ["O ano de vocês", compat.coupleYear ? [`Ano ${compat.coupleYear.number}: ${compat.coupleYear.text}`] : []],
+  ];
+  for (const [title, lines] of extras) {
+    if (!lines.length) continue;
+    card(flow, [{ type: "title", text: title, size: 15 }, ...lines.map((text) => ({ type: "text" as const, text }))]);
   }
   loose(flow, [{ type: "text", text: compat.note, color: C.muted, size: 9.4 }]);
 }

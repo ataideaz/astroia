@@ -4,7 +4,7 @@ async function digest(value: string) {
  return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, "0")).join("");
 }
 import { createAstroAnalysis, type AnalyzeRequest, type AnalysisResult } from "./astro-analysis";
-import type { CompatResult } from "./compatibility";
+import { buildCompatibility, type CompatPerson, type CompatResult } from "./compatibility";
 import { paymentsEnabled } from "./asaas";
 import { parseItems, type ProductId } from "./products";
 
@@ -39,6 +39,8 @@ export function preview(full: AnalysisResult): AnalysisResult {
 
 export type StoredCompat = {
   partner: { name: string; birthDate: string; birthTime: string; city: string; country: string };
+  /** Signos das duas pessoas: permite refazer o texto quando a leitura melhora. */
+  people?: { a: CompatPerson; b: CompatPerson };
   result: CompatResult;
   saves: number;
   updatedAt: number;
@@ -86,7 +88,7 @@ export async function getGuestReport(token: unknown) {
     checkoutUrl: pending?.checkout_url ?? null,
     pendingItems: pending ? parseItems(pending.items) : [],
     pendingOrderIds: orders.filter((order) => order.status === null || OPEN_STATUSES.has(order.status)).map((order) => order.order_id).slice(0, 3),
-    compat: compatOwned && stored ? { result: stored.result, partnerName: stored.partner.name, canEdit: stored.saves < 2 } : null,
+    compat: compatOwned && stored ? { result: stored.people ? buildCompatibility(stored.people.a, stored.people.b) : stored.result, partnerName: stored.partner.name, canEdit: stored.saves < 2 || stored.result.version === 1 } : null,
   };
 }
 
