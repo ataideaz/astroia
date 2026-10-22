@@ -40,7 +40,8 @@ function getSiteUrl() {
 }
 
 function isTestMode() {
-  return readEnv("MERCADO_PAGO_MODE")?.toLowerCase() !== "production";
+  const mode = readEnv("MERCADO_PAGO_MODE")?.trim().toLowerCase() || "";
+  return !["production", "prod", "prd", "real", "live"].includes(mode);
 }
 
 function cleanText(value: unknown, maximumLength: number) {

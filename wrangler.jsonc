@@ -19,7 +19,7 @@
   "keep_vars": true,
   "vars": {
     "ASTROIA_SITE_URL": "https://meuastroia.com.br",
-    "MERCADO_PAGO_MODE": "test"
+    "MERCADO_PAGO_MODE": "production"
   },
   "d1_databases": [
     {
