@@ -28,8 +28,8 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json() as {token?: string};
-    const { analysis, reportTier, compat } = await getGuestReport(body.token);
-    const pdfBytes = await createReportPdf(analysis, reportTier, compat?.result ?? null);
+    const { analysis, reportTier, compat, nameReading } = await getGuestReport(body.token);
+    const pdfBytes = await createReportPdf(analysis, reportTier, compat?.result ?? null, nameReading);
     const filename = reportFilename(analysis, reportTier);
 
     return new Response(pdfBytes.slice().buffer, {

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, type ReactNode, useState } from "react";
 import type { AnalysisResult } from "../lib/astro-analysis";
 import type { CompatResult } from "../lib/compatibility";
 import type { PremiumChapter, PremiumReading } from "../lib/premium-reading";
@@ -23,6 +23,8 @@ type Props = {
   compatPending: boolean;
   onBuyCompat: () => void;
   onCompatSaved: (compat: NonNullable<CompatState>) => void;
+  /** Numerologia do Nome (comprada) ou a oferta dela, logo depois do capítulo do número. */
+  nameSlot?: ReactNode;
 };
 
 function Chapter({ chapter, index }: { chapter: PremiumChapter; index: number }) {
@@ -429,6 +431,11 @@ export function PremiumReport(props: Props) {
           <a href="#pr-meses">
             <span aria-hidden="true">◷</span> Próximos 12 meses
           </a>
+          {props.nameSlot && (
+            <a href="#numerologia-nome">
+              <span aria-hidden="true">✦</span> Seu nome
+            </a>
+          )}
           {showCompatLink && (
             <a className="pr-index-compat" href="#compatibilidade">
               <span aria-hidden="true">♡</span> Compatibilidade
@@ -456,6 +463,7 @@ export function PremiumReport(props: Props) {
           <Chapter chapter={chapter} index={index} />
           {chapter.id === "amor" && <CompatSection {...props} />}
           {chapter.id === "agora" && <Months reading={reading} />}
+          {chapter.id === "numero" && props.nameSlot}
         </div>
       ))}
 

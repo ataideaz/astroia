@@ -11,6 +11,7 @@ import type { AnalysisResult, Placement, ThemeGuide } from "./astro-analysis";
 import type { ExportTier } from "./report-export";
 import type { CompatResult } from "./compatibility";
 import type { PremiumReading } from "./premium-reading";
+import type { NameReading } from "./name-numerology";
 
 type Color = ReturnType<typeof rgb>;
 
@@ -1104,10 +1105,44 @@ function compatSection(flow: Flow, compat: CompatResult) {
   loose(flow, [{ type: "text", text: compat.note, color: C.muted, size: 9.4 }]);
 }
 
+function nameSection(flow: Flow, reading: NameReading) {
+  newPage(flow, "Numerologia do Nome");
+  sectionHeading(flow, "Numerologia do Nome", reading.headline, reading.intro);
+  for (const section of reading.sections) {
+    const blocks: Block[] = [
+      { type: "kicker", text: `${section.label} · ${section.number}  ·  ${section.question}` },
+      { type: "title", text: section.title, size: 16 },
+      { type: "text", text: section.text },
+      { type: "text", text: section.example, color: section.example.startsWith("Experimente") ? C.goldLight : C.violetLight, size: 11.4 },
+    ];
+    if (section.extra) blocks.push({ type: "text", text: section.extra, color: C.muted, size: 9.6 });
+    card(flow, blocks);
+  }
+  cardRow(
+    flow,
+    [
+      { type: "kicker", text: "Seus dias de poder" },
+      { type: "big", text: reading.powerDays.join(" · "), caption: "de todo mês" },
+      { type: "text", text: reading.powerText, size: 10.6 },
+    ],
+    [
+      { type: "kicker", text: "Seu número da sorte" },
+      { type: "big", text: String(reading.numbers.lucky), caption: "número da sorte" },
+      { type: "text", text: reading.luckyText, size: 10.6 },
+    ],
+  );
+  loose(flow, [{ type: "text", text: reading.closing, color: C.muted, size: 9.4 }]);
+}
+
 // ---------------------------------------------------------------------------
 // Documento
 // ---------------------------------------------------------------------------
-export async function createReportPdf(analysis: AnalysisResult, tier: ExportTier, compat: CompatResult | null = null) {
+export async function createReportPdf(
+  analysis: AnalysisResult,
+  tier: ExportTier,
+  compat: CompatResult | null = null,
+  nameReading: NameReading | null = null,
+) {
   const document = await PDFDocument.create();
   document.registerFontkit(fontkit);
   const fonts: Fonts = {
@@ -1148,6 +1183,8 @@ export async function createReportPdf(analysis: AnalysisResult, tier: ExportTier
     sectionHeading(flow, "Próxima descoberta", "Seu mapa completo continua daqui");
     loose(flow, [{ type: "text", text: "O mapa completo abre as outras áreas da sua vida e termina com um plano simples para aplicar a leitura." }]);
   }
+
+  if (nameReading) nameSection(flow, nameReading);
 
   return document.save({ useObjectStreams: false });
 }

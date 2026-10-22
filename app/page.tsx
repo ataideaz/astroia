@@ -9,6 +9,7 @@ export default function Home() {
       paymentAmountCents={asaasAmountCents()}
       compatAmountCents={productPrice("compat")}
       compatEnabled={Boolean(readEnv("MERCADO_PAGO_ACCESS_TOKEN"))}
+      nameAmountCents={productPrice("name")}
       paymentsEnabled={paymentsEnabled()}
     />
   );

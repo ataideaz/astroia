@@ -8,6 +8,8 @@ import type {
 } from "../lib/astro-analysis";
 import { CompatSection, PremiumReport, type CompatState } from "./premium-report";
 import { StoryShare, personalCards } from "./story-cards";
+import { NameOffer, NameReadingView } from "./name-report";
+import type { NameReading } from "../lib/name-numerology";
 import type { PremiumReading } from "../lib/premium-reading";
 
 const themes = [
@@ -762,7 +764,7 @@ function FreeTeasers({
   );
 }
 
-type Products = { map: boolean; compat: boolean };
+type Products = { map: boolean; compat: boolean; name?: boolean };
 type ReportPayload = {
   analysis: AnalysisResult;
   reportTier: ReportTier;
@@ -770,6 +772,7 @@ type ReportPayload = {
   orderId?: string | null;
   pendingItems?: string[];
   compat?: CompatState;
+  nameReading?: NameReading | null;
 };
 
 function formatPrice(cents: number) {
@@ -780,19 +783,24 @@ export default function Home({
   paymentAmountCents = 3790,
   compatAmountCents = 3200,
   compatEnabled = false,
+  nameAmountCents = 1990,
   paymentsEnabled = true,
 }: {
   paymentAmountCents?: number;
   compatAmountCents?: number;
   compatEnabled?: boolean;
+  nameAmountCents?: number;
   paymentsEnabled?: boolean;
 }) {
   const paymentPrice = formatPrice(paymentAmountCents);
   const compatPrice = formatPrice(compatAmountCents);
+  const namePrice = formatPrice(nameAmountCents);
+  const [nameReading, setNameReading] = useState<NameReading | null>(null);
+  const [downsell, setDownsell] = useState(false);
   const [products, setProducts] = useState<Products>({ map: false, compat: false });
   const [compat, setCompat] = useState<CompatState>(null);
   const [pendingItems, setPendingItems] = useState<string[]>([]);
-  const [checkoutProduct, setCheckoutProduct] = useState<"map" | "compat">("map");
+  const [checkoutProduct, setCheckoutProduct] = useState<"map" | "compat" | "name">("map");
   const [addCompat, setAddCompat] = useState(false);
   const paymentTest = paymentAmountCents === 100;
   const [awaitingPayment, setAwaitingPayment] = useState(false);
@@ -879,10 +887,19 @@ export default function Home({
       : null;
   const compatOffered =
     compatEnabled && paymentsEnabled && Boolean(analysis) && !analysis?.person.isMinor;
-  const checkoutItems: Array<"map" | "compat"> =
-    checkoutProduct === "compat" ? ["compat"] : addCompat && compatOffered ? ["map", "compat"] : ["map"];
+  // A numerologia do nome usa o mesmo meio de pagamento da compatibilidade.
+  const nameOffered = compatOffered && !products.name;
+  const checkoutItems: Array<"map" | "compat" | "name"> =
+    checkoutProduct === "compat"
+      ? ["compat"]
+      : checkoutProduct === "name"
+        ? ["name"]
+        : addCompat && compatOffered ? ["map", "compat"] : ["map"];
   const checkoutTotal = formatPrice(
-    checkoutItems.reduce((sum, item) => sum + (item === "map" ? paymentAmountCents : compatAmountCents), 0),
+    checkoutItems.reduce(
+      (sum, item) => sum + (item === "map" ? paymentAmountCents : item === "compat" ? compatAmountCents : nameAmountCents),
+      0,
+    ),
   );
 
   function applyReport(payload: ReportPayload, token: string) {
@@ -890,8 +907,16 @@ export default function Home({
     setReportTier(payload.reportTier);
     setProducts(payload.products ?? { map: payload.reportTier === "premium", compat: false });
     setCompat(payload.compat ?? null);
+    setNameReading(payload.nameReading ?? null);
     setPendingItems(payload.pendingItems ?? []);
     saveMap(payload.analysis, payload.reportTier, token);
+  }
+
+  function openNameCheckout(fromDownsell = false) {
+    setCheckoutProduct("name");
+    setDownsell(fromDownsell);
+    setCheckoutEmail((current) => current || form.email);
+    openCheckout(null, "upgrade");
   }
 
   function openCompatCheckout() {
@@ -951,19 +976,23 @@ export default function Home({
         if (cancelled) return;
         const unlockedMap = payload.reportTier === "premium" && !products.map;
         const unlockedCompat = Boolean(payload.products?.compat) && !products.compat;
-        if (unlockedMap || unlockedCompat || !payload.orderId) {
+        const unlockedName = Boolean(payload.products?.name) && !products.name;
+        if (unlockedMap || unlockedCompat || unlockedName || !payload.orderId) {
           applyReport(payload, reportToken);
           if (!payload.orderId) setAwaitingPayment(false);
           if (unlockedMap) setAccessStatus("Pagamento confirmado! Seu mapa completo e o PDF estão liberados.");
           else if (unlockedCompat) {
             setAccessStatus("Pagamento confirmado! Agora é só preencher os dados do seu par.");
             window.setTimeout(() => document.getElementById("compatibilidade")?.scrollIntoView({ behavior: "smooth" }), 150);
+          } else if (unlockedName) {
+            setAccessStatus("Pagamento confirmado! A Numerologia do Nome está liberada.");
+            window.setTimeout(() => document.getElementById("numerologia-nome")?.scrollIntoView({ behavior: "smooth" }), 150);
           }
         }
       } catch { /* Manual consultation remains available. */ }
     }, 10000);
     return () => {cancelled = true; window.clearInterval(timer);};
-  }, [awaitingPayment, reportToken, products.map, products.compat]);
+  }, [awaitingPayment, reportToken, products.map, products.compat, products.name]);
 
   useEffect(() => {
     if (!checkoutOpen) return;
@@ -1250,6 +1279,7 @@ export default function Home({
       setAnalysis(result);
       setProducts({ map: tier === "premium", compat: false });
       setCompat(null);
+      setNameReading(null);
       setPendingItems([]);
       saveMap(result, tier, payload.reportToken);
       window.setTimeout(() => {
@@ -1284,6 +1314,18 @@ export default function Home({
 
   function closeCheckout() {
     if (checkoutStatus === "processing") return;
+    // Downsell honesto: quem desiste do mapa completo vê, uma única vez,
+    // a opção menor (Numerologia do Nome).
+    let alreadyShown = false;
+    try { alreadyShown = window.sessionStorage.getItem("astroia-downsell-name") === "1"; } catch { /* sem storage */ }
+    if (checkoutProduct === "map" && !products.map && nameOffered && !downsell && !alreadyShown) {
+      try { window.sessionStorage.setItem("astroia-downsell-name", "1"); } catch { /* sem storage */ }
+      setCheckoutProduct("name");
+      setDownsell(true);
+      setCheckoutError("");
+      return;
+    }
+    setDownsell(false);
     setCheckoutOpen(false);
     setCheckoutStatus("idle");
     setCheckoutError("");
@@ -1344,6 +1386,8 @@ export default function Home({
       setAccessStatus(
         checkoutProduct === "compat"
           ? "Conclua o pagamento na aba do Mercado Pago. Assim que ele for confirmado, a compatibilidade abre aqui sozinha."
+          : checkoutProduct === "name"
+            ? "Conclua o pagamento na aba do Mercado Pago. Assim que ele for confirmado, a Numerologia do Nome abre aqui sozinha."
           : "Conclua o pagamento na aba do Mercado Pago. Esta página espera a confirmação e libera o seu mapa sozinha. Guarde o seu link.",
       );
     } catch (error) {
@@ -2211,6 +2255,18 @@ export default function Home({
                 }}
                 reading={newPremium}
                 reportToken={reportToken}
+                nameSlot={
+                  nameReading ? (
+                    <NameReadingView reading={nameReading} />
+                  ) : nameOffered ? (
+                    <NameOffer
+                      context="premium"
+                      onBuy={() => openNameCheckout(false)}
+                      pending={awaitingPayment && pendingItems.includes("name")}
+                      price={namePrice}
+                    />
+                  ) : null
+                }
               />
             </>
           )}
@@ -2240,6 +2296,7 @@ export default function Home({
           {newFreeReading && (
             <FreeReadingView analysis={analysis} reading={newFreeReading} />
           )}
+          {newFreeReading && nameReading && <NameReadingView reading={nameReading} />}
 
           {reportTier === "free" && !newFreeReading && (
             <article
@@ -3081,7 +3138,31 @@ export default function Home({
               </div>
             ) : (
               <div className="ck-body">
-                {checkoutProduct === "compat" ? (
+                {checkoutProduct === "name" ? (
+                  <>
+                    <span className="ck-kicker">
+                      {downsell ? "Antes de você ir" : "Numerologia do Nome"}
+                      {checkoutPersonName ? ` · ${checkoutPersonName.split(/\s+/)[0]}` : ""}
+                    </span>
+                    <h2 className="ck-title" id="checkout-title">
+                      {downsell
+                        ? "Ainda não é a hora do mapa completo? Comece pelo seu nome"
+                        : "Descubra o que o seu nome revela"}
+                    </h2>
+                    <div className="ck-price">
+                      <strong>{namePrice}</strong>
+                      <span>pagamento único · sem assinatura</span>
+                    </div>
+                    <ul className="ck-includes">
+                      <li>O que você deseja lá no fundo (Número da Alma)</li>
+                      <li>Como os outros te veem (Personalidade)</li>
+                      <li>Os seus talentos (Expressão)</li>
+                      <li>Destino, Maturidade e o seu Desafio</li>
+                      <li>Seus dias de poder e o número da sorte</li>
+                      <li>Stories coloridos para postar</li>
+                    </ul>
+                  </>
+                ) : checkoutProduct === "compat" ? (
                   <>
                     <span className="ck-kicker">
                       Compatibilidade{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
@@ -3186,10 +3267,14 @@ export default function Home({
                 <button
                   className="checkout-free-button ck-back"
                   disabled={checkoutStatus === "processing"}
-                  onClick={checkoutIntent === "generate" ? continueWithFreeMap : closeCheckout}
+                  onClick={checkoutIntent === "generate" && checkoutProduct === "map" ? continueWithFreeMap : closeCheckout}
                   type="button"
                 >
-                  {checkoutProduct === "compat"
+                  {checkoutProduct === "name"
+                    ? downsell
+                      ? "Não, obrigado"
+                      : "Agora não, voltar ao meu mapa"
+                    : checkoutProduct === "compat"
                     ? "Agora não, voltar ao meu mapa"
                     : checkoutIntent === "generate"
                       ? "Prefiro continuar com o mapa grátis"

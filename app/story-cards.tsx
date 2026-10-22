@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import type { CompatResult } from "../lib/compatibility";
 import type { FreeReading } from "../lib/free-reading";
+import type { NameReading } from "../lib/name-numerology";
 import type { PremiumReading } from "../lib/premium-reading";
 
 const W = 1080;
@@ -545,6 +546,110 @@ export function compatCards(result: CompatResult): StoryCard[] {
           ctx.fill();
         });
         footer(ctx, fonts, host, "Descubra a sintonia de vocês", COLORS.navy, COLORS.violet);
+      },
+    },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Stories da Numerologia do Nome
+// ---------------------------------------------------------------------------
+export function nameCards(reading: NameReading): StoryCard[] {
+  const first = reading.name.split(/\s+/)[0] ?? reading.name;
+  const soul = reading.sections.find((section) => section.id === "alma");
+  const personality = reading.sections.find((section) => section.id === "personalidade");
+  const expression = reading.sections.find((section) => section.id === "expressao");
+  return [
+    {
+      id: "numero-nome",
+      label: "Meu nome",
+      draw: (ctx, fonts, host) => {
+        ctx.fillStyle = COLORS.orange;
+        ctx.fillRect(0, 0, W, H);
+        circle(ctx, W / 2, 980, 380, COLORS.navy);
+        star(ctx, 170, 420, 70, COLORS.yellow);
+        star(ctx, 900, 1560, 60, COLORS.white);
+        header(ctx, fonts, COLORS.navy, "numerologia do nome");
+        setFont(ctx, 800, 80, fonts.sans);
+        ctx.fillStyle = COLORS.navy;
+        ctx.textAlign = "left";
+        fit(ctx, `O nome ${upper(first)}`, 800, 80, fonts.sans, W - 160);
+        ctx.fillText(`O nome ${upper(first)}`, 80, 470);
+        setFont(ctx, 800, 80, fonts.sans);
+        ctx.fillText("vibra no número", 80, 560);
+        setFont(ctx, 800, 460, fonts.sans);
+        ctx.fillStyle = COLORS.lime;
+        ctx.textAlign = "center";
+        ctx.fillText(String(reading.numbers.expression), W / 2, 1130);
+        if (expression) {
+          paragraph(ctx, expression.title, W / 2, 1460, {
+            weight: 800, size: 56, family: fonts.sans, color: COLORS.navy, max: W - 200, lineHeight: 66, align: "center",
+          });
+        }
+        footer(ctx, fonts, host, "E o seu nome, vibra em quê?", COLORS.navy, COLORS.white);
+      },
+    },
+    {
+      id: "alma",
+      label: "Alma e jeito",
+      draw: (ctx, fonts, host) => {
+        ctx.fillStyle = COLORS.violet;
+        ctx.fillRect(0, 0, W, H);
+        circle(ctx, W - 60, 300, 230, COLORS.pink);
+        circle(ctx, 60, H - 480, 180, COLORS.cyan);
+        header(ctx, fonts, COLORS.white, "por dentro e por fora");
+        const blocks: Array<[string, number, string, string]> = [
+          ["MINHA ALMA", reading.numbers.soul, firstPerson(soul?.title.replace(/^Lá no fundo, você quer /, "Quero ") ?? ""), COLORS.lime],
+          ["COMO ME VEEM", reading.numbers.personality, personality?.title.replace(/^Os outros te veem como /, "Como ") ?? "", COLORS.yellow],
+        ];
+        blocks.forEach(([label, number, title, color], index) => {
+          const top = 420 + index * 560;
+          setFont(ctx, 800, 40, fonts.sans);
+          ctx.fillStyle = color;
+          ctx.textAlign = "left";
+          ctx.fillText(label, 80, top);
+          setFont(ctx, 800, 300, fonts.sans);
+          ctx.fillText(String(number), 70, top + 280);
+          paragraph(ctx, title, 80, top + 380, {
+            weight: 600, size: 58, family: fonts.serif, color: COLORS.white, max: W - 160, lineHeight: 66,
+          });
+        });
+        footer(ctx, fonts, host, "Descubra a sua alma", COLORS.white, COLORS.lime);
+      },
+    },
+    {
+      id: "dias",
+      label: "Dias de poder",
+      draw: (ctx, fonts, host) => {
+        ctx.fillStyle = COLORS.lime;
+        ctx.fillRect(0, 0, W, H);
+        stripes(ctx, 1500, 110, COLORS.pink, -0.12);
+        star(ctx, W - 180, 400, 160, COLORS.orange, 8);
+        header(ctx, fonts, COLORS.navy, "meus dias de poder");
+        setFont(ctx, 800, 116, fonts.sans);
+        ctx.fillStyle = COLORS.navy;
+        ctx.textAlign = "left";
+        ctx.fillText("Meus dias", 80, 760);
+        ctx.fillText("de poder:", 80, 890);
+        const days = reading.powerDays;
+        const size = 200;
+        days.forEach((day, index) => {
+          const x = 80 + (index % 2) * 470;
+          const y = 980 + Math.floor(index / 2) * 250;
+          ctx.fillStyle = COLORS.navy;
+          ctx.beginPath();
+          ctx.roundRect(x, y, 420, 220, 40);
+          ctx.fill();
+          setFont(ctx, 800, size * 0.8, fonts.sans);
+          ctx.fillStyle = COLORS.lime;
+          ctx.textAlign = "center";
+          ctx.fillText(String(day), x + 210, y + 170);
+        });
+        setFont(ctx, 800, 40, fonts.sans);
+        ctx.fillStyle = COLORS.navy;
+        ctx.textAlign = "left";
+        ctx.fillText("de todo mês ✦", 80, 980 + Math.ceil(days.length / 2) * 250 + 40);
+        footer(ctx, fonts, host, "Quais são os seus?", COLORS.navy, COLORS.violet);
       },
     },
   ];

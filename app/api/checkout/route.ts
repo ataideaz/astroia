@@ -24,6 +24,9 @@ export async function POST(request: Request) {
     if (items.includes("compat") && report.analysis.person.isMinor) {
       throw new Error("A compatibilidade de casal é só para maiores de 18 anos.");
     }
+    if (items.includes("name") && report.analysis.person.isMinor) {
+      throw new Error("A numerologia do nome é só para maiores de 18 anos.");
+    }
 
     // Mesmo mapa e mesmos produtos, com pagamento já criado: devolve o mesmo link
     // (não cria outro pedido e não conta no limite).
@@ -43,7 +46,7 @@ export async function POST(request: Request) {
       await attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl, items);
       return Response.json({...checkout, items}, {headers:{"Cache-Control":"no-store"}});
     }
-    if (items.includes("compat")) throw new Error("A compatibilidade ainda não está disponível neste meio de pagamento.");
+    if (items.some((item) => item !== "map")) throw new Error("Este produto ainda não está disponível neste meio de pagamento.");
     const checkout = await createAsaasCheckout(body.reportToken, email, report.analysis.person.fullName);
     return Response.json({...checkout, items}, {headers:{"Cache-Control":"no-store"}});
   } catch(error) { return Response.json({error:error instanceof Error ? error.message : "Não foi possível iniciar a compra."}, {status:400}); }

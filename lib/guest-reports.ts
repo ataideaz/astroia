@@ -7,6 +7,7 @@ import { createAstroAnalysis, type AnalyzeRequest, type AnalysisResult } from ".
 import { buildCompatibility, type CompatPerson, type CompatResult } from "./compatibility";
 import { paymentsEnabled } from "./asaas";
 import { parseItems, type ProductId } from "./products";
+import { buildNameReading } from "./name-numerology";
 
 export async function limitRequest(request: Request, scope: string, limit: number) {
   const ip = request.headers.get("cf-connecting-ip") || "local";
@@ -80,10 +81,12 @@ export async function getGuestReport(token: unknown) {
   const pending = orders.find((order) => order.status === null || OPEN_STATUSES.has(order.status));
   const stored = row.compat_json ? JSON.parse(row.compat_json) as StoredCompat : null;
   const compatOwned = paid && owned.has("compat") && !full.person.isMinor;
+  const nameOwned = owned.has("name") && !full.person.isMinor;
   return {
     analysis: paid ? full : preview(full),
     reportTier: paid ? "premium" as const : "free" as const,
-    products: { map: paid, compat: compatOwned },
+    products: { map: paid, compat: compatOwned, name: nameOwned },
+    nameReading: nameOwned ? buildNameReading(full.person.fullName, full.person.birthDate) : null,
     orderId: pending?.order_id ?? null,
     checkoutUrl: pending?.checkout_url ?? null,
     pendingItems: pending ? parseItems(pending.items) : [],
