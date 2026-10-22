@@ -8,6 +8,7 @@ import { buildCompatibility, type CompatPerson, type CompatResult } from "./comp
 import { paymentsEnabled } from "./asaas";
 import { parseItems, type ProductId } from "./products";
 import { buildNameReading } from "./name-numerology";
+import type { AdSignals, Attribution } from "./attribution";
 
 export async function limitRequest(request: Request, scope: string, limit: number) {
   const ip = request.headers.get("cf-connecting-ip") || "local";
@@ -19,13 +20,13 @@ export async function limitRequest(request: Request, scope: string, limit: numbe
   if (!result) throw new Error("Muitas tentativas seguidas desta conexão. Aguarde alguns minutos e tente de novo.");
   await (await database()).prepare("DELETE FROM guest_limits WHERE expires_at < ?").bind(Date.now()).run();
 }
-export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremium = false) {
+export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremium = false, attribution: Attribution | null = null) {
   const reportTier = allowUnpaidPremium && input.reportTier === "premium" ? "premium" : "free";
   const request = { ...input, theme: "personalidade", reportTier };
   const full = await createAstroAnalysis(request);
   const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, "0")).join("");
-  await (await database()).prepare("INSERT INTO guest_reports (token_hash, request_json, analysis_json, created_at) VALUES (?, ?, ?, ?)")
-    .bind(await digest(token), JSON.stringify(request), JSON.stringify(full), Date.now()).run();
+  await (await database()).prepare("INSERT INTO guest_reports (token_hash, request_json, analysis_json, attribution_json, created_at) VALUES (?, ?, ?, ?, ?)")
+    .bind(await digest(token), JSON.stringify(request), JSON.stringify(full), attribution ? JSON.stringify(attribution) : null, Date.now()).run();
   return { ...(reportTier === "premium" ? full : preview(full)), reportToken: token };
 }
 export function preview(full: AnalysisResult): AnalysisResult {
@@ -106,11 +107,15 @@ export async function findOpenOrder(token: string, items: ProductId[]) {
     parseItems(order.items).join(",") === key) ?? null;
 }
 
-export async function attachOrder(token: string, orderId: string, checkoutUrl = "", items: ProductId[] = ["map"]) {
+/** Dados de anúncio guardados com o pedido, para a API de Conversões. IP e navegador só com consentimento. */
+export type OrderAdData = { attribution: Attribution | null; signals: AdSignals; ip?: string; userAgent?: string };
+
+export async function attachOrder(token: string, orderId: string, checkoutUrl = "", items: ProductId[] = ["map"], adData: OrderAdData | null = null) {
   const db = await database();
   const tokenHash = await digest(token);
-  await db.prepare("INSERT OR REPLACE INTO report_orders (order_id, token_hash, items, checkout_url, created_at) VALUES (?, ?, ?, ?, ?)")
-    .bind(orderId, tokenHash, JSON.stringify(items), checkoutUrl, Date.now()).run();
+  const stored = adData ? JSON.stringify(adData.signals.consent ? adData : { attribution: adData.attribution, signals: { consent: false } }) : null;
+  await db.prepare("INSERT OR REPLACE INTO report_orders (order_id, token_hash, items, checkout_url, attribution_json, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(orderId, tokenHash, JSON.stringify(items), checkoutUrl, stored, Date.now()).run();
   if (items.includes("map")) {
     await db.prepare("UPDATE guest_reports SET order_id = ?, checkout_url = ? WHERE token_hash = ?").bind(orderId, checkoutUrl, tokenHash).run();
   }

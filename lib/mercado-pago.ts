@@ -211,6 +211,11 @@ async function applyPaymentToOrder(order: PaymentOrder, payment: MercadoPagoPaym
     .bind(status, paymentId, providerStatus, now, status, now, order.id)
     .run();
 
+  if (status === "approved") {
+    const { sendPurchaseToMeta } = await import("./meta-capi");
+    await sendPurchaseToMeta(order.id);
+  }
+
   return {
     orderId: order.id,
     status,

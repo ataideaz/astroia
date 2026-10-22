@@ -3,13 +3,15 @@ import { normalizedEmail } from "../../../lib/site-auth";
 import { createAsaasCheckout, paymentsEnabled } from "../../../lib/asaas";
 import { cleanItems } from "../../../lib/products";
 import { readEnv } from "../../../lib/runtime-env";
+import { cleanAdSignals, cleanAttribution } from "../../../lib/attribution";
+import { recordSiteEvent } from "../../../lib/site-events";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     if (!paymentsEnabled()) throw new Error("O pagamento está temporariamente desativado para testes.");
     const raw = await request.text();
     if (raw.length > 12000) throw new Error("Solicitação muito grande.");
-    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown};
+    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown};
     const email = normalizedEmail(body.customerEmail);
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
@@ -43,7 +45,15 @@ export async function POST(request: Request) {
         personName: report.analysis.person.fullName,
         reportToken: body.reportToken,
       });
-      await attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl, items);
+      const signals = cleanAdSignals(body.ad);
+      const attribution = cleanAttribution(body.attribution);
+      await attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl, items, {
+        attribution: Object.keys(attribution).some((key) => attribution[key as keyof typeof attribution] !== undefined) ? attribution : null,
+        signals,
+        ip: request.headers.get("cf-connecting-ip") || undefined,
+        userAgent: request.headers.get("user-agent")?.slice(0, 400) || undefined,
+      });
+      await recordSiteEvent("checkout", attribution);
       return Response.json({...checkout, items}, {headers:{"Cache-Control":"no-store"}});
     }
     if (items.some((item) => item !== "map")) throw new Error("Este produto ainda não está disponível neste meio de pagamento.");

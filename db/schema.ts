@@ -100,6 +100,7 @@ export const guestReports = sqliteTable("guest_reports", {
  orderId: text("order_id"),
  checkoutUrl: text("checkout_url"),
  compatJson: text("compat_json"),
+ attributionJson: text("attribution_json"),
  createdAt: integer("created_at").notNull(),
 });
 // Cada pedido ligado a um mapa, com os produtos comprados (ex.: ["map","compat"]).
@@ -108,6 +109,17 @@ export const reportOrders = sqliteTable("report_orders", {
  tokenHash: text("token_hash").notNull(),
  items: text("items").notNull(),
  checkoutUrl: text("checkout_url"),
+ attributionJson: text("attribution_json"),
+ capiSentAt: integer("capi_sent_at"),
+ createdAt: integer("created_at").notNull(),
+});
+// Contagem anônima do funil (visitas, mapas, checkouts) por dia e origem.
+export const siteEvents = sqliteTable("site_events", {
+ id: integer("id").primaryKey({ autoIncrement: true }),
+ day: text("day").notNull(),
+ type: text("type").notNull(),
+ source: text("source").notNull(),
+ campaign: text("campaign"),
  createdAt: integer("created_at").notNull(),
 });
 export const guestLimits = sqliteTable("guest_limits", {

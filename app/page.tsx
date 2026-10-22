@@ -1,10 +1,13 @@
 import AstroIAClient from "./astroia-client";
+import CookieConsent from "./cookie-consent";
 import { asaasAmountCents, paymentsEnabled } from "../lib/asaas";
 import { productPrice } from "../lib/products";
 import { readEnv } from "../lib/runtime-env";
 export const dynamic = "force-dynamic";
 export default function Home() {
   return (
+    <>
+    <CookieConsent pixelId={readEnv("META_PIXEL_ID")} />
     <AstroIAClient
       paymentAmountCents={asaasAmountCents()}
       compatAmountCents={productPrice("compat")}
@@ -12,5 +15,6 @@ export default function Home() {
       nameAmountCents={productPrice("name")}
       paymentsEnabled={paymentsEnabled()}
     />
+    </>
   );
 }

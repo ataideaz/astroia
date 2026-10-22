@@ -181,12 +181,27 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2>8. Cookies e alterações</h2>
+            <h2>8. Cookies, anúncios e alterações</h2>
             <p>
-              Nesta versão, usamos somente recursos técnicos necessários ao
-              funcionamento e à segurança do site; não usamos cookies
-              publicitários próprios. Mudanças relevantes nesta política serão
-              comunicadas de forma destacada antes de passarem a valer.
+              Usamos recursos técnicos necessários ao funcionamento do site e
+              uma contagem anônima de visitas (dia e origem, como
+              &quot;instagram&quot;), sem identificar você.
+            </p>
+            <p>
+              <strong>Somente se você aceitar</strong> no aviso de cookies,
+              usamos o Pixel e a API de Conversões da Meta (Facebook e
+              Instagram) para medir quais anúncios trazem visitas e compras.
+              Nesse caso, a Meta recebe eventos como &quot;fez o mapa
+              grátis&quot; e &quot;comprou&quot;, com o valor da compra, o
+              identificador do navegador e o seu e-mail em formato
+              criptografado (hash). Nunca enviamos dados de nascimento, o seu
+              mapa ou dados de outras pessoas. Se você recusar, nada disso é
+              enviado. Você pode mudar a escolha a qualquer momento em
+              &quot;Preferências de cookies&quot;, no rodapé do site.
+            </p>
+            <p>
+              Mudanças relevantes nesta política serão comunicadas de forma
+              destacada antes de passarem a valer.
             </p>
           </section>
 

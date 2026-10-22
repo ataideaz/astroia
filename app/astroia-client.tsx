@@ -11,6 +11,7 @@ import { StoryShare, nameCards, personalCards } from "./story-cards";
 import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
 import { formatPersonName } from "../lib/name-format";
+import { adSignals, confirmPendingPurchase, currentAttribution, metaEvent, openCookiePreferences, rememberPendingPurchase } from "../lib/ad-tracking";
 import type { PremiumReading } from "../lib/premium-reading";
 
 const themes = [
@@ -930,6 +931,10 @@ export default function Home({
       : checkoutProduct === "name"
         ? ["name"]
         : addCompat && compatOffered ? ["map", "compat"] : ["map"];
+  const checkoutTotalCents = checkoutItems.reduce(
+    (sum, item) => sum + (item === "map" ? paymentAmountCents : item === "compat" ? compatAmountCents : nameAmountCents),
+    0,
+  );
   const checkoutTotal = formatPrice(
     checkoutItems.reduce(
       (sum, item) => sum + (item === "map" ? paymentAmountCents : item === "compat" ? compatAmountCents : nameAmountCents),
@@ -945,6 +950,7 @@ export default function Home({
     setNameReading(payload.nameReading ?? null);
     setPendingItems(payload.pendingItems ?? []);
     saveMap(payload.analysis, payload.reportTier, token);
+    confirmPendingPurchase({ ...(payload.products ?? {}), map: payload.reportTier === "premium" });
   }
 
   function openNameCheckout(fromDownsell = false) {
@@ -1297,7 +1303,7 @@ export default function Home({
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...request, reportTier: tier }),
+        body: JSON.stringify({ ...request, reportTier: tier, attribution: currentAttribution() }),
       });
       const payload = await response.json();
 
@@ -1308,6 +1314,7 @@ export default function Home({
       }
 
       setReportToken(payload.reportToken);
+      metaEvent("Lead", { content_name: "mapa_gratis" }, `lead_${String(payload.reportToken).slice(0, 24)}`);
       window.history.replaceState({}, "", `/#report=${payload.reportToken}`);
       setReturnedFromPayment(false);
       const result = payload as AnalysisResult;
@@ -1391,6 +1398,8 @@ export default function Home({
           customerEmail: checkoutEmail || pendingAnalysis?.email || form.email,
           personName: checkoutPersonName,
           themeLabel: checkoutThemeLabel,
+          attribution: currentAttribution(),
+          ad: adSignals(),
         }),
       });
       const payload = (await response.json()) as {
@@ -1411,6 +1420,8 @@ export default function Home({
         createdAt: Date.now(),
       };
       activeCheckoutOrderId.current = payload.orderId;
+      rememberPendingPurchase(payload.orderId, checkoutTotalCents / 100, checkoutItems);
+      metaEvent("InitiateCheckout", { currency: "BRL", value: checkoutTotalCents / 100, content_ids: checkoutItems, content_type: "product", num_items: checkoutItems.length }, `ic_${payload.orderId}`);
       window.sessionStorage.setItem(
         PAYMENT_CHECKOUT_STORAGE_KEY,
         JSON.stringify(checkoutSession),
@@ -3381,6 +3392,7 @@ export default function Home({
             <a href="/termos">Termos de Uso</a>
             <a href="/termos#garantia">Garantia de 7 dias</a>
             <a href="/privacidade">Política de Privacidade</a>
+            <button className="footer-cookie-link" onClick={openCookiePreferences} type="button">Preferências de cookies</button>
             <a href="/descadastrar">Cancelar e-mails</a>
           </div>
         </div>
