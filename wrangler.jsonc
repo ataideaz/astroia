@@ -19,7 +19,9 @@
   "keep_vars": true,
   "vars": {
     "ASTROIA_SITE_URL": "https://meuastroia.com.br",
-    "MERCADO_PAGO_MODE": "production"
+    "MERCADO_PAGO_MODE": "production",
+    // Chave pública do Mercado Pago (feita para ficar no site; não é segredo).
+    "MERCADO_PAGO_PUBLIC_KEY": "APP_USR-1b712c2c-6af0-4fc7-ad1d-9d2c34067889"
   },
   "d1_databases": [
     {
