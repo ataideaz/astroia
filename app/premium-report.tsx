@@ -353,7 +353,7 @@ function CompatResultView({
         {result.love?.length > 0 && (
           <article className="cp-extra">
             <span className="cp-extra-icon" aria-hidden="true">♡</span>
-            <h4>Como cada um se sente amado</h4>
+            <h4>O que faz cada pessoa se sentir amada</h4>
             {result.love.map((item) => <p key={item.name}>{item.text}</p>)}
           </article>
         )}
@@ -383,7 +383,7 @@ function CompatResultView({
             <span className="cp-extra-icon cp-year-number" aria-hidden="true">{result.coupleYear.number}</span>
             <h4>O ano de vocês</h4>
             <p>{result.coupleYear.text}</p>
-            <small>Pela numerologia: a soma do ano pessoal de cada um.</small>
+            <small>Pela numerologia: a soma do ano pessoal de cada pessoa.</small>
           </article>
         )}
       </div>
@@ -398,8 +398,8 @@ function CompatResultView({
       )}
       {result.questions && result.questions.length > 0 && (
         <article className="cp-list-card">
-          <span className="pr-kicker">Perguntas para fazer um ao outro</span>
-          <p className="cp-list-intro">Escolham uma noite tranquila e respondam juntos. Não existe resposta errada.</p>
+          <span className="pr-kicker">Perguntas para o casal</span>
+          <p className="cp-list-intro">Escolham uma noite tranquila e respondam a dois. Não existe resposta errada.</p>
           <ol className="cp-questions">
             {result.questions.map((question) => <li key={question}>{question}</li>)}
           </ol>

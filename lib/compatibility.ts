@@ -180,17 +180,17 @@ const AREA_TEXT: Record<CompatAreaId, {
     titles: {
       hi: "Os corações falam a mesma língua",
       mid: "Corações diferentes que se completam",
-      low: "Dois jeitos bem diferentes de sentir",
+      low: "Jeitos bem diferentes de sentir",
     },
     texts: {
-      hi: "Um entende o que o outro precisa quase sem palavras.",
-      mid: "Vocês sentem de jeitos diferentes, mas se completam quando cada um explica o que precisa.",
-      low: "O que acalma um pode não acalmar o outro. Isso pede paciência e muita conversa.",
+      hi: "Vocês entendem do que a outra pessoa precisa quase sem palavras.",
+      mid: "Vocês sentem de jeitos diferentes, mas se completam quando cada pessoa explica o que precisa.",
+      low: "O que acalma uma pessoa pode não acalmar a outra. Isso pede paciência e muita conversa.",
     },
     tips: {
       hi: "Continuem com os pequenos rituais de carinho: eles são a base de vocês.",
       mid: "Combinem um sinal para dizer \"hoje eu preciso de colo\".",
-      low: "Perguntem um ao outro: \"do que você precisa quando está triste?\". A resposta pode surpreender.",
+      low: "Perguntem entre vocês: \"do que você precisa quando está triste?\". A resposta pode surpreender.",
     },
   },
   atracao: {
@@ -225,11 +225,11 @@ const AREA_TEXT: Record<CompatAreaId, {
     texts: {
       hi: "Vocês podem passar horas conversando e nem ver o tempo passar.",
       mid: "Vocês se entendem bem, mas às vezes falam em ritmos diferentes.",
-      low: "Mal-entendidos podem acontecer, mas também é assim que um aprende com o outro.",
+      low: "Mal-entendidos podem acontecer, mas também é assim que vocês aprendem com a diferença.",
     },
     tips: {
       hi: "Usem essa facilidade para falar também dos assuntos difíceis, não só dos divertidos.",
-      mid: "Quando o assunto for sério, um fala e o outro só escuta. Depois troca.",
+      mid: "Quando o assunto for sério, uma pessoa fala e a outra só escuta. Depois troca.",
       low: "Antes de brigar por causa de uma frase, perguntem: \"o que você quis dizer?\".",
     },
   },
@@ -243,12 +243,12 @@ const AREA_TEXT: Record<CompatAreaId, {
       low: "Opostos que se equilibram",
     },
     texts: {
-      hi: "O jeito de viver de um ajuda o outro a ser melhor.",
+      hi: "O jeito de viver de cada pessoa ajuda a outra a ser melhor.",
       mid: "Vocês têm ritmos diferentes, mas dá para encontrar um meio-termo.",
       low: "Vocês funcionam de jeitos opostos. Às vezes cansa, mas também equilibra: um tem o que falta no outro.",
     },
     tips: {
-      hi: "Dividam as tarefas pelo talento de cada um.",
+      hi: "Dividam as tarefas pelo talento de cada pessoa.",
       mid: "Combinem as coisas importantes por escrito: quem faz o quê e quando.",
       low: "Respeitem o tempo do outro: nem todo mundo acorda, decide e descansa do mesmo jeito.",
     },
@@ -286,7 +286,7 @@ const MAKE_UP: Record<SignKey, string> = {
   virgo: "quer entender o que deu errado. Conversar com calma e combinar o que muda acalma de vez.",
   libra: "quer paz o quanto antes, mas precisa de espaço para dizer o que realmente incomodou.",
   scorpio: "demora a baixar a guarda. Precisa de verdade total: meias palavras deixam a ferida aberta.",
-  sagittarius: "quer virar a página rápido. Um programa juntos, com risada, faz as pazes melhor que uma DR longa.",
+  sagittarius: "quer virar a página rápido. Um programa a dois, com risada, faz as pazes melhor que uma DR longa.",
   capricorn: "fica sério e controlado. Precisa de tempo e de atitudes, não só de promessas.",
   aquarius: "se afasta para pensar. Respeitar esse tempo é o que faz voltar mais rápido.",
   pisces: "se magoa fundo e pode chorar ou sumir. Precisa de carinho e de uma conversa bem delicada.",
@@ -313,22 +313,22 @@ const DATE_IDEA: Record<string, string> = {
   "Ar+Ar": "um passeio cheio de conversa: café, livraria, museu ou um bar com papo bom.",
   "Água+Água": "uma noite romântica e tranquila: filme abraçados, música e muito carinho.",
   "Fogo+Terra": "um passeio ao ar livre que termine numa comida gostosa: o agito de um com o conforto do outro.",
-  "Ar+Fogo": "algo novo para os dois: uma aula diferente, um lugar que ninguém conhece, uma aventura com muita risada.",
+  "Ar+Fogo": "algo novo para vocês: uma aula diferente, um lugar que ninguém conhece, uma aventura com muita risada.",
   "Fogo+Água": "um programa com emoção e intimidade: um show e depois um tempo só de vocês.",
-  "Ar+Terra": "uma feira, um passeio pela cidade ou uma receita nova cozinhada juntos.",
+  "Ar+Terra": "uma feira, um passeio pela cidade ou uma receita nova cozinhada a dois.",
   "Terra+Água": "um fim de semana tranquilo: natureza, comida boa e tempo para conversar com calma.",
   "Ar+Água": "um cinema ou um teatro e depois uma conversa longa sobre o que sentiram.",
 };
 
 const COUPLE_YEAR: Record<number, string> = {
-  1: "Um ano para começar algo juntos: um projeto, uma viagem, uma nova fase.",
+  1: "Um ano para começar algo a dois: um projeto, uma viagem, uma nova fase.",
   2: "Um ano para fortalecer a parceria: mais escuta, mais paciência, mais \"nós\".",
-  3: "Um ano para se divertir juntos: sair mais, rir mais, celebrar.",
+  3: "Um ano para se divertir a dois: sair mais, rir mais, celebrar.",
   4: "Um ano para construir a base: casa, planos e dinheiro organizado a dois.",
   5: "Um ano de novidades: mudanças, viagens e coisas que tiram vocês da rotina.",
   6: "Um ano de família e de cuidado: o lar de vocês fica no centro.",
   7: "Um ano para se conhecer mais fundo: conversas sinceras e tempo só de vocês.",
-  8: "Um ano de conquistas a dois: metas juntos e esforço que dá resultado.",
+  8: "Um ano de conquistas a dois: metas em comum e esforço que dá resultado.",
   9: "Um ano para fechar ciclos: deixar para trás o que pesava e abrir espaço para o novo.",
 };
 
@@ -336,13 +336,13 @@ const COUPLE_YEAR: Record<number, string> = {
 const SAME_TEXT: Record<CompatAreaId, { title: string; text: string; tip: string }> = {
   coracao: {
     title: "Corações no mesmo ritmo",
-    text: "Isso aproxima muito: um entende o que o outro sente quase sem palavras. O cuidado é os dois precisarem da mesma coisa ao mesmo tempo.",
-    tip: "Revezem: num dia um cuida, no outro dia o outro.",
+    text: "Isso aproxima muito: vocês se entendem quase sem palavras. O cuidado é vocês precisarem da mesma coisa ao mesmo tempo.",
+    tip: "Revezem: num dia uma pessoa cuida, no outro dia é a vez da outra.",
   },
   atracao: {
     title: "Amam do mesmo jeito",
-    text: "Quando os dois amam parecido, o carinho chega exatamente do jeito que cada um gosta de receber.",
-    tip: "Surpreendam um ao outro de vez em quando: fazer sempre igual também cansa.",
+    text: "Quando vocês amam parecido, o carinho chega exatamente do jeito que cada pessoa gosta de receber.",
+    tip: "Façam surpresas de vez em quando: fazer sempre igual também cansa.",
   },
   conversa: {
     title: "Falam a mesma língua",
@@ -350,23 +350,23 @@ const SAME_TEXT: Record<CompatAreaId, { title: string; text: string; tip: string
     tip: "Quando discordarem, lembrem que estão do mesmo lado.",
   },
   diaadia: {
-    title: "Dois parecidos na rotina",
+    title: "Parecidos na rotina",
     text: "Vocês têm o mesmo jeito de viver, e isso facilita muito. Só cuidado para não disputarem o mesmo espaço.",
-    tip: "Dividam os papéis: cada um brilha numa coisa.",
+    tip: "Dividam os papéis: cada pessoa brilha numa coisa.",
   },
 };
 
 const COUPLE_ARCHETYPE: Record<string, { name: string; text: string }> = {
-  "Fogo+Fogo": { name: "O Casal Fogueira", text: "Dois corações de fogo: muita paixão, energia e vontade de viver tudo junto. Quando um anima, o outro já está pronto." },
+  "Fogo+Fogo": { name: "O Casal Fogueira", text: "Dois corações de fogo: muita paixão, energia e vontade de viver tudo a dois. Quando uma pessoa se anima, a outra já está pronta." },
   "Terra+Terra": { name: "O Casal Raiz", text: "Vocês constroem devagar e para durar: segurança, rotina gostosa e planos de verdade." },
   "Ar+Ar": { name: "O Casal Papo Bom", text: "Melhores amigos antes de tudo: conversa, risada e ideias que não acabam nunca." },
   "Água+Água": { name: "O Casal Oceano", text: "Vocês sentem fundo e se entendem pelo olhar. Um é o porto seguro do outro." },
-  "Fogo+Terra": { name: "O Casal Vulcão", text: "Um traz a faísca e o outro dá o chão. Quando acertam o ritmo, constroem coisas grandes." },
-  "Ar+Fogo": { name: "O Casal Aventura", text: "O ar alimenta o fogo: juntos, vocês se animam, viajam, inventam e não param." },
+  "Fogo+Terra": { name: "O Casal Vulcão", text: "Uma pessoa traz a faísca e a outra dá o chão. Quando acertam o ritmo, constroem coisas grandes." },
+  "Ar+Fogo": { name: "O Casal Aventura", text: "O ar alimenta o fogo: lado a lado, vocês se animam, viajam, inventam e não param." },
   "Fogo+Água": { name: "O Casal Vapor", text: "Paixão e emoção na mesma medida. Intenso, às vezes quente demais, mas nunca morno." },
-  "Ar+Terra": { name: "O Casal Projeto", text: "Um sonha e o outro realiza: ideia vira plano, e plano vira realidade." },
+  "Ar+Terra": { name: "O Casal Projeto", text: "Uma pessoa sonha e a outra realiza: ideia vira plano, e plano vira realidade." },
   "Terra+Água": { name: "O Casal Jardim", text: "A água rega a terra: cuidado, carinho e algo bonito crescendo com o tempo." },
-  "Ar+Água": { name: "O Casal Brisa do Mar", text: "Razão e emoção se encontram. Um ajuda o outro a entender o que sente." },
+  "Ar+Água": { name: "O Casal Brisa do Mar", text: "Razão e emoção se encontram. Vocês se ajudam a entender o que sentem." },
 };
 
 // Como a pessoa aparece na primeira impressão (Ascendente).
@@ -392,7 +392,7 @@ const TRUST: Record<SignKey, string> = {
   cancer: "sente ciúme em silêncio. Precisa sentir que continua sendo prioridade.",
   leo: "sente ciúme quando a atenção vai para outra pessoa. Um elogio na hora certa resolve muito.",
   virgo: "repara nos detalhes e pode desconfiar deles. Combinados claros deixam tudo mais leve.",
-  libra: "não gosta de cena, mas sente quando o outro fica distante. Precisa de gentileza e presença.",
+  libra: "não gosta de cena, mas sente quando a outra pessoa fica distante. Precisa de gentileza e presença.",
   scorpio: "sente ciúme intenso. Transparência total é o que acalma o coração.",
   sagittarius: "detesta ciúme e controle. Confia mais quando recebe liberdade.",
   capricorn: "sente ciúme, mas não mostra. Confia em quem cumpre o que promete.",
@@ -416,10 +416,10 @@ const MONEY_STYLE: Record<SignKey, string> = {
 };
 
 const PACTS: Record<CompatAreaId, string> = {
-  coracao: "Uma vez por semana, perguntem um ao outro: \"como você está, de verdade?\"",
-  atracao: "Um encontro por mês sem celular, só vocês dois.",
+  coracao: "Uma vez por semana, perguntem entre vocês: \"como você está, de verdade?\"",
+  atracao: "Um encontro por mês sem celular, só vocês.",
   conversa: "Assunto sério nunca por mensagem: conversa importante é ao vivo.",
-  diaadia: "Uma lista das tarefas da casa, dividida e combinada entre os dois.",
+  diaadia: "Uma lista das tarefas da casa, dividida e combinada entre vocês.",
 };
 
 const QUESTION_BY_AREA: Record<CompatAreaId, string> = {
@@ -431,7 +431,7 @@ const QUESTION_BY_AREA: Record<CompatAreaId, string> = {
 
 const QUESTIONS = [
   "Em que momento você percebeu que gostava de mim?",
-  "O que eu faço que mais faz você se sentir amado ou amada?",
+  "O que eu faço que mais faz você sentir que é amor?",
   "Qual sonho você quer realizar junto comigo nos próximos anos?",
   "O que eu poderia fazer diferente quando a gente briga?",
 ];
@@ -455,7 +455,7 @@ function reduce(value: number) {
 
 /** "A faz X. B faz Y." ou, quando é igual, "Os dois fazem X." */
 function describe(A: string, B: string, a: SignKey, b: SignKey, table: Record<SignKey, string>) {
-  if (a === b) return `Vocês dois ${pluralize(table[a])}.`;
+  if (a === b) return `Vocês ${pluralize(table[a])}.`;
   return `${A} ${table[a]}. ${B} ${table[b]}.`;
 }
 
@@ -493,7 +493,7 @@ export function buildCompatibility(a: CompatPerson, b: CompatPerson): CompatResu
     atracao: {
       score: average([pair(a.venus, b.mars), pair(a.mars, b.venus), pair(a.venus, b.venus)]),
       detail: attractionSame
-        ? `Vocês dois ${pluralize(VENUS_STYLE[a.venus.signKey])} e, na conquista, ${pluralize(MARS_STYLE[a.mars.signKey])}.`
+        ? `Vocês ${pluralize(VENUS_STYLE[a.venus.signKey])} e, na conquista, ${pluralize(MARS_STYLE[a.mars.signKey])}.`
         : `${A} ${venusLine(a)}. ${B} ${venusLine(b)}.`,
       same: attractionSame,
     },
@@ -538,7 +538,7 @@ export function buildCompatibility(a: CompatPerson, b: CompatPerson): CompatResu
 
   const sameSun = a.sun.signKey === b.sun.signKey;
   const gifts = sameSun
-    ? [`Vocês dois ensinam um ao outro ${GIFT[a.sun.signKey]}. Juntos, isso fica em dobro.`]
+    ? [`Vocês se ensinam ${GIFT[a.sun.signKey]}. Lado a lado, isso fica em dobro.`]
     : [`Com ${A}, ${B} aprende ${GIFT[a.sun.signKey]}.`, `Com ${B}, ${A} aprende ${GIFT[b.sun.signKey]}.`];
   const dateKey = [ELEMENT[a.venus.signKey], ELEMENT[b.venus.signKey]].sort().join("+");
   const archetypeKey = [ELEMENT[a.sun.signKey], ELEMENT[b.sun.signKey]].sort().join("+");
@@ -547,24 +547,24 @@ export function buildCompatibility(a: CompatPerson, b: CompatPerson): CompatResu
     person.ascendant ? FIRST_LOOK[person.ascendant.signKey] : `alguém que ${SUN_STYLE[person.sun.signKey]}`;
   const firstImpression =
     a.ascendant && b.ascendant && a.ascendant.signKey === b.ascendant.signKey
-      ? [`Vocês se reconheceram logo de cara: os dois passam a imagem de ${FIRST_LOOK[a.ascendant.signKey]}.`]
+      ? [`Vocês se reconheceram logo de cara: vocês passam a imagem de ${FIRST_LOOK[a.ascendant.signKey]}.`]
       : [
           `O que ${A} viu primeiro em ${B}: ${firstLook(b)}.`,
           `O que ${B} viu primeiro em ${A}: ${firstLook(a)}.`,
         ];
   const trust =
     a.venus.signKey === b.venus.signKey
-      ? [`Vocês funcionam igual aqui: cada um ${TRUST[a.venus.signKey]}`]
+      ? [`Vocês funcionam igual aqui: cada pessoa ${TRUST[a.venus.signKey]}`]
       : [`${A} ${TRUST[a.venus.signKey]}`, `${B} ${TRUST[b.venus.signKey]}`];
   const sameMoney = a.venus.signKey === b.venus.signKey;
   const money = {
     lines: sameMoney
-      ? [`Com dinheiro, cada um de vocês ${MONEY_STYLE[a.venus.signKey]}.`]
+      ? [`Com dinheiro, cada pessoa ${MONEY_STYLE[a.venus.signKey]}.`]
       : [`${A} ${MONEY_STYLE[a.venus.signKey]}.`, `${B} ${MONEY_STYLE[b.venus.signKey]}.`],
     tip:
       sameMoney || ELEMENT[a.venus.signKey] === ELEMENT[b.venus.signKey]
         ? "Como vocês pensam parecido, o cuidado é um não incentivar o exagero do outro. Combinem um limite para os gastos do mês."
-        : "Como vocês lidam com dinheiro de jeitos diferentes, façam uma \"caixinha do casal\" para os sonhos a dois e deixem um dinheiro livre para cada um, sem precisar dar explicação.",
+        : "Como vocês lidam com dinheiro de jeitos diferentes, façam uma \"caixinha do casal\" para os sonhos a dois e deixem um dinheiro livre para cada pessoa, sem precisar dar explicação.",
   };
   const coupleNumber =
     typeof a.personalYear === "number" && typeof b.personalYear === "number"
@@ -588,14 +588,14 @@ export function buildCompatibility(a: CompatPerson, b: CompatPerson): CompatResu
     watch: `${sorted[3].label}: ${sorted[3].tip}`,
     love:
       a.moon.signKey === b.moon.signKey
-        ? [{ name: `${A} e ${B}`, text: `Para cada um de vocês, é amor de verdade quando ${FEEL_LOVED[a.moon.signKey]}.` }]
+        ? [{ name: `${A} e ${B}`, text: `Para cada pessoa, é amor de verdade quando ${FEEL_LOVED[a.moon.signKey]}.` }]
         : [a, b].map((person) => ({
             name: firstName(person.name),
             text: `${firstName(person.name)} sente que é amor de verdade quando ${FEEL_LOVED[person.moon.signKey]}.`,
           })),
     makeUp:
       a.mars.signKey === b.mars.signKey
-        ? [{ name: `${A} e ${B}`, text: `Vocês reagem do mesmo jeito: depois de uma briga, cada um ${MAKE_UP[a.mars.signKey]}` }]
+        ? [{ name: `${A} e ${B}`, text: `Vocês reagem do mesmo jeito: depois de uma briga, cada pessoa ${MAKE_UP[a.mars.signKey]}` }]
         : [a, b].map((person) => ({
             name: firstName(person.name),
             text: `Depois de uma briga, ${firstName(person.name)} ${MAKE_UP[person.mars.signKey]}`,
@@ -610,7 +610,7 @@ export function buildCompatibility(a: CompatPerson, b: CompatPerson): CompatResu
     pacts: [
       PACTS[lowest[0].id],
       PACTS[lowest[1].id],
-      "Nunca dormir brigados sem, pelo menos, um \"amanhã a gente conversa\".",
+      "Nunca dormir depois de uma briga sem, pelo menos, um \"amanhã a gente conversa\".",
     ],
     questions: [QUESTION_BY_AREA[lowest[0].id], ...QUESTIONS],
     shareText: `${A} + ${B}: ${score}% de sintonia no AstroIA. Somos ${(COUPLE_ARCHETYPE[archetypeKey] ?? COUPLE_ARCHETYPE["Ar+Fogo"]).name} ✦ Descubra a sua:`,

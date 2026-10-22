@@ -1081,7 +1081,7 @@ function compatSection(flow: Flow, compat: CompatResult) {
     ["A primeira impressão", compat.firstImpression ?? []],
     ["Ciúme e confiança", compat.trust ?? []],
     ["Dinheiro a dois", compat.money ? [...compat.money.lines, `Dica para vocês: ${compat.money.tip}`] : []],
-    ["Como cada um se sente amado", (compat.love ?? []).map((item) => item.text)],
+    ["O que faz cada pessoa se sentir amada", (compat.love ?? []).map((item) => item.text)],
     ["Como fazer as pazes", (compat.makeUp ?? []).map((item) => item.text)],
     ["O que um ensina ao outro", compat.gifts ?? []],
     ["O encontro perfeito", compat.date ? [compat.date.replace(/^O encontro perfeito para vocês: /, "")] : []],
@@ -1096,8 +1096,8 @@ function compatSection(flow: Flow, compat: CompatResult) {
   }
   if (compat.questions?.length) {
     card(flow, [
-      { type: "title", text: "Perguntas para fazer um ao outro", size: 15 },
-      { type: "text", text: "Escolham uma noite tranquila e respondam juntos. Não existe resposta errada.", color: C.muted, size: 10.6 },
+      { type: "title", text: "Perguntas para o casal", size: 15 },
+      { type: "text", text: "Escolham uma noite tranquila e respondam a dois. Não existe resposta errada.", color: C.muted, size: 10.6 },
       { type: "list", items: compat.questions },
     ]);
   }
