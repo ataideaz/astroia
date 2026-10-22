@@ -1552,7 +1552,7 @@ export default function Home({
         <div className="hero-copy">
           <div className="eyebrow">
             <span aria-hidden="true">✦</span>
-            Mapa astral calculado para você
+            Cálculo astronômico real + leitura em linguagem simples
           </div>
 
           <h1>
@@ -1561,9 +1561,9 @@ export default function Home({
           </h1>
 
           <p className="hero-description">
-            Cruze seu mapa de nascimento, sua numerologia e o céu de hoje para
-            entender, em palavras simples, como você sente, escolhe, ama,
-            trabalha e atravessa seus ciclos.
+            As posições exatas dos planetas no dia, na hora e na cidade em que
+            você nasceu, junto com a sua numerologia, traduzidas em palavras
+            simples: como você sente, ama, trabalha e atravessa seus ciclos.
           </p>
 
           <div className="hero-actions">
@@ -1577,7 +1577,7 @@ export default function Home({
           </div>
 
           <div className="trust-row" aria-label="Benefícios">
-            <span>✓ Cálculo astral real</span>
+            <span>✓ Posições reais dos planetas</span>
             <span>✓ Leitura simples e pessoal</span>
             <span>✓ Resultado na hora</span>
           </div>
@@ -3057,12 +3057,14 @@ export default function Home({
             </p>
           </details>
           <details>
-            <summary>A leitura é feita por inteligência artificial?</summary>
+            <summary>Usa inteligência artificial?</summary>
             <p>
-              O protótipo usa dois motores de cálculo gratuitos e um sistema
-              interpretativo próprio. Data, horário, cidade e fuso definem as
-              posições; não existe sorteio de textos. A IA generativa não é
-              necessária para o mapa funcionar nesta fase.
+              O cálculo do mapa é astronômico, feito com a posição real dos
+              planetas no dia, na hora e na cidade do seu nascimento, com o fuso
+              e o horário de verão da época. Os textos foram escritos com apoio
+              de inteligência artificial e revisados por nós, para ficarem
+              simples e fáceis de entender. Nada é sorteado: cada parte da
+              leitura vem do seu mapa.
             </p>
           </details>
           <details>
@@ -3115,7 +3117,7 @@ export default function Home({
             </p>
           </details>
           <details>
-            <summary>Onde ficam os mapas salvos neste protótipo?</summary>
+            <summary>Onde ficam os meus mapas?</summary>
             <p>
               Os relatórios ficam guardados no servidor e podem ser abertos pelo link privado. Guarde esse endereço: quem o tiver poderá acessar o mapa. Apagar os cookies não apaga o relatório. Para solicitar exclusão, use a página de privacidade.
             </p>
@@ -3359,8 +3361,7 @@ export default function Home({
           </a>
           <p>Seu céu, traduzido para você.</p>
           <small>
-            Conteúdo para entretenimento e autoconhecimento. Protótipo
-            funcional do projeto AstroIA.
+            Conteúdo para entretenimento e autoconhecimento.
           </small>
           <div className="footer-links">
             <a href="/privacidade">Política de Privacidade</a>
