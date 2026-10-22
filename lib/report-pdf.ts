@@ -645,10 +645,10 @@ function drawChart(flow: Flow, analysis: AnalysisResult, size = 380) {
 function planetList(flow: Flow, analysis: AnalysisResult) {
   const items: Array<{ title: string; text: string }> = [];
   if (analysis.bigThree.ascendant) {
-    items.push({ title: `Ascendente em ${analysis.bigThree.ascendant.sign}`, text: analysis.person.isMinor ? `como ${analysis.person.firstName} chega nos lugares` : "como os outros veem você" });
+    items.push({ title: `Ascendente em ${analysis.bigThree.ascendant.sign}`, text: analysis.freeReading?.audience === "child" ? `como ${analysis.person.firstName} chega nos lugares` : "como os outros veem você" });
   }
   for (const placement of analysis.placements) {
-    items.push({ title: `${placement.label} em ${placement.sign}`, text: (analysis.person.isMinor ? kidPlanetSimple(analysis.person.firstName) : PLANET_SIMPLE)[placement.key] ?? "" });
+    items.push({ title: `${placement.label} em ${placement.sign}`, text: (analysis.freeReading?.audience === "child" ? kidPlanetSimple(analysis.person.firstName) : PLANET_SIMPLE)[placement.key] ?? "" });
   }
   const gap = 10;
   const width = (CONTENT_WIDTH - gap) / 2;
@@ -698,7 +698,7 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
 
   if (reading) {
     const panel: Block[] = [
-      { type: "kicker", text: analysis.person.isMinor ? `O arquétipo de ${analysis.person.firstName}` : "Seu arquétipo" },
+      { type: "kicker", text: analysis.freeReading?.audience === "child" ? `O arquétipo de ${analysis.person.firstName}` : "Seu arquétipo" },
       { type: "title", text: reading.archetype.name, size: 34, color: C.goldLight },
       { type: "gap", size: 4 },
       { type: "text", text: reading.archetype.text, size: 12.6, color: C.body },
@@ -720,7 +720,7 @@ function cover(document: PDFDocument, fonts: Fonts, analysis: AnalysisResult, ti
       roundedRect(page, x, y, badgeWidth, 64, { fill: C.deep, border: C.line, radius: 14 });
       centerText(page, layer.role.replace(/^(Seu|Sua) /, "").toUpperCase(), fonts.bold, 7.2, y - 20, C.gold, x + badgeWidth / 2);
       centerText(page, layer.sign, fonts.serifBold, 18, y - 42, C.ink, x + badgeWidth / 2);
-      centerText(page, analysis.person.isMinor ? layer.question : layer.question.toLowerCase(), fonts.body, 7.4, y - 55, C.muted, x + badgeWidth / 2);
+      centerText(page, analysis.freeReading?.audience === "child" ? layer.question : layer.question.toLowerCase(), fonts.body, 7.4, y - 55, C.muted, x + badgeWidth / 2);
     });
   } else {
     drawCardAt(page, fonts, [
@@ -871,7 +871,9 @@ function teaserSection(flow: Flow, analysis: AnalysisResult) {
       { type: "title", text: "Quer ler o resto?", size: 20, color: C.goldLight },
       {
         type: "text",
-        text: kid
+        text: reading.audience === "teen"
+          ? `Volte ao seu mapa no site e toque em "Desbloquear meu mapa completo". Pagamento único, sem assinatura. Você recebe na hora as quatro partes completas, o que fazer quando bate a bad, o seu número de destino e dicas para quem cuida.`
+          : kid
           ? `Volte ao mapa no site e toque em "Desbloquear o mapa completo de ${name}". Pagamento único, sem assinatura. Você recebe na hora as quatro partes completas, como acalmar ${name}, o número de destino e dicas práticas para quem cuida.`
           : `Volte ao seu mapa no site e toque em "Desbloquear meu mapa completo". Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, a sua missão, o seu dom, os próximos 12 meses e o PDF completo.`,
       },

@@ -388,7 +388,7 @@ export function personalCards(
     const luck = pick("sorte");
     const energy = pick("energia");
     const number = premium.chapters.find((chapter) => chapter.id === "numero")?.symbol;
-    cards.push({
+    if (premium.months.length) cards.push({
       id: "meses",
       label: "Meus meses",
       draw: (ctx, fonts, host) => {

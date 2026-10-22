@@ -7,6 +7,7 @@ import {
 } from "astronomy-engine";
 import { buildFreeReading, type FreeReading } from "./free-reading";
 import { buildKidFreeReading, buildKidPremiumReading } from "./kid-reading";
+import { buildTeenFreeReading, buildTeenPremiumReading } from "./teen-reading";
 import {
   buildPremiumReading,
   type MonthSky,
@@ -3125,10 +3126,21 @@ export async function createAstroAnalysis(
           text: `${baseThemeFocus.text} ${currentSky.summary}`,
         }
       : baseThemeFocus;
-  const summary = isMinor
+  const summary = isMinor && age < 13
     ? `O mapa de ${firstName} junta Sol em ${byKey.sun.sign}, Lua em ${byKey.moon.sign}${ascendant ? ` e Ascendente em ${ascendant.sign}` : ""}. Role a página para conhecer ${firstName} um pouco melhor, sempre com carinho e sem rótulos.`
     : `Seu mapa junta Sol em ${byKey.sun.sign}, Lua em ${byKey.moon.sign}${ascendant ? ` e Ascendente em ${ascendant.sign}` : ""}. Role a página para descobrir o que cada um diz sobre você.`;
-  const freeReading = isMinor
+  const isTeen = isMinor && age >= 13;
+  const freeReading = isTeen
+    ? buildTeenFreeReading({
+        sun: byKey.sun,
+        moon: byKey.moon,
+        ascendant,
+        mercury: byKey.mercury,
+        venus: byKey.venus,
+        mars: byKey.mars,
+        jupiter: byKey.jupiter,
+      })
+    : isMinor
     ? buildKidFreeReading({
         firstName,
         sun: byKey.sun,
@@ -3151,7 +3163,18 @@ export async function createAstroAnalysis(
       });
   const northNodeRaw = horoscope.CelestialPoints?.northnode;
   const chironRaw = horoscope.CelestialBodies?.chiron;
-  const premiumReading = isMinor
+  const premiumReading = isTeen
+    ? buildTeenPremiumReading({
+        firstName,
+        moon: byKey.moon,
+        mercury: byKey.mercury,
+        venus: byKey.venus,
+        mars: byKey.mars,
+        jupiter: byKey.jupiter,
+        saturn: byKey.saturn,
+        lifePath,
+      })
+    : isMinor
     ? buildKidPremiumReading({
         firstName,
         moon: byKey.moon,

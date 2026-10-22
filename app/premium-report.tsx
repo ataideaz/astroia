@@ -477,7 +477,7 @@ export function PremiumReport(props: Props) {
       <a className="st-reminder" href="#fr-archetype-title">
         <span aria-hidden="true">📲</span>
         <span>
-          {props.analysis.person.isMinor ? (
+          {props.analysis.freeReading?.audience === "child" ? (
             <><strong>Os stories de {props.analysis.person.firstName} estão prontos</strong> lá em cima. Mostre para a família e os amigos.</>
           ) : (
             <><strong>Gostou do seu mapa?</strong> Os seus stories estão prontos lá em cima. Poste e descubra quais amigos têm o mesmo arquétipo que você.</>

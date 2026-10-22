@@ -779,7 +779,9 @@ function FreeTeasers({
         <div>
           <strong>Mapa completo · {price}</strong>
           <p>
-            {reading.audience === "child"
+            {reading.audience === "teen"
+              ? "Pagamento único, sem assinatura. Você recebe na hora as quatro partes completas, o que fazer quando bate a bad, o seu número de destino, dicas para quem cuida e o PDF para guardar."
+              : reading.audience === "child"
               ? `Pagamento único, sem assinatura. Você recebe na hora as quatro partes completas, como acalmar ${firstName}, o número de destino e dicas práticas para quem cuida, com o PDF para guardar.`
               : "Pagamento único, sem assinatura. Você recebe na hora as quatro áreas completas, a sua missão, o seu dom, os próximos 12 meses e o PDF para guardar."}
           </p>
@@ -2136,7 +2138,9 @@ export default function Home({
                     : "Mapa essencial gratuito"}
               </span>
               <h2>
-                {analysis.person.isMinor && analysis.freeReading ? (
+                {analysis.person.isMinor && analysis.freeReading?.audience === "teen" ? (
+                  reportTier === "premium" ? `${analysis.person.firstName}, este é o seu mapa completo.` : `${analysis.person.firstName}, este é o seu mapa.`
+                ) : analysis.person.isMinor && analysis.freeReading ? (
                   reportTier === "premium" ? `O mapa completo de ${analysis.person.firstName}.` : `O mapa de ${analysis.person.firstName}.`
                 ) : (<>
                 {analysis.person.firstName},{" "}
@@ -3225,13 +3229,21 @@ export default function Home({
                       Mapa completo{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
                     </span>
                     <h2 className="ck-title" id="checkout-title">
-                      {analysis?.person.isMinor ? `Desbloqueie tudo o que o mapa de ${analysis.person.firstName} guarda` : "Desbloqueie tudo o que o seu mapa guarda"}
+                      {analysis?.person.isMinor && analysis.freeReading?.audience !== "teen" ? `Desbloqueie tudo o que o mapa de ${analysis.person.firstName} guarda` : "Desbloqueie tudo o que o seu mapa guarda"}
                     </h2>
                     <div className="ck-price">
                       <strong>{paymentPrice}</strong>
                       <span>pagamento único · sem assinatura</span>
                     </div>
-                    {analysis?.person.isMinor ? (
+                    {analysis?.freeReading?.audience === "teen" ? (
+                      <ul className="ck-includes">
+                        <li>Como você aprende e um truque para estudar melhor</li>
+                        <li>Você e a turma: o seu papel e o que pode pesar</li>
+                        <li>Conflitos em casa: como reagir melhor</li>
+                        <li>O que fazer quando bate a bad</li>
+                        <li>Talentos, dicas para quem cuida e PDF</li>
+                      </ul>
+                    ) : analysis?.person.isMinor ? (
                       <ul className="ck-includes">
                         <li>Como {analysis.person.firstName} aprende e o que ajuda nos estudos</li>
                         <li>Amizades, energia e como lidar com as birras</li>
