@@ -161,11 +161,11 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
       draw: (ctx, fonts, host) => {
         ctx.fillStyle = COLORS.violet;
         ctx.fillRect(0, 0, W, H);
-        circle(ctx, W - 40, 380, 360, COLORS.lime);
+        circle(ctx, W - 20, 560, 300, COLORS.lime);
         circle(ctx, 60, H - 420, 300, COLORS.pink);
         stripes(ctx, 1260, 120, COLORS.orange, -0.12);
         star(ctx, 860, 1100, 70, COLORS.yellow);
-        star(ctx, 180, 760, 40, COLORS.white);
+        star(ctx, 940, 1600, 44, COLORS.white);
         header(ctx, fonts, COLORS.white, `meu céu ${year}`);
         setFont(ctx, 800, 96, fonts.sans);
         ctx.fillStyle = COLORS.white;
@@ -229,7 +229,7 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
         ctx.fillStyle = COLORS.lime;
         ctx.fillRect(0, 0, W, H);
         star(ctx, W - 200, 520, 260, COLORS.orange, 8);
-        circle(ctx, 120, H - 360, 200, COLORS.cyan);
+        circle(ctx, W + 10, H - 430, 230, COLORS.cyan);
         stripes(ctx, 300, 70, COLORS.navy, 0.1);
         header(ctx, fonts, COLORS.navy, "meu superpoder");
         setFont(ctx, 800, 120, fonts.sans);
@@ -310,7 +310,7 @@ export function compatCards(result: CompatResult): StoryCard[] {
       draw: (ctx, fonts, host) => {
         ctx.fillStyle = COLORS.pink;
         ctx.fillRect(0, 0, W, H);
-        circle(ctx, W / 2, 1180, 400, COLORS.yellow);
+        circle(ctx, W / 2, 1250, 340, COLORS.yellow);
         circle(ctx, -60, 380, 200, COLORS.violet);
         star(ctx, 930, 300, 70, COLORS.white);
         star(ctx, 170, 1640, 50, COLORS.navy);
