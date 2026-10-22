@@ -221,7 +221,7 @@ export function personalCards(
   const cards: StoryCard[] = [
     {
       id: "arquetipo",
-      label: "Meu arquétipo",
+      label: kid ? "Arquétipo" : "Meu arquétipo",
       draw: (ctx, fonts, host) => {
         ctx.fillStyle = COLORS.violet;
         ctx.fillRect(0, 0, W, H);
@@ -251,14 +251,14 @@ export function personalCards(
     },
     {
       id: "trio",
-      label: "Meu trio",
+      label: kid ? "Trio" : "Meu trio",
       draw: (ctx, fonts, host) => {
         ctx.fillStyle = COLORS.pink;
         ctx.fillRect(0, 0, W, H);
         circle(ctx, W + 60, 1500, 420, COLORS.yellow);
         circle(ctx, -80, 260, 220, COLORS.violet);
         star(ctx, 900, 330, 60, COLORS.navy);
-        header(ctx, fonts, COLORS.navy, "meu trio");
+        header(ctx, fonts, COLORS.navy, kid ? `o trio de ${kidName}` : "meu trio");
         setFont(ctx, 800, 104, fonts.sans);
         ctx.fillStyle = COLORS.navy;
         ctx.textAlign = "left";
@@ -289,14 +289,14 @@ export function personalCards(
     },
     {
       id: "superpoder",
-      label: "Meu superpoder",
+      label: kid ? "Superpoder" : "Meu superpoder",
       draw: (ctx, fonts, host) => {
         ctx.fillStyle = COLORS.lime;
         ctx.fillRect(0, 0, W, H);
         star(ctx, W - 200, 520, 260, COLORS.orange, 8);
         circle(ctx, W + 10, H - 430, 230, COLORS.cyan);
         stripes(ctx, 300, 70, COLORS.navy, 0.1);
-        header(ctx, fonts, COLORS.navy, "meu superpoder");
+        header(ctx, fonts, COLORS.navy, kid ? `superpoder de ${kidName}` : "meu superpoder");
         setFont(ctx, 800, 120, fonts.sans);
         ctx.fillStyle = COLORS.navy;
         ctx.textAlign = "left";
