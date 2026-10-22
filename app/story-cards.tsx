@@ -321,7 +321,7 @@ export function personalCards(reading: FreeReading, premium: PremiumReading | nu
       hook: "Confessa: qual é o seu?",
       decorate: (ctx) => {
         circle(ctx, W - 60, 420, 260, COLORS.orange);
-        circle(ctx, 40, H - 470, 150, COLORS.pink);
+        circle(ctx, W - 120, H - 520, 150, COLORS.pink);
         star(ctx, 860, 1500, 60, COLORS.navy);
       },
     }),
