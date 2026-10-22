@@ -7033,3 +7033,46 @@ footer {
   font-size: 12px;
   color: var(--muted);
 }
+.cp-archetype {
+  color: #ffd3e8 !important;
+}
+.cp-archetype strong {
+  color: var(--ink);
+}
+.cp-list-card {
+  margin-top: 14px;
+  border: 1px solid rgba(239, 143, 191, 0.25);
+  border-radius: 18px;
+  background: var(--deep);
+  padding: 18px 20px;
+}
+.cp-list-intro {
+  font-size: 14px !important;
+  color: var(--muted) !important;
+}
+.cp-pacts,
+.cp-questions {
+  margin: 6px 0 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ddd6ea;
+}
+.cp-pacts {
+  list-style: none;
+  padding-left: 0;
+}
+.cp-pacts li {
+  position: relative;
+  padding-left: 28px;
+}
+.cp-pacts li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #ef8fbf;
+  font-weight: 700;
+}

@@ -36,9 +36,8 @@ export async function POST(request: Request) {
     if (!report.products.compat) throw new Error("A compatibilidade ainda não foi liberada neste mapa.");
     if (body.consent !== true) throw new Error("Confirme que a outra pessoa concorda em usar os dados dela.");
     const stored = await readStoredCompat(String(body.token));
-    // Resultados da versão antiga podem ser refeitos sem gastar a correção.
-    const oldVersion = stored?.result.version === 1;
-    const usedSaves = oldVersion ? 0 : stored?.saves ?? 0;
+    // Primeiro preenchimento + uma única correção. Nunca mais que isso.
+    const usedSaves = stored?.saves ?? 0;
     if (usedSaves >= 2) throw new Error("A compatibilidade deste mapa já foi feita. Ela fica salva no seu link.");
     await limitRequest(request, "compat", 20);
 
@@ -62,13 +61,14 @@ export async function POST(request: Request) {
 
     const people = { a: person(report.analysis), b: person(partnerAnalysis) };
     const result = buildCompatibility(people.a, people.b);
-    await saveCompat(String(body.token), {
+    const saved = await saveCompat(String(body.token), usedSaves, {
       partner,
       people,
       result,
       saves: usedSaves + 1,
       updatedAt: Date.now(),
     });
+    if (!saved) throw new Error("A compatibilidade deste mapa já foi feita. Ela fica salva no seu link.");
     return Response.json({ result, partnerName: partner.name, canEdit: usedSaves + 1 < 2 }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Não foi possível calcular a compatibilidade." }, { status: 400 });

@@ -88,7 +88,7 @@ export async function getGuestReport(token: unknown) {
     checkoutUrl: pending?.checkout_url ?? null,
     pendingItems: pending ? parseItems(pending.items) : [],
     pendingOrderIds: orders.filter((order) => order.status === null || OPEN_STATUSES.has(order.status)).map((order) => order.order_id).slice(0, 3),
-    compat: compatOwned && stored ? { result: stored.people ? buildCompatibility(stored.people.a, stored.people.b) : stored.result, partnerName: stored.partner.name, canEdit: stored.saves < 2 || stored.result.version === 1 } : null,
+    compat: compatOwned && stored ? { result: stored.people ? buildCompatibility(stored.people.a, stored.people.b) : stored.result, partnerName: stored.partner.name, canEdit: stored.saves < 2 } : null,
   };
 }
 
@@ -118,7 +118,10 @@ export async function readStoredCompat(token: string) {
   return row.compat_json ? JSON.parse(row.compat_json) as StoredCompat : null;
 }
 
-export async function saveCompat(token: string, compat: StoredCompat) {
-  await (await database()).prepare("UPDATE guest_reports SET compat_json = ? WHERE token_hash = ?")
-    .bind(JSON.stringify(compat), await digest(token)).run();
+export async function saveCompat(token: string, expectedSaves: number, compat: StoredCompat) {
+  // Só grava se ninguém salvou no meio do caminho (evita duas correções ao mesmo tempo).
+  const result = await (await database()).prepare(
+    "UPDATE guest_reports SET compat_json = ? WHERE token_hash = ? AND COALESCE(json_extract(compat_json, '$.saves'), 0) = ?",
+  ).bind(JSON.stringify(compat), await digest(token), expectedSaves).run();
+  return (result.meta?.changes ?? 0) > 0;
 }

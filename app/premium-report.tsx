@@ -193,9 +193,10 @@ async function makeCompatImage(result: CompatResult): Promise<Blob> {
   ctx.fillStyle = "#e4bc72";
   ctx.fillText("DE SINTONIA", cx, cy + 300);
 
-  fit(result.headline, "600", 76, serif, 940);
+  const tagline = result.archetype?.name ?? result.headline;
+  fit(tagline, "600", 76, serif, 940);
   ctx.fillStyle = "#f7f1e8";
-  ctx.fillText(result.headline, width / 2, 1290);
+  ctx.fillText(tagline, width / 2, 1290);
 
   // Áreas
   const top = 1370;
@@ -289,6 +290,11 @@ function CompatResultView({
             {result.names[0]} + {result.names[1]}
           </span>
           <h3>{result.headline}</h3>
+          {result.archetype && (
+            <p className="cp-archetype">
+              Vocês são <strong>{result.archetype.name}</strong>. {result.archetype.text}
+            </p>
+          )}
           <p>{result.summary}</p>
           <div className="cp-signs">
             {result.signs.map((person) => (
@@ -322,6 +328,28 @@ function CompatResultView({
       </div>
 
       <div className="cp-extras">
+        {result.firstImpression && result.firstImpression.length > 0 && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">👀</span>
+            <h4>A primeira impressão</h4>
+            {result.firstImpression.map((line) => <p key={line}>{line}</p>)}
+          </article>
+        )}
+        {result.trust && result.trust.length > 0 && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">🔒</span>
+            <h4>Ciúme e confiança</h4>
+            {result.trust.map((line) => <p key={line}>{line}</p>)}
+          </article>
+        )}
+        {result.money && (
+          <article className="cp-extra">
+            <span className="cp-extra-icon" aria-hidden="true">$</span>
+            <h4>Dinheiro a dois</h4>
+            {result.money.lines.map((line) => <p key={line}>{line}</p>)}
+            <p className="pr-tip"><strong>Dica para vocês:</strong> {result.money.tip}</p>
+          </article>
+        )}
         {result.love?.length > 0 && (
           <article className="cp-extra">
             <span className="cp-extra-icon" aria-hidden="true">♡</span>
@@ -359,6 +387,24 @@ function CompatResultView({
           </article>
         )}
       </div>
+
+      {result.pacts && result.pacts.length > 0 && (
+        <article className="cp-list-card">
+          <span className="pr-kicker">Os 3 combinados de vocês</span>
+          <ul className="cp-pacts">
+            {result.pacts.map((pact) => <li key={pact}>{pact}</li>)}
+          </ul>
+        </article>
+      )}
+      {result.questions && result.questions.length > 0 && (
+        <article className="cp-list-card">
+          <span className="pr-kicker">Perguntas para fazer um ao outro</span>
+          <p className="cp-list-intro">Escolham uma noite tranquila e respondam juntos. Não existe resposta errada.</p>
+          <ol className="cp-questions">
+            {result.questions.map((question) => <li key={question}>{question}</li>)}
+          </ol>
+        </article>
+      )}
 
       <div className="cp-share">
         <p className="fr-share-title">Mostre a compatibilidade de vocês</p>

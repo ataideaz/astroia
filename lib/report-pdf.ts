@@ -1061,6 +1061,7 @@ function compatSection(flow: Flow, compat: CompatResult) {
     [
       { type: "big", text: `${compat.score}%`, caption: "de sintonia" },
       { type: "title", text: compat.headline, size: 18 },
+      ...(compat.archetype ? [{ type: "text" as const, text: `Vocês são ${compat.archetype.name}. ${compat.archetype.text}`, color: C.goldLight }] : []),
       {
         type: "list",
         items: compat.signs.map((person) => `${person.name}: Sol em ${person.sun}, Lua em ${person.moon}${person.ascendant ? `, Ascendente em ${person.ascendant}` : ""}`),
@@ -1077,6 +1078,9 @@ function compatSection(flow: Flow, compat: CompatResult) {
     ]);
   }
   const extras: Array<[string, string[]]> = [
+    ["A primeira impressão", compat.firstImpression ?? []],
+    ["Ciúme e confiança", compat.trust ?? []],
+    ["Dinheiro a dois", compat.money ? [...compat.money.lines, `Dica para vocês: ${compat.money.tip}`] : []],
     ["Como cada um se sente amado", (compat.love ?? []).map((item) => item.text)],
     ["Como fazer as pazes", (compat.makeUp ?? []).map((item) => item.text)],
     ["O que um ensina ao outro", compat.gifts ?? []],
@@ -1086,6 +1090,16 @@ function compatSection(flow: Flow, compat: CompatResult) {
   for (const [title, lines] of extras) {
     if (!lines.length) continue;
     card(flow, [{ type: "title", text: title, size: 15 }, ...lines.map((text) => ({ type: "text" as const, text }))]);
+  }
+  if (compat.pacts?.length) {
+    card(flow, [{ type: "title", text: "Os 3 combinados de vocês", size: 15 }, { type: "list", items: compat.pacts }], { fill: C.goldSoft, border: C.gold });
+  }
+  if (compat.questions?.length) {
+    card(flow, [
+      { type: "title", text: "Perguntas para fazer um ao outro", size: 15 },
+      { type: "text", text: "Escolham uma noite tranquila e respondam juntos. Não existe resposta errada.", color: C.muted, size: 10.6 },
+      { type: "list", items: compat.questions },
+    ]);
   }
   loose(flow, [{ type: "text", text: compat.note, color: C.muted, size: 9.4 }]);
 }
