@@ -7,11 +7,18 @@
   "assets": { "directory": "./dist/client", "binding": "ASSETS" },
   "images": { "binding": "IMAGES" },
   "observability": { "enabled": true },
+  // Domínio próprio (zona meuastroia.com.br na Cloudflare). O endereço
+  // workers.dev continua ativo para os links antigos.
+  "routes": [
+    { "pattern": "meuastroia.com.br", "custom_domain": true },
+    { "pattern": "www.meuastroia.com.br", "custom_domain": true }
+  ],
+  "workers_dev": true,
   // Configurações públicas (não são segredos). Segredos, como a credencial
   // do Mercado Pago, ficam só no painel da Cloudflare.
   "keep_vars": true,
   "vars": {
-    "ASTROIA_SITE_URL": "https://astroia.ataideaz.workers.dev",
+    "ASTROIA_SITE_URL": "https://meuastroia.com.br",
     "MERCADO_PAGO_MODE": "test"
   },
   "d1_databases": [
