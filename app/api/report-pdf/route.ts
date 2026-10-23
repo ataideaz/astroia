@@ -28,7 +28,13 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json() as {token?: string};
-    const { analysis, reportTier, compat, nameReading } = await getGuestReport(body.token);
+    const { analysis, reportTier, compat, nameReading, products } = await getGuestReport(body.token);
+    // O PDF é parte do que se compra: na prévia grátis ele não é gerado
+    // (quem comprou só a Numerologia do Nome continua com o PDF dela).
+    const { paymentsEnabled } = await import("../../../lib/asaas");
+    if (reportTier === "free" && paymentsEnabled() && !products.name) {
+      return Response.json({ error: "O PDF faz parte do mapa completo." }, { status: 403 });
+    }
     const pdfBytes = await createReportPdf(analysis, reportTier, compat?.result ?? null, nameReading);
     const filename = reportFilename(analysis, reportTier);
 

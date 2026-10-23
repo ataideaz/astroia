@@ -2461,18 +2461,28 @@ export default function Home({
               <p className="analysis-summary">{analysis.summary}</p>
             </div>
             <div className="analysis-actions">
-              <button
-                className="analysis-button primary-analysis-button"
-                disabled={isGeneratingPdf}
-                onClick={handlePdfDownload}
-                type="button"
-              >
-                {isGeneratingPdf
-                  ? "Gerando PDF..."
-                  : reportTier === "premium"
-                    ? "Baixar ou compartilhar PDF"
-                    : "Salvar resumo em PDF"}
-              </button>
+              {reportTier === "free" && paymentsEnabled && !products.name ? (
+                <button
+                  className="analysis-button primary-analysis-button"
+                  onClick={openMapOffer}
+                  type="button"
+                >
+                  <span aria-hidden="true">🔒</span> PDF completo no mapa completo
+                </button>
+              ) : (
+                <button
+                  className="analysis-button primary-analysis-button"
+                  disabled={isGeneratingPdf}
+                  onClick={handlePdfDownload}
+                  type="button"
+                >
+                  {isGeneratingPdf
+                    ? "Gerando PDF..."
+                    : reportTier === "premium"
+                      ? "Baixar ou compartilhar PDF"
+                      : "Salvar resumo em PDF"}
+                </button>
+              )}
               <button
                 className="analysis-button"
                 onClick={() => prepareNewMap("partner", "individual", "free")}
