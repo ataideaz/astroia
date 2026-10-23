@@ -30,12 +30,17 @@ export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremiu
   return { ...(reportTier === "premium" ? full : preview(full)), reportToken: token };
 }
 function premiumPreviewOf(full: AnalysisResult): AnalysisResult["premiumPreview"] {
-  const chapter = full.premiumReading?.chapters?.find((c) => c.blocks?.[0]?.text);
-  const block = chapter?.blocks[0];
-  if (!chapter || !block) return null;
-  // Só a primeira frase do primeiro trecho: o resto continua no mapa completo.
-  const first = block.text.split(/(?<=[.!?])\s+/)[0] ?? "";
-  return { label: chapter.label, title: chapter.title, blockTitle: block.title, text: first.slice(0, 260) };
+  // Uma frase real e com conteúdo (não uma frase de transição), do primeiro capítulo que tiver.
+  const firstSentence = (text: string) => (text.split(/(?<=[.!?])\s+/)[0] ?? "").trim();
+  for (const chapter of full.premiumReading?.chapters ?? []) {
+    for (const block of chapter.blocks ?? []) {
+      const sentence = firstSentence(block.text ?? "");
+      if (sentence.length >= 70) {
+        return { label: chapter.label, title: chapter.title, blockTitle: block.title, text: sentence.slice(0, 260) };
+      }
+    }
+  }
+  return null;
 }
 export function preview(full: AnalysisResult): AnalysisResult {
   return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [], premiumReading: null, premiumPreview: premiumPreviewOf(full),
