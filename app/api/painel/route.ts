@@ -29,7 +29,7 @@ export async function GET(request: Request) {
      FROM payment_orders po
      LEFT JOIN report_orders ro ON ro.order_id = po.id
      LEFT JOIN guest_reports gr ON gr.token_hash = ro.token_hash
-     WHERE po.status = 'approved' AND po.approved_at >= ? AND po.excluded_at IS NULL
+     WHERE po.status = 'approved' AND po.approved_at >= ? AND po.excluded_at IS NULL AND gr.excluded_at IS NULL
      ORDER BY po.approved_at DESC LIMIT 5000`,
   ).bind(fromTime).all<Sale>();
   const refunds = await env.DB.prepare(
@@ -57,6 +57,26 @@ export async function GET(request: Request) {
       const id = `${row.source}|${row.campaign}`;
       const bucket = byCampaign.get(id) ?? byCampaign.set(id, { ...empty(), source: row.source }).get(id)!;
       bucket[name] += row.total;
+    }
+  }
+
+  // Mapas marcados como teste saem das contagens (e os pagamentos que eles abriram).
+  const tracking = await env.DB.prepare("SELECT MIN(created_at) AS since FROM site_events WHERE type = 'map'").first<{ since: number | null }>();
+  const testMaps = await env.DB.prepare(
+    `SELECT gr.created_at AS at, gr.attribution_json AS attr,
+            (SELECT COUNT(*) FROM report_orders ro WHERE ro.token_hash = gr.token_hash) AS checkouts
+     FROM guest_reports gr WHERE gr.excluded_at IS NOT NULL AND gr.created_at >= ?`,
+  ).bind(Math.max(fromTime, tracking?.since ?? Date.now())).all<{ at: number; attr: string | null; checkouts: number }>();
+  for (const map of testMaps.results) {
+    let attribution: Attribution | null = null;
+    try { attribution = map.attr ? cleanAttribution(JSON.parse(map.attr)) : null; } catch { attribution = null; }
+    const source = sourceOf(attribution);
+    const day = dayInBrazil(map.at);
+    const buckets: Bucket[] = [byDay.get(day), bySource.get(source), totals].filter(Boolean) as Bucket[];
+    if (attribution?.campaign) { const c = byCampaign.get(`${source}|${attribution.campaign}`); if (c) buckets.push(c); }
+    for (const bucket of buckets) {
+      bucket.maps = Math.max(0, bucket.maps - 1);
+      bucket.checkouts = Math.max(0, bucket.checkouts - map.checkouts);
     }
   }
 

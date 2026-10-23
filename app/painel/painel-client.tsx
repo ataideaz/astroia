@@ -18,7 +18,7 @@ type Data = {
 const KEY = "astroia-painel-key";
 type People = {
   sales: Array<{ at: number; email: string | null; name: string | null; items: string; value: number; status: string; order: string; source: string }>;
-  maps: Array<{ at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; bought: string; checkout: boolean }>;
+  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; bought: string; checkout: boolean }>;
   leads: Array<{ email: string; at: number }>;
 };
 type Tab = "resumo" | "vendas" | "mapas" | "emails";
@@ -80,7 +80,7 @@ function TestButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
   return <button className="pn-link" onClick={() => setStep("confirm")} type="button">Marcar como teste</button>;
 }
 
-function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void; onMarkTest: (order: string) => Promise<void> }) {
+function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void; onMarkTest: (kind: "order" | "map" | "email", id: string) => Promise<void> }) {
   if (!people) return <p className="pn-empty">Carregando…</p>;
   const q = search.trim().toLowerCase();
   const match = (...values: Array<string | null | undefined>) => !q || values.some((v) => v?.toLowerCase().includes(q));
@@ -100,7 +100,7 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: Pe
               <tr key={s.order}>
                 <td>{when(s.at)}</td><td>{s.email || "—"}</td><td>{s.name || "—"}</td><td>{items(s.items)}</td><td>{money(s.value)}</td>
                 <td><span className={`pn-badge ${s.status === "approved" ? "ok" : "bad"}`}>{STATUS[s.status] || s.status}</span></td>
-                <td>{s.source}</td><td><small>{s.order}</small></td><td><TestButton onConfirm={() => onMarkTest(s.order)} /></td>
+                <td>{s.source}</td><td><small>{s.order}</small></td><td><TestButton onConfirm={() => onMarkTest("order", s.order)} /></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -121,12 +121,13 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: Pe
         </div>
         {rows.length ? (
           <div className="pn-table-wrap"><table className="pn-table">
-            <thead><tr><th>Quando</th><th>Nome no mapa</th><th>Para quem</th><th>E-mail</th><th>Aceita e-mails</th><th>Origem</th><th>Comprou?</th></tr></thead>
+            <thead><tr><th>Quando</th><th>Nome no mapa</th><th>Para quem</th><th>E-mail</th><th>Aceita e-mails</th><th>Origem</th><th>Comprou?</th><th></th></tr></thead>
             <tbody>{rows.map((m, i) => (
-              <tr key={i}>
+              <tr key={m.id || i}>
                 <td>{when(m.at)}</td><td>{m.name || "—"}</td><td>{RECIPIENT[m.recipient] || m.recipient}</td><td>{m.email || "—"}</td>
                 <td>{m.consent ? "✓" : "—"}</td><td>{m.source}</td>
                 <td>{m.bought ? <span className="pn-badge ok">{items(m.bought)}</span> : m.checkout ? <span className="pn-badge warn">Abriu o pagamento</span> : "—"}</td>
+                <td><TestButton onConfirm={() => onMarkTest("map", m.id)} /></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -145,8 +146,8 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: Pe
       </div>
       {rows.length ? (
         <div className="pn-table-wrap"><table className="pn-table">
-          <thead><tr><th>E-mail</th><th>Aceitou receber em</th></tr></thead>
-          <tbody>{rows.map((l) => <tr key={l.email}><td>{l.email}</td><td>{when(l.at)}</td></tr>)}</tbody>
+          <thead><tr><th>E-mail</th><th>Aceitou receber em</th><th></th></tr></thead>
+          <tbody>{rows.map((l) => <tr key={l.email}><td>{l.email}</td><td>{when(l.at)}</td><td><TestButton onConfirm={() => onMarkTest("email", l.email)} /></td></tr>)}</tbody>
         </table></div>
       ) : <p className="pn-empty">Ainda ninguém na lista.</p>}
     </>
@@ -185,9 +186,9 @@ export default function PainelClient() {
     if (saved) { setKey(saved); void load(saved, 7); }
   }, [load]);
 
-  async function markTest(order: string) {
+  async function markTest(kind: "order" | "map" | "email", id: string) {
     try {
-      const response = await fetch("/api/painel/teste", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-key": key }, body: JSON.stringify({ order, test: true }) });
+      const response = await fetch("/api/painel/teste", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-key": key }, body: JSON.stringify({ kind, id, test: true }) });
       if (!response.ok) throw new Error((await response.json()).error || "Não foi possível marcar.");
       await load(key, days);
     } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível marcar."); }

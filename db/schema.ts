@@ -15,6 +15,8 @@ export const marketingLeads = sqliteTable(
     consentedAt: integer("consented_at", { mode: "timestamp_ms" }).notNull(),
     revokedAt: integer("revoked_at", { mode: "timestamp_ms" }),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+    /** Marcado no painel como e-mail de teste. */
+    excludedAt: integer("excluded_at"),
   },
 );
 
@@ -103,6 +105,8 @@ export const guestReports = sqliteTable("guest_reports", {
  checkoutUrl: text("checkout_url"),
  compatJson: text("compat_json"),
  attributionJson: text("attribution_json"),
+ /** Marcado no painel como mapa de teste. */
+ excludedAt: integer("excluded_at"),
  createdAt: integer("created_at").notNull(),
 });
 // Cada pedido ligado a um mapa, com os produtos comprados (ex.: ["map","compat"]).
