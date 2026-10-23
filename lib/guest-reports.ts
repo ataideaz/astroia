@@ -32,15 +32,16 @@ export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremiu
 function premiumPreviewOf(full: AnalysisResult): AnalysisResult["premiumPreview"] {
   // Uma frase real e com conteúdo (não uma frase de transição), do primeiro capítulo que tiver.
   const firstSentence = (text: string) => (text.split(/(?<=[.!?])\s+/)[0] ?? "").trim();
+  let best: { label: string; title: string; blockTitle: string; text: string } | null = null;
   for (const chapter of full.premiumReading?.chapters ?? []) {
     for (const block of chapter.blocks ?? []) {
       const sentence = firstSentence(block.text ?? "");
-      if (sentence.length >= 70) {
-        return { label: chapter.label, title: chapter.title, blockTitle: block.title, text: sentence.slice(0, 260) };
-      }
+      const found = { label: chapter.label, title: chapter.title, blockTitle: block.title, text: sentence.slice(0, 260) };
+      if (sentence.length >= 70) return found;
+      if (sentence.length >= 35 && (!best || sentence.length > best.text.length)) best = found;
     }
   }
-  return null;
+  return best;
 }
 export function preview(full: AnalysisResult): AnalysisResult {
   return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [], premiumReading: null, premiumPreview: premiumPreviewOf(full),
