@@ -1,6 +1,6 @@
 import { dayInBrazil, sourceOf, type Attribution } from "./attribution";
 
-export type SiteEventType = "visit" | "map" | "checkout";
+export type SiteEventType = "visit" | "offer_view" | "offer_open" | "map" | "checkout" | "pix";
 
 /** Conta um passo do funil. Anônimo: só dia, tipo e origem. Nunca derruba a requisição. */
 export async function recordSiteEvent(type: SiteEventType, attribution: Attribution | null | undefined) {

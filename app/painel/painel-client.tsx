@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-type Bucket = { visits: number; maps: number; checkouts: number; sales: number; revenue: number };
+type Bucket = { visits: number; offerViews?: number; offerOpens?: number; maps: number; checkouts: number; pix?: number; sales: number; revenue: number };
 type Data = {
   days: number;
   totals: Bucket;
@@ -44,7 +44,7 @@ function FunnelTable({ rows, first }: { rows: Array<Bucket & { label: string; hi
     <div className="pn-table-wrap">
       <table className="pn-table">
         <thead>
-          <tr><th>{first}</th><th>Visitas</th><th>Mapas grátis</th><th>Checkouts</th><th>Vendas</th><th>Faturamento</th><th>Visita → venda</th></tr>
+          <tr><th>{first}</th><th>Visitas</th><th>Mapas grátis</th><th>Viram a oferta</th><th>Abriram a compra</th><th>Clicaram em pagar</th><th>Vendas</th><th>Faturamento</th><th>Visita → venda</th></tr>
         </thead>
         <tbody>
           {rows.map((r) => (
@@ -52,7 +52,9 @@ function FunnelTable({ rows, first }: { rows: Array<Bucket & { label: string; hi
               <td>{r.label}{r.hint ? <small> · {r.hint}</small> : null}</td>
               <td>{r.visits}</td>
               <td>{r.maps} <small>{pct(r.maps, r.visits)}</small></td>
-              <td>{r.checkouts}</td>
+              <td>{r.offerViews ?? 0} <small>{pct(r.offerViews ?? 0, r.maps)} dos mapas</small></td>
+              <td>{r.offerOpens ?? 0} <small>{pct(r.offerOpens ?? 0, r.offerViews ?? 0)}</small></td>
+              <td>{r.checkouts} <small>{pct(r.checkouts, r.offerOpens ?? 0)}</small></td>
               <td>{r.sales} <small>{pct(r.sales, r.maps)} dos mapas</small></td>
               <td>{money(r.revenue)}</td>
               <td>{pct(r.sales, r.visits)}</td>
@@ -213,7 +215,9 @@ export default function PainelClient() {
             <section className="pn-cards">
               <div><span>Visitas</span><strong>{t.visits}</strong></div>
               <div><span>Mapas grátis</span><strong>{t.maps}</strong><small>{pct(t.maps, t.visits)} das visitas</small></div>
-              <div><span>Checkouts abertos</span><strong>{t.checkouts}</strong></div>
+              <div><span>Viram a oferta</span><strong>{t.offerViews ?? 0}</strong><small>{pct(t.offerViews ?? 0, t.maps)} dos mapas</small></div>
+              <div><span>Abriram a compra</span><strong>{t.offerOpens ?? 0}</strong><small>{pct(t.offerOpens ?? 0, t.offerViews ?? 0)} de quem viu</small></div>
+              <div><span>Clicaram em pagar</span><strong>{t.checkouts}</strong><small>{pct(t.checkouts, t.offerOpens ?? 0)} de quem abriu{t.pix ? ` · ${t.pix} Pix gerados` : ""}</small></div>
               <div><span>Vendas</span><strong>{t.sales}</strong><small>{pct(t.sales, t.maps)} dos mapas</small></div>
               <div><span>Faturamento</span><strong>{money(t.revenue)}</strong><small>ticket médio {t.sales ? money(t.revenue / t.sales) : "—"}</small></div>
               <div><span>Reembolsos</span><strong>{data.refunds.count}</strong><small>{money(data.refunds.value)}</small></div>

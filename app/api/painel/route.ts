@@ -37,13 +37,13 @@ export async function GET(request: Request) {
      WHERE status IN ('refunded', 'charged_back') AND updated_at >= ?`,
   ).bind(fromTime).first<{ total: number; cents: number }>();
 
-  type Bucket = { visits: number; maps: number; checkouts: number; sales: number; revenue: number };
-  const empty = (): Bucket => ({ visits: 0, maps: 0, checkouts: 0, sales: 0, revenue: 0 });
+  type Bucket = { visits: number; offerViews: number; offerOpens: number; maps: number; checkouts: number; pix: number; sales: number; revenue: number };
+  const empty = (): Bucket => ({ visits: 0, offerViews: 0, offerOpens: 0, maps: 0, checkouts: 0, pix: 0, sales: 0, revenue: 0 });
   const byDay = new Map<string, Bucket>();
   const bySource = new Map<string, Bucket>();
   const byCampaign = new Map<string, Bucket & { source: string }>();
   const totals = empty();
-  const field = { visit: "visits", map: "maps", checkout: "checkouts" } as const;
+  const field = { visit: "visits", offer_view: "offerViews", offer_open: "offerOpens", map: "maps", checkout: "checkouts", pix: "pix" } as const;
 
   for (const row of events.results) {
     const name = field[row.type as keyof typeof field];

@@ -13,6 +13,15 @@ export async function POST(request: Request) {
     await limitRequest(request, "pay", 20);
     const { payDirectOrder } = await import("../../../lib/mercado-pago");
     const result = await payDirectOrder(orderId, (body.formData ?? {}) as Parameters<typeof payDirectOrder>[1]);
+    if (result.pix) {
+      const { recordSiteEvent } = await import("../../../lib/site-events");
+      const { cleanAttribution } = await import("../../../lib/attribution");
+      const { env } = await import("cloudflare:workers");
+      const row = await env.DB.prepare("SELECT attribution_json FROM report_orders WHERE order_id = ?").bind(orderId).first<{ attribution_json: string | null }>();
+      let attribution = null;
+      try { attribution = row?.attribution_json ? cleanAttribution(JSON.parse(row.attribution_json).attribution) : null; } catch { attribution = null; }
+      await recordSiteEvent("pix", attribution);
+    }
     return Response.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return Response.json({ error: error instanceof Error ? error.message : "Não foi possível processar o pagamento." }, { status: 400 });

@@ -57,9 +57,15 @@ export function currentAttribution(): Attribution | null {
 
 /** Conta uma visita por sessão do navegador (anônimo). */
 export function trackVisit() {
-  if (read("session", VISIT_KEY)) return;
-  write("session", VISIT_KEY, "1");
-  const body = JSON.stringify({ type: "visit", attribution: currentAttribution() });
+  trackFunnel("visit");
+}
+
+/** Conta um passo do funil uma única vez por sessão do navegador (anônimo). */
+export function trackFunnel(type: "visit" | "offer_view" | "offer_open") {
+  const key = type === "visit" ? VISIT_KEY : `astroia-ev-${type}`;
+  if (read("session", key)) return;
+  write("session", key, "1");
+  const body = JSON.stringify({ type, attribution: currentAttribution() });
   try {
     if (!navigator.sendBeacon?.("/api/track", new Blob([body], { type: "application/json" }))) {
       void fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});

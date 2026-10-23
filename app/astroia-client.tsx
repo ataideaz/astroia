@@ -12,6 +12,7 @@ import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
 import { formatPersonName } from "../lib/name-format";
 import { DirectPayment } from "./direct-payment";
+import { trackFunnel } from "../lib/ad-tracking";
 import { adSignals, confirmPendingPurchase, currentAttribution, metaEvent, openCookiePreferences, rememberPendingPurchase } from "../lib/ad-tracking";
 import type { PremiumReading } from "../lib/premium-reading";
 
@@ -718,8 +719,19 @@ function FreeTeasers({
   compatPrice?: string;
   onUnlockWithCompat?: () => void;
 }) {
+  // "Viu a oferta": a parte com os cadeados apareceu na tela.
+  const offerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const node = offerRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { trackFunnel("offer_view"); observer.disconnect(); }
+    }, { threshold: 0.25 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   return (
-    <section className="fr-teasers" aria-labelledby="fr-teasers-title">
+    <section className="fr-teasers" aria-labelledby="fr-teasers-title" ref={offerRef}>
       <span className="fr-kicker">
         {reading.audience === "child" ? `O que o mapa de ${firstName} ainda guarda` : "O que o seu mapa ainda guarda"}
       </span>
@@ -1365,6 +1377,7 @@ export default function Home({
   ) {
     activeCheckoutOrderId.current = null;
     setDirectCheckout(null);
+    trackFunnel("offer_open");
     window.sessionStorage.removeItem(PAYMENT_CHECKOUT_STORAGE_KEY);
     setPendingAnalysis(request);
     setCheckoutIntent(intent);
