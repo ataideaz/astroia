@@ -105,9 +105,22 @@ export function loadMetaPixel(pixelId: string) {
 }
 
 /** Evento no Pixel (ignora se não houver consentimento ou pixel). */
+// Eventos que aconteceram antes da escolha no aviso de cookies. Ficam só na
+// memória desta página: saem para a Meta apenas se a pessoa aceitar; se recusar
+// (ou fechar a página), são descartados.
+const pendingEvents: Array<[string, Record<string, unknown>, string | undefined]> = [];
+
 export function metaEvent(name: string, params: Record<string, unknown> = {}, eventId?: string) {
-  if (getConsent() !== "granted" || !window.fbq) return;
+  const consent = getConsent();
+  if (consent === null) { if (pendingEvents.length < 10) pendingEvents.push([name, params, eventId]); return; }
+  if (consent !== "granted" || !window.fbq) return;
   try { window.fbq("track", name, params, eventId ? { eventID: eventId } : undefined); } catch { /* ignora */ }
+}
+
+/** Chamado logo depois do "Aceitar": envia o que ficou guardado. "Recusar" descarta. */
+export function flushPendingEvents(granted: boolean) {
+  const queued = pendingEvents.splice(0);
+  if (granted) queued.forEach(([name, params, eventId]) => metaEvent(name, params, eventId));
 }
 
 /** Lembra a compra iniciada para disparar o Purchase quando ela for liberada. */

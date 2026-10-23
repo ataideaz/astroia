@@ -192,7 +192,8 @@ export default function PrivacyPage() {
               usamos o Pixel e a API de Conversões da Meta (Facebook e
               Instagram) para medir quais anúncios trazem visitas e compras.
               Nesse caso, a Meta recebe eventos como &quot;fez o mapa
-              grátis&quot; e &quot;comprou&quot;, com o valor da compra, o
+              grátis&quot; e &quot;comprou&quot; (inclusive o que você fez
+              nesta mesma visita antes de aceitar), com o valor da compra, o
               identificador do navegador e o seu e-mail em formato
               criptografado (hash). Nunca enviamos dados de nascimento, o seu
               mapa ou dados de outras pessoas. Se você recusar, nada disso é
