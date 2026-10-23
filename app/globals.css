@@ -7504,6 +7504,29 @@ footer {
   gap: 14px;
 }
 .fr-offer h2 { margin: 0; font-family: var(--font-display); font-size: clamp(28px, 6vw, 40px); line-height: 1.05; color: var(--ink); }
+.fr-offer-preview {
+  position: relative; display: grid; gap: 6px; padding: 18px 18px 16px; border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-ui);
+}
+.fr-offer-preview small { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-light); }
+.fr-offer-preview strong { font-size: 17px; color: var(--ink); }
+.fr-offer-preview p { margin: 0 !important; font-size: 15px !important; line-height: 1.5; color: var(--ink) !important; }
+.fr-offer-blur { display: grid; gap: 8px; margin-top: 4px; filter: blur(2px); }
+.fr-offer-blur i { display: block; height: 11px; width: 100%; border-radius: 99px; background: rgba(236, 232, 255, 0.22); }
+.fr-offer-preview-lock { font-size: 13px; font-weight: 700; color: var(--gold-light); margin-top: 4px; }
+.fr-offer-hooks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fr-offer-hooks li { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); font-family: var(--font-ui); }
+.fr-offer-hooks small { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-light); }
+.fr-offer-hooks b { display: block; font-size: 15px; color: var(--ink); margin: 1px 0 3px; }
+.fr-offer-hooks em { display: block; font-style: normal; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.fr-offer-more { color: var(--gold-light); font-weight: 700; white-space: nowrap; }
+.fr-offer-value { padding: 14px 16px; border-radius: 16px; border: 1px dashed rgba(228, 188, 114, 0.45); font-family: var(--font-ui); }
+.fr-offer-value strong { display: block; font-size: 14px; color: var(--ink); margin-bottom: 6px; }
+.fr-offer-value ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; color: var(--ink); }
+.fr-offer-value li span { color: #9ef0b0; font-weight: 800; margin-right: 4px; }
+.fr-offer-price { margin: 0 !important; text-align: center; font-family: var(--font-ui); font-size: 14px !important; color: var(--muted) !important; }
+.fr-offer-price b { color: var(--ink); font-size: 18px; }
 .fr-offer-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
 .fr-offer-list li {
   display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px;

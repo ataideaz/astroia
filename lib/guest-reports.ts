@@ -29,8 +29,16 @@ export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremiu
     .bind(await digest(token), JSON.stringify(request), JSON.stringify(full), attribution ? JSON.stringify(attribution) : null, Date.now()).run();
   return { ...(reportTier === "premium" ? full : preview(full)), reportToken: token };
 }
+function premiumPreviewOf(full: AnalysisResult): AnalysisResult["premiumPreview"] {
+  const chapter = full.premiumReading?.chapters?.find((c) => c.blocks?.[0]?.text);
+  const block = chapter?.blocks[0];
+  if (!chapter || !block) return null;
+  // Só a primeira frase do primeiro trecho: o resto continua no mapa completo.
+  const first = block.text.split(/(?<=[.!?])\s+/)[0] ?? "";
+  return { label: chapter.label, title: chapter.title, blockTitle: block.title, text: first.slice(0, 260) };
+}
 export function preview(full: AnalysisResult): AnalysisResult {
-  return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [], premiumReading: null,
+  return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [], premiumReading: null, premiumPreview: premiumPreviewOf(full),
     premium: { headline: "", introduction: "", chapters: [], actionPlan: [], reflectionQuestions: [] },
     themeDeepDive: { ...full.themeDeepDive, sections: full.themeDeepDive.sections.slice(0, 1) },
     zodiacPortrait: full.zodiacPortrait ? { ...full.zodiacPortrait, premiumLayers: [] } : undefined,

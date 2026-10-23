@@ -597,30 +597,93 @@ function LockedMore({ onUnlock, label = "Continua no mapa completo" }: { onUnloc
 
 const GUARANTEE_LINE = "Pagamento único · Liberado na hora · Garantia de 7 dias";
 
-/** Oferta logo depois do arquétipo: quem lê só o começo já vê o que existe no mapa completo. */
-function EarlyOffer({ reading, firstName, price, onUnlock }: { reading: FreeReadingData; firstName: string; price: string; onUnlock: () => void }) {
+/** O que o mapa completo entrega, só com o que existe de verdade em cada versão. */
+function offerValue(audience: FreeReadingData["audience"], name: string) {
+  if (audience === "child") {
+    return [
+      `As 4 partes completas: como ${name} aprende, faz amigos, gasta energia e os talentos`,
+      `Como acalmar ${name} nos dias difíceis`,
+      `O número de destino de ${name}`,
+      "Dicas práticas para quem cuida, com exemplos do dia a dia",
+      "PDF completo para guardar",
+    ];
+  }
+  if (audience === "teen") {
+    return [
+      "As 4 partes completas: estudos, turma, conflitos e talentos",
+      "O que fazer quando bate a bad",
+      "O seu número de destino",
+      "Dicas para quem cuida de você",
+      "PDF completo para guardar",
+    ];
+  }
+  return [
+    "As 4 áreas completas: amor, trabalho, dinheiro e momento atual",
+    "Os seus próximos 12 meses, mês a mês",
+    "A sua missão, o seu dom e o seu número de destino",
+    "Novos stories para postar",
+    "PDF completo para guardar",
+  ];
+}
+
+/** Oferta logo depois do arquétipo: ganchos do próprio mapa, uma frase real do pago e o que vem junto. */
+function EarlyOffer({
+  reading,
+  firstName,
+  price,
+  onUnlock,
+  preview,
+}: {
+  reading: FreeReadingData;
+  firstName: string;
+  price: string;
+  onUnlock: () => void;
+  preview?: AnalysisResult["premiumPreview"];
+}) {
   const ref = useOfferView();
   const kid = reading.audience === "child";
   return (
     <section className="fr-offer" aria-labelledby="fr-offer-title" ref={ref}>
       <span className="fr-kicker">{kid ? `O mapa completo de ${firstName}` : "O seu mapa completo"}</span>
       <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : "Isso é só o começo do seu mapa"}</h2>
-      <ul className="fr-offer-list">
+
+      {preview && (
+        <article className="fr-offer-preview">
+          <small>{preview.label} · {preview.title}</small>
+          <strong>{preview.blockTitle}</strong>
+          <p>{preview.text}</p>
+          <div className="fr-offer-blur" aria-hidden="true"><i /><i /><i /><i style={{ width: "55%" }} /></div>
+          <span className="fr-offer-preview-lock"><span aria-hidden="true">🔒</span> O resto deste capítulo está no mapa completo</span>
+        </article>
+      )}
+
+      <ul className="fr-offer-hooks">
         {reading.teasers.map((teaser) => (
           <li key={teaser.id}>
             <span className="fr-offer-symbol" aria-hidden="true">{teaser.symbol}</span>
-            <span><small>{teaser.label}</small>{teaser.title}</span>
-            <span className="fr-offer-lock" aria-hidden="true">🔒</span>
+            <span>
+              <small>{teaser.label}</small>
+              <b>{teaser.title}</b>
+              <em>{firstPart(teaser.opening, 110)} <span className="fr-offer-more">E tem mais… 🔒</span></em>
+            </span>
           </li>
         ))}
-        <li>
-          <span className="fr-offer-symbol" aria-hidden="true">⤓</span>
-          <span><small>Para guardar</small>PDF completo, para ler quando quiser</span>
-          <span className="fr-offer-lock" aria-hidden="true">🔒</span>
-        </li>
       </ul>
+
+      <div className="fr-offer-value">
+        <strong>{kid ? "No mapa completo, você recebe:" : "No mapa completo, você recebe:"}</strong>
+        <ul>
+          {offerValue(reading.audience, firstName).map((item) => (
+            <li key={item}><span aria-hidden="true">✓</span> {item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <p className="fr-offer-price">
+        Uma consulta com astrólogo costuma custar bem mais. Aqui: <b>{price}</b>, uma vez só, sem assinatura.
+      </p>
       <button className="analysis-button primary-analysis-button fr-offer-button" onClick={onUnlock} type="button">
-        {kid ? `Ver o mapa completo de ${firstName}` : "Ver meu mapa completo"} · {price}
+        {kid ? `Quero ler o mapa completo de ${firstName}` : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
       </button>
       <p className="fr-guarantee"><span aria-hidden="true">✓</span> {GUARANTEE_LINE}</p>
       <p className="fr-offer-hint">Ou continue rolando para ver a sua prévia grátis <span aria-hidden="true">↓</span></p>
@@ -662,7 +725,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
         <strong>{label}</strong>
         <small>{price} · garantia de 7 dias</small>
       </div>
-      <button onClick={onUnlock} type="button">Desbloquear <span aria-hidden="true">→</span></button>
+      <button onClick={onUnlock} type="button">Quero ler <span aria-hidden="true">→</span></button>
     </div>
   );
 }
@@ -696,7 +759,7 @@ function FreeReadingView({
       </section>
 
       {onUnlock && offerPrice && (
-        <EarlyOffer firstName={kidName} onUnlock={onUnlock} price={offerPrice} reading={reading} />
+        <EarlyOffer firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
       )}
 
       <div className="fr-stories">
@@ -923,7 +986,7 @@ function FreeTeasers({
           onClick={onUnlock}
           type="button"
         >
-          {reading.audience === "child" ? `Desbloquear o mapa completo de ${firstName}` : "Desbloquear meu mapa completo"}
+          {reading.audience === "child" ? `Quero ler o mapa completo de ${firstName}` : "Quero ler o meu mapa completo"}
         </button>
         <p className="fr-guarantee fr-guarantee-wide"><span aria-hidden="true">✓</span> Garantia de 7 dias: se não gostar, devolvemos o seu dinheiro.</p>
       </div>

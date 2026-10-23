@@ -216,6 +216,8 @@ export type AnalysisResult = {
   freeReading?: FreeReading | null;
   /** Leitura nova do mapa completo (ausente em relatórios antigos e em mapas de menores). */
   premiumReading?: PremiumReading | null;
+  /** Só na prévia grátis: 1 frase real do mapa completo, para mostrar o que vem depois. */
+  premiumPreview?: { label: string; title: string; blockTitle: string; text: string } | null;
 };
 
 const { Origin, Horoscope } = astroPackage as unknown as {
