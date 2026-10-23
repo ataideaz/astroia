@@ -562,16 +562,126 @@ function kidPlanetSimple(name: string): Record<string, string> {
   };
 }
 
+/** Conta "viu a oferta" quando o elemento aparece na tela (uma vez por sessão). */
+function useOfferView() {
+  const ref = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { trackFunnel("offer_view"); observer.disconnect(); }
+    }, { threshold: 0.25 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+/** Primeiras frases de um texto (o resto fica no mapa completo). */
+function firstPart(text: string, max = 170) {
+  const clean = text.trim();
+  if (clean.length <= max) return clean;
+  const sentences = clean.split(/(?<=[.!?])\s+/);
+  let out = sentences[0] ?? clean;
+  if (out.length > max * 1.4) out = `${out.slice(0, max).replace(/\s+\S*$/, "")}…`;
+  return out;
+}
+
+function LockedMore({ onUnlock, label = "Continua no mapa completo" }: { onUnlock: () => void; label?: string }) {
+  return (
+    <button className="fr-locked-more" onClick={onUnlock} type="button">
+      <span aria-hidden="true">🔒</span> {label} <span aria-hidden="true">→</span>
+    </button>
+  );
+}
+
+const GUARANTEE_LINE = "Pagamento único · Liberado na hora · Garantia de 7 dias";
+
+/** Oferta logo depois do arquétipo: quem lê só o começo já vê o que existe no mapa completo. */
+function EarlyOffer({ reading, firstName, price, onUnlock }: { reading: FreeReadingData; firstName: string; price: string; onUnlock: () => void }) {
+  const ref = useOfferView();
+  const kid = reading.audience === "child";
+  return (
+    <section className="fr-offer" aria-labelledby="fr-offer-title" ref={ref}>
+      <span className="fr-kicker">{kid ? `O mapa completo de ${firstName}` : "O seu mapa completo"}</span>
+      <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : "Isso é só o começo do seu mapa"}</h2>
+      <ul className="fr-offer-list">
+        {reading.teasers.map((teaser) => (
+          <li key={teaser.id}>
+            <span className="fr-offer-symbol" aria-hidden="true">{teaser.symbol}</span>
+            <span><small>{teaser.label}</small>{teaser.title}</span>
+            <span className="fr-offer-lock" aria-hidden="true">🔒</span>
+          </li>
+        ))}
+        <li>
+          <span className="fr-offer-symbol" aria-hidden="true">⤓</span>
+          <span><small>Para guardar</small>PDF completo, para ler quando quiser</span>
+          <span className="fr-offer-lock" aria-hidden="true">🔒</span>
+        </li>
+      </ul>
+      <button className="analysis-button primary-analysis-button fr-offer-button" onClick={onUnlock} type="button">
+        {kid ? `Ver o mapa completo de ${firstName}` : "Ver meu mapa completo"} · {price}
+      </button>
+      <p className="fr-guarantee"><span aria-hidden="true">✓</span> {GUARANTEE_LINE}</p>
+      <p className="fr-offer-hint">Ou continue rolando para ver a sua prévia grátis <span aria-hidden="true">↓</span></p>
+    </section>
+  );
+}
+
+/** Barra fixa de compra: aparece depois da primeira oferta e some perto da oferta final. */
+function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label: string; onUnlock: () => void; hidden: boolean }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const offer = document.querySelector(".fr-offer");
+      const teasers = document.querySelector(".fr-teasers");
+      const cookie = document.querySelector(".cookie-bar");
+      if (!offer || cookie) { setShow(false); return; }
+      const pastOffer = offer.getBoundingClientRect().bottom < 0;
+      const nearEnd = teasers ? teasers.getBoundingClientRect().top < window.innerHeight * 0.85 : false;
+      setShow(pastOffer && !nearEnd);
+    };
+    const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    const timer = window.setInterval(update, 1500); // o aviso de cookies pode fechar sem rolagem
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.clearInterval(timer);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+  if (hidden || !show) return null;
+  return (
+    <div className="buy-bar" role="region" aria-label="Comprar o mapa completo">
+      <div>
+        <strong>{label}</strong>
+        <small>{price} · garantia de 7 dias</small>
+      </div>
+      <button onClick={onUnlock} type="button">Desbloquear <span aria-hidden="true">→</span></button>
+    </div>
+  );
+}
+
 function FreeReadingView({
   analysis,
   reading,
   premium,
   nameReading,
+  offerPrice,
+  onUnlock,
 }: {
   analysis: AnalysisResult;
   reading: FreeReadingData;
   premium?: PremiumReading | null;
   nameReading?: NameReading | null;
+  /** Só na prévia grátis: mostra a oferta cedo e trava a continuação de alguns textos. */
+  offerPrice?: string;
+  onUnlock?: () => void;
 }) {
   const kid = reading.audience === "child";
   const kidName = analysis.person.firstName;
@@ -583,6 +693,13 @@ function FreeReadingView({
         <h2 id="fr-archetype-title">{reading.archetype.name}</h2>
         <p className="fr-archetype-text">{reading.archetype.text}</p>
         <p className="fr-archetype-combos">{reading.archetype.combinations}</p>
+      </section>
+
+      {onUnlock && offerPrice && (
+        <EarlyOffer firstName={kidName} onUnlock={onUnlock} price={offerPrice} reading={reading} />
+      )}
+
+      <div className="fr-stories">
         <StoryShare
           cards={[...personalCards(reading, premium ?? null, analysis.person), ...(nameReading ? nameCards(nameReading) : [])]}
           filePrefix="meu-mapa-astroia"
@@ -598,7 +715,7 @@ function FreeReadingView({
           }
           title={kid ? `Mostre o mapa de ${kidName}` : "Mostre o seu mapa para os amigos"}
         />
-      </section>
+      </div>
 
       {analysis.placements.length > 0 && (
         <section className="fr-chart" aria-labelledby="fr-chart-title">
@@ -679,9 +796,18 @@ function FreeReadingView({
       <section className="fr-mirror" aria-labelledby="fr-mirror-title">
         <span className="fr-kicker">Juntando tudo</span>
         <h2 id="fr-mirror-title">{kid ? `Como as partes de ${kidName} conversam` : "Como as suas partes conversam"}</h2>
-        <p className="fr-mirror-text">{reading.mirror.text}</p>
-        <p>{reading.mirror.harmony}</p>
-        {reading.mirror.sameSign && (
+        {onUnlock ? (
+          <>
+            <p className="fr-mirror-text">{firstPart(reading.mirror.text)}</p>
+            <LockedMore onUnlock={onUnlock} />
+          </>
+        ) : (
+          <>
+            <p className="fr-mirror-text">{reading.mirror.text}</p>
+            <p>{reading.mirror.harmony}</p>
+          </>
+        )}
+        {!onUnlock && reading.mirror.sameSign && (
           <p className="fr-same-sign">
             <span aria-hidden="true">✦</span> {reading.mirror.sameSign}
           </p>
@@ -720,16 +846,7 @@ function FreeTeasers({
   onUnlockWithCompat?: () => void;
 }) {
   // "Viu a oferta": a parte com os cadeados apareceu na tela.
-  const offerRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const node = offerRef.current;
-    if (!node || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) { trackFunnel("offer_view"); observer.disconnect(); }
-    }, { threshold: 0.25 });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  const offerRef = useOfferView();
   return (
     <section className="fr-teasers" aria-labelledby="fr-teasers-title" ref={offerRef}>
       <span className="fr-kicker">
@@ -808,6 +925,7 @@ function FreeTeasers({
         >
           {reading.audience === "child" ? `Desbloquear o mapa completo de ${firstName}` : "Desbloquear meu mapa completo"}
         </button>
+        <p className="fr-guarantee fr-guarantee-wide"><span aria-hidden="true">✓</span> Garantia de 7 dias: se não gostar, devolvemos o seu dinheiro.</p>
       </div>
     </section>
   );
@@ -985,6 +1103,13 @@ export default function Home({
   function openNameCheckout(fromDownsell = false) {
     setCheckoutProduct("name");
     setDownsell(fromDownsell);
+    setCheckoutEmail((current) => current || form.email);
+    openCheckout(null, "upgrade");
+  }
+
+  function openMapOffer() {
+    setOfferMode("individual");
+    setCheckoutProduct("map");
     setCheckoutEmail((current) => current || form.email);
     openCheckout(null, "upgrade");
   }
@@ -2436,7 +2561,13 @@ export default function Home({
           )}
 
           {newFreeReading && (
-            <FreeReadingView analysis={analysis} nameReading={nameReading} reading={newFreeReading} />
+            <FreeReadingView
+              analysis={analysis}
+              nameReading={nameReading}
+              offerPrice={paymentsEnabled ? paymentPrice : undefined}
+              onUnlock={paymentsEnabled ? openMapOffer : undefined}
+              reading={newFreeReading}
+            />
           )}
           {newFreeReading && nameReading && <NameReadingView reading={nameReading} />}
 
@@ -2844,7 +2975,8 @@ export default function Home({
               <div>
                 <small>NÚMERO DE DESTINO</small>
                 <h3>Seu caminho principal</h3>
-                <p>{analysis.numerology.lifePathText}</p>
+                <p>{newFreeReading ? firstPart(analysis.numerology.lifePathText, 150) : analysis.numerology.lifePathText}</p>
+                {newFreeReading && <LockedMore label="O seu número completo está no mapa" onUnlock={openMapOffer} />}
               </div>
             </article>
             <article className="number-card">
@@ -2852,7 +2984,8 @@ export default function Home({
               <div>
                 <small>ANO PESSOAL</small>
                 <h3>O tom do seu ciclo</h3>
-                <p>{analysis.numerology.personalYearText}</p>
+                <p>{newFreeReading ? firstPart(analysis.numerology.personalYearText, 150) : analysis.numerology.personalYearText}</p>
+                {newFreeReading && <LockedMore label="Os próximos 12 meses estão no mapa" onUnlock={openMapOffer} />}
               </div>
             </article>
           </div>
@@ -2861,12 +2994,7 @@ export default function Home({
           {newFreeReading && (
             <FreeTeasers
               firstName={analysis.person.firstName}
-              onUnlock={() => {
-                setOfferMode("individual");
-                setCheckoutProduct("map");
-                setCheckoutEmail(form.email);
-                openCheckout(null, "upgrade");
-              }}
+              onUnlock={openMapOffer}
               price={paymentPrice}
               reading={newFreeReading}
               compatPrice={compatOffered ? compatPrice : undefined}
@@ -3478,6 +3606,15 @@ export default function Home({
             )}
           </section>
         </div>
+      )}
+
+      {newFreeReading && paymentsEnabled && (
+        <StickyBuyBar
+          hidden={checkoutOpen}
+          label={newFreeReading.audience === "child" ? `Mapa completo de ${analysis?.person.firstName ?? ""}` : "Seu mapa completo"}
+          onUnlock={openMapOffer}
+          price={paymentPrice}
+        />
       )}
 
       <footer>

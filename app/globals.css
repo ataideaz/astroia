@@ -7490,3 +7490,59 @@ footer {
 .pn-badge.ok { background: rgba(120,220,140,.18); color: #9ef0b0; }
 .pn-badge.bad { background: rgba(255,120,120,.18); color: #ffaaaa; }
 .pn-badge.warn { background: rgba(240,214,157,.18); color: var(--gold-light); }
+
+/* Oferta logo depois do arquétipo */
+.fr-offer {
+  border-radius: 28px;
+  border: 1px solid rgba(228, 188, 114, 0.55);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(228, 188, 114, 0.18), transparent 55%),
+    radial-gradient(circle at 0% 100%, rgba(128, 104, 242, 0.25), transparent 60%),
+    var(--panel-solid);
+  padding: 28px 24px;
+  display: grid;
+  gap: 14px;
+}
+.fr-offer h2 { margin: 0; font-family: var(--font-display); font-size: clamp(28px, 6vw, 40px); line-height: 1.05; color: var(--ink); }
+.fr-offer-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.fr-offer-list li {
+  display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, 0.05);
+  font-family: var(--font-ui); font-weight: 700; font-size: 15px; color: var(--ink);
+}
+.fr-offer-list small { display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 2px; }
+.fr-offer-symbol { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(228, 188, 114, 0.15); color: var(--gold-light); font-size: 17px; }
+.fr-offer-lock { font-size: 14px; opacity: 0.8; }
+.fr-offer-button { width: 100%; justify-content: center; margin-top: 4px; }
+.fr-guarantee { margin: 0 !important; text-align: center; font-family: var(--font-ui); font-size: 13px !important; color: var(--muted) !important; }
+.fr-guarantee span { color: #9ef0b0; font-weight: 800; }
+.fr-guarantee-wide { flex-basis: 100%; text-align: left; }
+.fr-offer-hint { margin: 0 !important; text-align: center; font-family: var(--font-ui); font-size: 13px !important; color: var(--muted) !important; opacity: 0.8; }
+.fr-locked-more {
+  margin-top: 10px; display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 999px; border: 1px dashed rgba(228, 188, 114, 0.6);
+  background: rgba(228, 188, 114, 0.08); color: var(--gold-light);
+  font: 700 14px var(--font-ui); cursor: pointer;
+}
+.fr-locked-more:hover { background: rgba(228, 188, 114, 0.16); }
+.number-card .fr-locked-more { margin-top: 8px; }
+
+/* Barra fixa de compra */
+.buy-bar {
+  position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 80;
+  max-width: 640px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 10px 10px 18px; border-radius: 999px;
+  background: rgba(14, 12, 30, 0.96); border: 1px solid rgba(228, 188, 114, 0.45);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-ui); color: #ece8ff;
+  animation: buyBarIn 0.3s ease-out both;
+}
+.buy-bar strong { display: block; font-size: 15px; }
+.buy-bar small { display: block; font-size: 12px; color: var(--muted); }
+.buy-bar button {
+  flex-shrink: 0; border: 0; border-radius: 999px; padding: 12px 18px;
+  background: linear-gradient(90deg, var(--gold-light), #c9a6ff); color: #1a1530;
+  font: 800 15px var(--font-ui); cursor: pointer;
+}
+@keyframes buyBarIn { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
