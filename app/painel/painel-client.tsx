@@ -66,7 +66,21 @@ function FunnelTable({ rows, first }: { rows: Array<Bucket & { label: string; hi
   );
 }
 
-function PeopleView({ people, tab, search, setSearch }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void }) {
+function TestButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
+  const [step, setStep] = useState<"idle" | "confirm" | "busy">("idle");
+  if (step === "busy") return <small>Salvando…</small>;
+  if (step === "confirm") {
+    return (
+      <span className="pn-test-confirm">
+        <button className="pn-link" onClick={async () => { setStep("busy"); await onConfirm(); setStep("idle"); }} type="button">Sim, é teste</button>
+        <button className="pn-link pn-muted" onClick={() => setStep("idle")} type="button">Cancelar</button>
+      </span>
+    );
+  }
+  return <button className="pn-link" onClick={() => setStep("confirm")} type="button">Marcar como teste</button>;
+}
+
+function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void; onMarkTest: (order: string) => Promise<void> }) {
   if (!people) return <p className="pn-empty">Carregando…</p>;
   const q = search.trim().toLowerCase();
   const match = (...values: Array<string | null | undefined>) => !q || values.some((v) => v?.toLowerCase().includes(q));
@@ -81,12 +95,12 @@ function PeopleView({ people, tab, search, setSearch }: { people: People | null;
         </div>
         {rows.length ? (
           <div className="pn-table-wrap"><table className="pn-table">
-            <thead><tr><th>Quando</th><th>E-mail</th><th>Nome no mapa</th><th>Compra</th><th>Valor</th><th>Situação</th><th>Origem</th><th>Pedido</th></tr></thead>
+            <thead><tr><th>Quando</th><th>E-mail</th><th>Nome no mapa</th><th>Compra</th><th>Valor</th><th>Situação</th><th>Origem</th><th>Pedido</th><th></th></tr></thead>
             <tbody>{rows.map((s) => (
               <tr key={s.order}>
                 <td>{when(s.at)}</td><td>{s.email || "—"}</td><td>{s.name || "—"}</td><td>{items(s.items)}</td><td>{money(s.value)}</td>
                 <td><span className={`pn-badge ${s.status === "approved" ? "ok" : "bad"}`}>{STATUS[s.status] || s.status}</span></td>
-                <td>{s.source}</td><td><small>{s.order}</small></td>
+                <td>{s.source}</td><td><small>{s.order}</small></td><td><TestButton onConfirm={() => onMarkTest(s.order)} /></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -171,6 +185,14 @@ export default function PainelClient() {
     if (saved) { setKey(saved); void load(saved, 7); }
   }, [load]);
 
+  async function markTest(order: string) {
+    try {
+      const response = await fetch("/api/painel/teste", { method: "POST", headers: { "Content-Type": "application/json", "x-admin-key": key }, body: JSON.stringify({ order, test: true }) });
+      if (!response.ok) throw new Error((await response.json()).error || "Não foi possível marcar.");
+      await load(key, days);
+    } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível marcar."); }
+  }
+
   function submit(event: FormEvent) { event.preventDefault(); if (key) void load(key, days); }
   function period(value: number) { setDays(value); if (key) void load(key, value); }
   function logout() { try { window.localStorage.removeItem(KEY); } catch { /* ignora */ } setKey(""); setData(null); }
@@ -209,7 +231,7 @@ export default function PainelClient() {
           </div>
 
           {tab !== "resumo" ? (
-            <PeopleView people={people} search={search} setSearch={setSearch} tab={tab} />
+            <PeopleView onMarkTest={markTest} people={people} search={search} setSearch={setSearch} tab={tab} />
           ) : <>
           {t ? (
             <section className="pn-cards">

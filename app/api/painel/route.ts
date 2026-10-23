@@ -29,12 +29,12 @@ export async function GET(request: Request) {
      FROM payment_orders po
      LEFT JOIN report_orders ro ON ro.order_id = po.id
      LEFT JOIN guest_reports gr ON gr.token_hash = ro.token_hash
-     WHERE po.status = 'approved' AND po.approved_at >= ?
+     WHERE po.status = 'approved' AND po.approved_at >= ? AND po.excluded_at IS NULL
      ORDER BY po.approved_at DESC LIMIT 5000`,
   ).bind(fromTime).all<Sale>();
   const refunds = await env.DB.prepare(
     `SELECT COUNT(*) AS total, COALESCE(SUM(amount_cents), 0) AS cents FROM payment_orders
-     WHERE status IN ('refunded', 'charged_back') AND updated_at >= ?`,
+     WHERE status IN ('refunded', 'charged_back') AND updated_at >= ? AND excluded_at IS NULL`,
   ).bind(fromTime).first<{ total: number; cents: number }>();
 
   type Bucket = { visits: number; offerViews: number; offerOpens: number; maps: number; checkouts: number; pix: number; sales: number; revenue: number };

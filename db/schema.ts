@@ -56,6 +56,8 @@ export const paymentOrders = sqliteTable(
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
     approvedAt: integer("approved_at", { mode: "timestamp_ms" }),
+    /** Marcado no painel como compra de teste: some das contas do painel. */
+    excludedAt: integer("excluded_at"),
   },
 );
 

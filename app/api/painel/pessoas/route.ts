@@ -29,7 +29,7 @@ export async function GET(request: Request) {
      FROM payment_orders po
      LEFT JOIN report_orders ro ON ro.order_id = po.id
      LEFT JOIN guest_reports gr ON gr.token_hash = ro.token_hash
-     WHERE po.status IN ('approved', 'refunded', 'charged_back') AND COALESCE(po.approved_at, po.updated_at) >= ?
+     WHERE po.status IN ('approved', 'refunded', 'charged_back') AND COALESCE(po.approved_at, po.updated_at) >= ? AND po.excluded_at IS NULL
      ORDER BY at DESC LIMIT 1000`,
   ).bind(from).all<{ id: string; customer_email: string | null; person_name: string | null; offer_mode: string; amount_cents: number; status: string; at: number; ro_attr: string | null; gr_attr: string | null }>();
 
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
             json_extract(gr.request_json, '$.recipientType') AS recipient,
             gr.attribution_json AS attr,
             (SELECT GROUP_CONCAT(ro.items, '|') FROM report_orders ro JOIN payment_orders po ON po.id = ro.order_id
-              WHERE ro.token_hash = gr.token_hash AND po.status = 'approved') AS bought,
+              WHERE ro.token_hash = gr.token_hash AND po.status = 'approved' AND po.excluded_at IS NULL) AS bought,
             (SELECT COUNT(*) FROM report_orders ro WHERE ro.token_hash = gr.token_hash) AS checkouts
      FROM guest_reports gr WHERE gr.created_at >= ? ORDER BY gr.created_at DESC LIMIT 1000`,
   ).bind(from).all<{ at: number; name: string | null; email: string | null; consent: number | null; recipient: string | null; attr: string | null; bought: string | null; checkouts: number }>();
