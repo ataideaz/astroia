@@ -7596,3 +7596,7 @@ footer {
 .pn-test-confirm { display: inline-flex; gap: 10px; }
 .pn-muted { color: rgba(236,232,255,.6) !important; }
 .pn-reset { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin: 14px 0 4px; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.04); font-size: 13px; color: rgba(236,232,255,.75); }
+.fr-trio { list-style: none; margin: 18px auto 0; padding: 0; display: grid; gap: 10px; max-width: 560px; text-align: left; }
+.fr-trio li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.05); font-family: var(--font-ui); }
+.fr-trio small { display: block; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-light); }
+.fr-trio b { display: block; font-size: 16px; color: var(--ink); margin-top: 2px; }

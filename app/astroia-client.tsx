@@ -686,7 +686,7 @@ function EarlyOffer({
         {kid ? `Quero ler o mapa completo de ${firstName}` : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
       </button>
       <p className="fr-guarantee"><span aria-hidden="true">✓</span> {GUARANTEE_LINE}</p>
-      <p className="fr-offer-hint">Ou continue rolando para ver a sua prévia grátis <span aria-hidden="true">↓</span></p>
+      <p className="fr-offer-hint">Ou role para ver o que mais o seu mapa guarda <span aria-hidden="true">↓</span></p>
     </section>
   );
 }
@@ -755,6 +755,11 @@ function FreeReadingView({
   const kid = reading.audience === "child";
   const kidName = analysis.person.firstName;
   const planetSimple = kid ? kidPlanetSimple(kidName) : PLANET_SIMPLE;
+  // Prévia grátis enxuta: arquétipo, o trio em 1 linha, a oferta e 1 story.
+  // Tudo o mais aparece só no mapa completo (que usa esta mesma tela, completa).
+  const compact = Boolean(onUnlock && offerPrice);
+  const storyCards = [...personalCards(reading, premium ?? null, analysis.person), ...(nameReading ? nameCards(nameReading) : [])];
+  const shownCards = compact && !nameReading ? storyCards.filter((card) => card.id === "arquetipo") : storyCards;
   return (
     <div className="fr">
       <section className="fr-archetype" aria-labelledby="fr-archetype-title">
@@ -762,6 +767,20 @@ function FreeReadingView({
         <h2 id="fr-archetype-title">{reading.archetype.name}</h2>
         <p className="fr-archetype-text">{reading.archetype.text}</p>
         <p className="fr-archetype-combos">{reading.archetype.combinations}</p>
+        {compact && (
+          <ul className="fr-trio">
+            {reading.layers.map((layer) => (
+              <li key={layer.id}>
+                <span className="fr-layer-symbol" aria-hidden="true">{layer.symbol}</span>
+                <span>
+                  <small>{layer.role} em {layer.sign}</small>
+                  <b>{layer.headline}</b>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {compact && reading.noTimeNote && <p className="fr-note">{reading.noTimeNote}</p>}
       </section>
 
       {onUnlock && offerPrice && (
@@ -770,7 +789,7 @@ function FreeReadingView({
 
       <div className="fr-stories">
         <StoryShare
-          cards={[...personalCards(reading, premium ?? null, analysis.person), ...(nameReading ? nameCards(nameReading) : [])]}
+          cards={shownCards}
           filePrefix="meu-mapa-astroia"
           shareText={
             kid
@@ -778,14 +797,19 @@ function FreeReadingView({
               : `Meu arquétipo no AstroIA é ${reading.archetype.name} ✦ Descubra o seu:`
           }
           subtitle={
-            kid
-              ? `Stories com o arquétipo, o trio e o superpoder de ${kidName}. Mostre para a família e para os amigos 💛`
-              : "Fizemos stories com o seu arquétipo, o seu trio e o seu superpoder. Poste e veja quantos amigos vão querer descobrir o deles 👀"
+            compact && !nameReading
+              ? kid
+                ? `Poste o arquétipo de ${kidName} e veja quantos amigos vão querer descobrir o da criança deles 💛 No mapa completo vêm mais stories.`
+                : "Poste o seu arquétipo e veja quantos amigos vão querer descobrir o deles 👀 No mapa completo vêm mais stories: o seu trio, o seu superpoder e outros."
+              : kid
+                ? `Stories com o arquétipo, o trio e o superpoder de ${kidName}. Mostre para a família e para os amigos 💛`
+                : "Fizemos stories com o seu arquétipo, o seu trio e o seu superpoder. Poste e veja quantos amigos vão querer descobrir o deles 👀"
           }
           title={kid ? `Mostre o mapa de ${kidName}` : "Mostre o seu mapa para os amigos"}
         />
       </div>
 
+      {!compact && (<>
       {analysis.placements.length > 0 && (
         <section className="fr-chart" aria-labelledby="fr-chart-title">
           <span className="fr-kicker">Seu céu de nascimento</span>
@@ -895,6 +919,7 @@ function FreeReadingView({
           <p>{reading.attention}</p>
         </article>
       </section>
+      </>)}
     </div>
   );
 }
@@ -2848,7 +2873,7 @@ export default function Home({
           )}
           </>)}
 
-          {newFreeReading?.audience !== "child" && (<>
+          {!newFreeReading && (<>
           <article className="pattern-card">
             <div>
               <span className="section-kicker">Seu padrão dominante</span>
