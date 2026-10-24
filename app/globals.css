@@ -7692,3 +7692,6 @@ footer {
 @media (max-width: 640px) {
   li small, .privacy-note strong, .maps-heading p, .add-profile-panel p, footer small { font-size: 15px !important; line-height: 1.5; }
 }
+
+/* Botão principal do Pix: grande e fácil de tocar */
+.dp-pix .dp-copy { width: 100%; min-height: 58px; font-size: 18px; font-weight: 800; justify-content: center; }
