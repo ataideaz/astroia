@@ -10,6 +10,7 @@ type Data = {
   byDay: Array<Bucket & { day: string }>;
   bySource: Array<Bucket & { source: string }>;
   byCampaign: Array<Bucket & { campaign: string; source: string }>;
+  byAd?: Array<Bucket & { ad: string; campaign: string }>;
   products: Array<{ items: string; orders: number; revenue: number }>;
   recent: Array<{ at: number; items: string; value: number; source: string; campaign: string | null }>;
   meta: { pixel: boolean; capi: boolean };
@@ -279,6 +280,11 @@ export default function PainelClient() {
 
           <h2>Campanhas (utm_campaign)</h2>
           <FunnelTable first="Campanha" rows={data.byCampaign.map((r) => ({ ...r, label: r.campaign, hint: r.source }))} />
+
+          <h2>Anúncios (utm_content)</h2>
+          {data.byAd?.length ? (
+            <FunnelTable first="Anúncio" rows={data.byAd.map((r) => ({ ...r, label: r.ad, hint: r.campaign }))} />
+          ) : <p className="pn-note">Aparece aqui quando os anúncios tiverem utm_content={"{{ad.name}}"} nos Parâmetros de URL.</p>}
 
           <h2>Por dia</h2>
           <FunnelTable first="Dia" rows={data.byDay.map((r) => ({ ...r, label: r.day.split("-").reverse().join("/") }))} />

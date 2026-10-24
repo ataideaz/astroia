@@ -126,6 +126,7 @@ export const siteEvents = sqliteTable("site_events", {
  type: text("type").notNull(),
  source: text("source").notNull(),
  campaign: text("campaign"),
+ ad: text("ad"),
  createdAt: integer("created_at").notNull(),
 });
 export const guestLimits = sqliteTable("guest_limits", {

@@ -4,7 +4,7 @@ import { checkAdmin } from "../../../lib/admin-auth";
 import { readEnv } from "../../../lib/runtime-env";
 export const dynamic = "force-dynamic";
 
-type Row = { day: string; type: string; source: string; campaign: string | null; total: number };
+type Row = { day: string; type: string; source: string; campaign: string | null; ad: string | null; total: number };
 type Sale = { id: string; offer_mode: string; amount_cents: number; approved_at: number; ro_attr: string | null; gr_attr: string | null };
 
 // Vendas de teste (sandbox) ficaram antes do pagamento real.
@@ -20,8 +20,8 @@ export async function GET(request: Request) {
   const fromTime = Math.max(SALES_SINCE, Date.parse(`${fromDay}T03:00:00Z`));
 
   const events = await env.DB.prepare(
-    `SELECT day, type, source, campaign, COUNT(*) AS total FROM site_events
-     WHERE day >= ? GROUP BY day, type, source, campaign`,
+    `SELECT day, type, source, campaign, ad, COUNT(*) AS total FROM site_events
+     WHERE day >= ? GROUP BY day, type, source, campaign, ad`,
   ).bind(fromDay).all<Row>();
   const sales = await env.DB.prepare(
     `SELECT po.id, po.offer_mode, po.amount_cents, po.approved_at,
@@ -42,6 +42,15 @@ export async function GET(request: Request) {
   const byDay = new Map<string, Bucket>();
   const bySource = new Map<string, Bucket>();
   const byCampaign = new Map<string, Bucket & { source: string }>();
+  // Anúncio = utm_content ({{ad.name}}), dentro da campanha.
+  const byAd = new Map<string, Bucket & { campaign: string }>();
+  const adBucket = (campaign: string | undefined, ad: string | undefined) => {
+    const name = normalizeName(ad);
+    if (!name) return null;
+    const camp = normalizeName(campaign) ?? "";
+    const id = `${camp}|${name}`;
+    return byAd.get(id) ?? byAd.set(id, { ...empty(), campaign: camp }).get(id)!;
+  };
   const totals = empty();
   const field = { visit: "visits", offer_view: "offerViews", offer_open: "offerOpens", map: "maps", checkout: "checkouts", pix: "pix" } as const;
 
@@ -59,6 +68,8 @@ export async function GET(request: Request) {
       const bucket = byCampaign.get(id) ?? byCampaign.set(id, { ...empty(), source: row.source }).get(id)!;
       bucket[name] += row.total;
     }
+    const ad = adBucket(row.campaign ?? undefined, row.ad ?? undefined);
+    if (ad) ad[name] += row.total;
   }
 
   // Mapas marcados como teste saem das contagens (e os pagamentos que eles abriram).
@@ -75,6 +86,7 @@ export async function GET(request: Request) {
     const day = dayInBrazil(map.at);
     const buckets: Bucket[] = [byDay.get(day), bySource.get(source), totals].filter(Boolean) as Bucket[];
     if (attribution?.campaign) { const c = byCampaign.get(`${source}|${attribution.campaign}`); if (c) buckets.push(c); }
+    if (attribution?.content) { const a = byAd.get(`${attribution.campaign ?? ""}|${attribution.content}`); if (a) buckets.push(a); }
     for (const bucket of buckets) {
       bucket.maps = Math.max(0, bucket.maps - 1);
       bucket.checkouts = Math.max(0, bucket.checkouts - map.checkouts);
@@ -103,6 +115,8 @@ export async function GET(request: Request) {
       const bucket = byCampaign.get(id) ?? byCampaign.set(id, { ...empty(), source }).get(id)!;
       bucket.sales += 1; bucket.revenue += value;
     }
+    const ad = adBucket(attribution?.campaign, attribution?.content);
+    if (ad) { ad.sales += 1; ad.revenue += value; }
     const product = products.get(sale.offer_mode) ?? products.set(sale.offer_mode, { orders: 0, revenue: 0 }).get(sale.offer_mode)!;
     product.orders += 1; product.revenue += value;
     if (recent.length < 25) recent.push({ at: sale.approved_at, items: sale.offer_mode, value, source, campaign: attribution?.campaign ?? null });
@@ -117,6 +131,7 @@ export async function GET(request: Request) {
     byDay: [...byDay].map(([day, b]) => ({ day, ...round(b) })).sort((a, b) => b.day.localeCompare(a.day)),
     bySource: [...bySource].map(([source, b]) => ({ source, ...round(b) })).sort((a, b) => b.revenue - a.revenue || b.visits - a.visits),
     byCampaign: [...byCampaign].map(([id, b]) => ({ campaign: id.split("|").slice(1).join("|"), ...round(b) })).sort((a, b) => b.revenue - a.revenue || b.visits - a.visits).slice(0, 50),
+    byAd: [...byAd].map(([id, b]) => ({ ad: id.split("|").slice(1).join("|"), ...round(b) })).sort((a, b) => b.revenue - a.revenue || b.maps - a.maps || b.visits - a.visits).slice(0, 50),
     products: [...products].map(([items, p]) => ({ items, ...p, revenue: Math.round(p.revenue * 100) / 100 })).sort((a, b) => b.revenue - a.revenue),
     recent,
     meta: { pixel: Boolean(readEnv("META_PIXEL_ID")), capi: Boolean(readEnv("META_PIXEL_ID") && readEnv("META_CAPI_TOKEN")) },
