@@ -7639,3 +7639,13 @@ footer {
 @media (max-width: 640px) {
   .ck-dialog .ck-body { padding-left: 14px; padding-right: 14px; }
 }
+
+/* Aviso de cookies um pouco maior (continua embaixo, sem bloquear o site) */
+.cookie-bar { max-width: 760px; padding: 18px 20px; gap: 16px; border-radius: 20px; border-color: rgba(240, 214, 157, 0.35); }
+.cookie-bar p { font-size: 15px; line-height: 1.55; }
+.cookie-bar p strong { display: block; font-size: 17px; margin-bottom: 2px; color: #fff; }
+.cookie-actions button { padding: 13px 22px; font-size: 15px; }
+@media (max-width: 560px) {
+  .cookie-bar { left: 10px; right: 10px; bottom: 10px; padding: 16px; }
+  .cookie-actions button { padding: 14px 16px; }
+}
