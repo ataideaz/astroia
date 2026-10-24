@@ -1,7 +1,7 @@
 // All provider requests and prices are server-side. Never import this in a client component.
 async function database() { return (await import('cloudflare:workers')).env.DB; }
 export function asaasAmountCents() {
-  const value = Number(process.env.ASAAS_AMOUNT_CENTS || 3790);
+  const value = Number(process.env.ASAAS_AMOUNT_CENTS || 1990);
   if (!Number.isSafeInteger(value) || value < 100 || value > 9990) throw new Error('Valor do pagamento não configurado.');
   return value;
 }

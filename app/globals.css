@@ -7600,3 +7600,23 @@ footer {
 .fr-trio li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.05); font-family: var(--font-ui); }
 .fr-trio small { display: block; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-light); }
 .fr-trio b { display: block; font-size: 16px; color: var(--ink); margin-top: 2px; }
+
+/* Janela de compra: preço, adicional e botão de pagar primeiro; detalhes depois */
+.ck-body > .ck-kicker, .ck-body > .ck-title { order: 0; }
+.ck-body > .ck-price { order: 1; }
+.ck-body > .ck-bump { order: 2; }
+.ck-body > .ck-field, .ck-body > .checkout-payment-message, .ck-body > .ck-pay,
+.ck-body > .dp-wrap, .ck-body > .dp-pix, .ck-body > .dp-fallback { order: 3; }
+.ck-body > .ck-trust { order: 4; }
+.ck-body > .ck-includes { order: 5; }
+.ck-body > .ck-terms { order: 6; }
+.ck-body > .ck-back { order: 7; }
+.ck-body > .ck-includes::before {
+  content: "O que você recebe"; display: block; margin: 0 0 2px;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-light);
+}
+@media (max-width: 640px) {
+  .ck-body { gap: 12px; }
+  .ck-bump small { display: none; }
+  .ck-bump { padding: 12px 14px; }
+}

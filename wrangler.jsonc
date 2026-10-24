@@ -23,7 +23,11 @@
     // Chave pública do Mercado Pago (feita para ficar no site; não é segredo).
     "MERCADO_PAGO_PUBLIC_KEY": "APP_USR-1b712c2c-6af0-4fc7-ad1d-9d2c34067889",
     // Pixel da Meta (público). O token da API de Conversões fica só no painel (Secret).
-    "META_PIXEL_ID": "1592327388852197"
+    "META_PIXEL_ID": "1592327388852197",
+    // Preços em centavos (teste de preço iniciado em 24/10/2026).
+    "ASAAS_AMOUNT_CENTS": "1990",
+    "COMPAT_AMOUNT_CENTS": "1490",
+    "NAME_AMOUNT_CENTS": "990"
   },
   "d1_databases": [
     {

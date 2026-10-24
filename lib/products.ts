@@ -22,7 +22,7 @@ export const PRODUCTS: Record<ProductId, { title: string; description: string }>
 export function productPrice(id: ProductId) {
   if (id === "map") return asaasAmountCents();
   const value = Number(
-    id === "name" ? process.env.NAME_AMOUNT_CENTS || 1990 : process.env.COMPAT_AMOUNT_CENTS || 3200,
+    id === "name" ? process.env.NAME_AMOUNT_CENTS || 990 : process.env.COMPAT_AMOUNT_CENTS || 1490,
   );
   if (!Number.isSafeInteger(value) || value < 100 || value > 9990) {
     throw new Error("Valor do produto não configurado.");

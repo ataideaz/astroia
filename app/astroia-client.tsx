@@ -1596,6 +1596,7 @@ export default function Home({
   ) {
     activeCheckoutOrderId.current = null;
     setDirectCheckout(null);
+    trackFunnel("offer_view"); // quem abriu a compra viu a oferta (o contador de "viu" não perde ninguém)
     trackFunnel("offer_open");
     window.sessionStorage.removeItem(PAYMENT_CHECKOUT_STORAGE_KEY);
     setPendingAnalysis(request);
@@ -2349,7 +2350,7 @@ export default function Home({
                     checked={reportTier === "premium"}
                     onChange={() => { setAnalysis(null); setReportTier("premium"); }}
                   />
-                  <span>PREMIUM · {checkoutOffer.price}</span>
+                  <span>PREMIUM · {paymentPrice}</span>
                   <strong>Seu mapa por inteiro</strong>
                   <small>
                     Todos os cinco temas, capítulos, ações e PDF diagramado.
@@ -3507,7 +3508,7 @@ export default function Home({
                 </p>
                 <div className="approved-order">
                   <span>{checkoutPersonName || "Perfil AstroIA"}</span>
-                  <strong>{checkoutOffer.price}</strong>
+                  <strong>{paymentPrice}</strong>
                 </div>
                 <button
                   className="checkout-primary"
@@ -3649,7 +3650,7 @@ export default function Home({
                     type="email"
                     value={checkoutEmail}
                   />
-                  <small>Usamos só para identificar a sua compra. Sem criar conta.</small>
+                  <small>Só para identificar a compra. Sem criar conta e sem login.</small>
                 </label>
 
                 {checkoutError && (
@@ -3669,7 +3670,7 @@ export default function Home({
                     : checkoutError
                       ? "Tentar de novo"
                       : paymentsEnabled
-                        ? `Pagar ${checkoutTotal}`
+                        ? `Pagar ${checkoutTotal} com Pix ou cartão`
                         : "Abrir mapa completo (teste)"}
                   <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
                 </button>
