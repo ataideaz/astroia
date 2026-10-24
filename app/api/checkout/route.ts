@@ -1,7 +1,7 @@
 import { attachOrder, findOpenOrder, getGuestReport, limitRequest } from "../../../lib/guest-reports";
 import { normalizedEmail } from "../../../lib/site-auth";
 import { createAsaasCheckout, paymentsEnabled } from "../../../lib/asaas";
-import { cleanItems, productPrice } from "../../../lib/products";
+import { cleanItems, offerV2, orderTotal } from "../../../lib/products";
 import { readEnv } from "../../../lib/runtime-env";
 import { cleanAdSignals, cleanAttribution } from "../../../lib/attribution";
 import { recordSiteEvent } from "../../../lib/site-events";
@@ -18,7 +18,11 @@ export async function POST(request: Request) {
 
     // O que ainda falta comprar neste mapa (nunca cobra duas vezes a mesma coisa).
     const wanted = cleanItems(body.items ?? ["map"]);
-    const items = wanted.filter((item) => !report.products[item]);
+    let items = wanted.filter((item) => !report.products[item]);
+    // Oferta v2: o mapa completo leva a Numerologia do Nome de bônus (adultos).
+    if (offerV2() && items.includes("map") && !report.products.name && !report.analysis.person.isMinor) {
+      items = cleanItems([...items, "name"]);
+    }
     if (!items.length) throw new Error("Isso já está liberado neste mapa. Use o seu link privado.");
     if (items.includes("compat") && !items.includes("map") && !report.products.map) {
       throw new Error("A compatibilidade é liberada junto com o mapa completo.");
@@ -37,7 +41,7 @@ export async function POST(request: Request) {
     const direct = Boolean(mp?.directCheckoutEnabled()) && body.mode !== "redirect";
     const directInfo = (orderId: string) => ({
       orderId, mode: "direct", items, email,
-      amount: items.reduce((sum, item) => sum + productPrice(item), 0) / 100,
+      amount: orderTotal(items) / 100,
       publicKey: mp?.mercadoPagoPublicKey() ?? "",
     });
     let open = await findOpenOrder(body.reportToken, items);
@@ -45,7 +49,7 @@ export async function POST(request: Request) {
     if (open) {
       const { env } = await import("cloudflare:workers");
       const row = await env.DB.prepare("SELECT amount_cents FROM payment_orders WHERE id = ?").bind(open.order_id).first<{ amount_cents: number }>();
-      const expected = items.reduce((sum, item) => sum + productPrice(item), 0);
+      const expected = orderTotal(items);
       if (row?.amount_cents !== expected) open = null;
     }
     if (open?.checkout_url && (open.checkout_url === "direct") === direct) {

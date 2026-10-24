@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { PRODUCTS, productPrice, type ProductId } from "./products";
+import { PRODUCTS, linePrices, type ProductId } from "./products";
 import { readEnv } from "./runtime-env";
 
 type PaymentOrder = {
@@ -81,7 +81,7 @@ export async function createPaymentPreference(input: {
   reportToken?: string;
 }) {
   if (!input.items.length) throw new Error("Escolha o que deseja comprar.");
-  const lines = input.items.map((id) => ({ id, ...PRODUCTS[id], amountCents: productPrice(id) }));
+  const lines = linePrices(input.items).map(({ id, cents }) => ({ id, ...PRODUCTS[id], amountCents: cents }));
   const totalCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
   const orderId = `ast_${crypto.randomUUID()}`;
   const customerEmail = cleanEmail(input.customerEmail);
@@ -112,7 +112,7 @@ export async function createPaymentPreference(input: {
     method: "POST",
     headers: { "X-Idempotency-Key": orderId },
     body: JSON.stringify({
-      items: lines.map((line) => ({
+      items: lines.filter((line) => line.amountCents > 0).map((line) => ({
         id: line.id,
         title: line.title,
         description: line.description,
@@ -291,7 +291,7 @@ export function mercadoPagoPublicKey() {
 /** Cria só o pedido no AstroIA (o pagamento é criado depois, pelo formulário no site). */
 export async function createDirectOrder(input: { items: ProductId[]; customerEmail?: unknown; personName?: unknown }) {
   if (!input.items.length) throw new Error("Escolha o que deseja comprar.");
-  const lines = input.items.map((id) => ({ id, ...PRODUCTS[id], amountCents: productPrice(id) }));
+  const lines = linePrices(input.items).map(({ id, cents }) => ({ id, ...PRODUCTS[id], amountCents: cents }));
   const totalCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
   const orderId = `ast_${crypto.randomUUID()}`;
   const now = Date.now();
@@ -381,8 +381,8 @@ export async function payDirectOrder(orderIdInput: unknown, formData: BrickFormD
     statement_descriptor: "ASTROIA",
     metadata: { astroia_order_id: orderId, items: order.offer_mode },
     additional_info: {
-      items: items.map((id) => ({
-        id, title: PRODUCTS[id]?.title || id, category_id: "services", quantity: 1, unit_price: productPrice(id) / 100,
+      items: linePrices(items).filter((line) => line.cents > 0).map(({ id, cents }) => ({
+        id, title: PRODUCTS[id]?.title || id, category_id: "services", quantity: 1, unit_price: cents / 100,
       })),
     },
     ...(isPix ? { date_of_expiration: new Date(Date.now() + 30 * 60000).toISOString().replace("Z", "-00:00") } : {}),

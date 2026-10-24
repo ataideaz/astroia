@@ -30,6 +30,24 @@ export function productPrice(id: ProductId) {
   return value;
 }
 
+/**
+ * Oferta v2 (OFFER_V2=1): quem compra o mapa completo leva a Numerologia do Nome
+ * de bônus. O bônus fica gravado no pedido (item "name" com preço zero), então
+ * quem comprou continua com ele mesmo se a oferta mudar depois.
+ */
+export function offerV2() {
+  return process.env.OFFER_V2 === "1";
+}
+
+/** Preço de cada item do pedido (o bônus sai a zero quando vem junto com o mapa). */
+export function linePrices(items: ProductId[], bonus = offerV2()) {
+  return items.map((id) => ({ id, cents: bonus && id === "name" && items.includes("map") ? 0 : productPrice(id) }));
+}
+
+export function orderTotal(items: ProductId[], bonus = offerV2()) {
+  return linePrices(items, bonus).reduce((sum, line) => sum + line.cents, 0);
+}
+
 /** Lista limpa, sem repetição e sempre na mesma ordem. */
 export function cleanItems(value: unknown): ProductId[] {
   const list = Array.isArray(value) ? value : [];

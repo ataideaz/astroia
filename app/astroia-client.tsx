@@ -626,6 +626,16 @@ function offerValue(audience: FreeReadingData["audience"], name: string) {
   ];
 }
 
+type OfferBonus = { price: string; separate: string };
+
+const OFFER_V2_VALUE = [
+  "Os seus próximos 12 meses, mês a mês: o que cada fase pede",
+  "Amor: como você ama, o que te atrai e o que te afasta",
+  "Trabalho e dinheiro: onde você brilha e como o dinheiro chega",
+  "A sua missão, o seu dom e o seu número de destino",
+  "PDF completo para guardar e stories para postar",
+];
+
 /** Oferta logo depois do arquétipo: ganchos do próprio mapa, uma frase real do pago e o que vem junto. */
 function EarlyOffer({
   reading,
@@ -633,19 +643,22 @@ function EarlyOffer({
   price,
   onUnlock,
   preview,
+  bonus,
 }: {
   reading: FreeReadingData;
   firstName: string;
   price: string;
   onUnlock: () => void;
   preview?: AnalysisResult["premiumPreview"];
+  bonus?: OfferBonus;
 }) {
   const ref = useOfferView();
   const kid = reading.audience === "child";
   return (
     <section className="fr-offer" aria-labelledby="fr-offer-title" ref={ref}>
-      <span className="fr-kicker">{kid ? `O mapa completo de ${firstName}` : "O seu mapa completo"}</span>
-      <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : "Isso é só o começo do seu mapa"}</h2>
+      <span className="fr-kicker">{kid ? `O mapa completo de ${firstName}` : bonus ? `${firstName}, o seu mapa completo` : "O seu mapa completo"}</span>
+      <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : bonus ? "O que os seus próximos 12 meses guardam, mês a mês" : "Isso é só o começo do seu mapa"}</h2>
+      {bonus && <p className="fr-offer-sub">Pelo seu mapa e pela sua numerologia: o tema de cada mês, o que fazer nele e quais são os seus meses fortes para o amor e para a sorte. Os seus já estão calculados aqui. 🔒</p>}
 
       {preview && (
         <article className="fr-offer-preview">
@@ -671,21 +684,29 @@ function EarlyOffer({
       </ul>
 
       <div className="fr-offer-value">
-        <strong>{kid ? "No mapa completo, você recebe:" : "No mapa completo, você recebe:"}</strong>
+        <strong>No mapa completo, você recebe:</strong>
         <ul>
-          {offerValue(reading.audience, firstName).map((item) => (
+          {(bonus ? OFFER_V2_VALUE : offerValue(reading.audience, firstName)).map((item) => (
             <li key={item}><span aria-hidden="true">✓</span> {item}</li>
           ))}
         </ul>
+        {bonus && (
+          <div className="fr-offer-bonus">
+            <span aria-hidden="true">🎁</span>
+            <p><b>Bônus: Numerologia do Nome completa</b> O que o seu nome revela sobre você: alma, talentos, destino e dias de poder. Vendida à parte por {bonus.price}; aqui vem junto.</p>
+          </div>
+        )}
       </div>
 
       <div className="fr-offer-pricebox">
-        <small>Uma consulta com astrólogo costuma custar bem mais. Aqui, o mapa completo sai por</small>
+        {bonus
+          ? <small>Separados, os dois custam {bonus.separate}. Juntos, você leva tudo por</small>
+          : <small>Uma consulta com astrólogo costuma custar bem mais. Aqui, o mapa completo sai por</small>}
         <strong>{price}</strong>
         <span>pagamento único · sem assinatura</span>
       </div>
       <button className="analysis-button primary-analysis-button fr-offer-button" onClick={onUnlock} type="button">
-        {kid ? `Quero ler o mapa completo de ${firstName}` : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
+        {kid ? `Quero ler o mapa completo de ${firstName}` : bonus ? "Quero ver os meus 12 meses" : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
       </button>
       <p className="fr-guarantee"><span aria-hidden="true">✓</span> {GUARANTEE_LINE}</p>
       <p className="fr-offer-hint">Ou role para ver o que mais o seu mapa guarda <span aria-hidden="true">↓</span></p>
@@ -750,6 +771,7 @@ function FreeReadingView({
   nameReading,
   offerPrice,
   onUnlock,
+  bonus,
 }: {
   analysis: AnalysisResult;
   reading: FreeReadingData;
@@ -758,6 +780,7 @@ function FreeReadingView({
   /** Só na prévia grátis: mostra a oferta cedo e trava a continuação de alguns textos. */
   offerPrice?: string;
   onUnlock?: () => void;
+  bonus?: OfferBonus;
 }) {
   const kid = reading.audience === "child";
   const kidName = analysis.person.firstName;
@@ -791,7 +814,7 @@ function FreeReadingView({
       </section>
 
       {onUnlock && offerPrice && (
-        <EarlyOffer firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
+        <EarlyOffer bonus={!reading.audience || reading.audience === "adult" ? bonus : undefined} firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
       )}
 
       <div className="fr-stories">
@@ -1066,6 +1089,7 @@ export default function Home({
   nameAmountCents = 1990,
   paymentsEnabled = true,
   directPayments = false,
+  offerV2 = false,
 }: {
   paymentAmountCents?: number;
   compatAmountCents?: number;
@@ -1073,6 +1097,8 @@ export default function Home({
   nameAmountCents?: number;
   paymentsEnabled?: boolean;
   directPayments?: boolean;
+  /** Oferta v2: foco nos próximos 12 meses + Numerologia do Nome de bônus. */
+  offerV2?: boolean;
 }) {
   const paymentPrice = formatPrice(paymentAmountCents);
   const compatPrice = formatPrice(compatAmountCents);
@@ -1173,6 +1199,10 @@ export default function Home({
     compatEnabled && paymentsEnabled && Boolean(analysis) && !analysis?.person.isMinor;
   // A numerologia do nome usa o mesmo meio de pagamento da compatibilidade.
   const nameOffered = compatOffered && !products.name;
+  // Bônus real: a Numerologia do Nome é vendida à parte; aqui vem junto com o mapa.
+  const bonus = offerV2 && nameOffered && !products.map
+    ? { price: namePrice, separate: formatPrice(paymentAmountCents + nameAmountCents) }
+    : undefined;
   const checkoutItems: Array<"map" | "compat" | "name"> =
     checkoutProduct === "compat"
       ? ["compat"]
@@ -2676,6 +2706,7 @@ export default function Home({
             <FreeReadingView
               analysis={analysis}
               nameReading={nameReading}
+              bonus={bonus}
               offerPrice={paymentsEnabled ? paymentPrice : undefined}
               onUnlock={paymentsEnabled ? openMapOffer : undefined}
               reading={newFreeReading}
@@ -3582,7 +3613,7 @@ export default function Home({
                       Mapa completo{checkoutPersonName ? ` de ${checkoutPersonName.split(/\s+/)[0]}` : ""}
                     </span>
                     <h2 className="ck-title" id="checkout-title">
-                      {analysis?.person.isMinor && analysis.freeReading?.audience !== "teen" ? `Desbloqueie tudo o que o mapa de ${analysis.person.firstName} guarda` : "Desbloqueie tudo o que o seu mapa guarda"}
+                      {analysis?.person.isMinor && analysis.freeReading?.audience !== "teen" ? `Desbloqueie tudo o que o mapa de ${analysis.person.firstName} guarda` : bonus ? "Os seus próximos 12 meses + o seu mapa completo" : "Desbloqueie tudo o que o seu mapa guarda"}
                     </h2>
                     <div className="ck-price">
                       <strong>{paymentPrice}</strong>
@@ -3603,6 +3634,11 @@ export default function Home({
                         <li>Como acalmar {analysis.person.firstName} nas horas difíceis</li>
                         <li>Talentos para incentivar e onde precisa de apoio</li>
                         <li>Dicas práticas para quem cuida e PDF para guardar</li>
+                      </ul>
+                    ) : bonus ? (
+                      <ul className="ck-includes">
+                        {OFFER_V2_VALUE.map((item) => <li key={item}>{item}</li>)}
+                        <li><b>🎁 Bônus: Numerologia do Nome completa</b> (vendida à parte por {bonus.price})</li>
                       </ul>
                     ) : (
                       <ul className="ck-includes">

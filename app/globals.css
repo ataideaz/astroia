@@ -7695,3 +7695,10 @@ footer {
 
 /* Botão principal do Pix: grande e fácil de tocar */
 .dp-pix .dp-copy { width: 100%; min-height: 58px; font-size: 18px; font-weight: 800; justify-content: center; }
+
+/* Oferta v2: subtítulo e bônus */
+.fr-offer-sub { margin: 6px 0 14px; color: var(--muted, #c7bfe6); font-size: 16px; line-height: 1.5; }
+.fr-offer-bonus { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; padding: 14px 16px; border-radius: 16px; border: 1px dashed rgba(240, 214, 157, 0.55); background: rgba(240, 214, 157, 0.08); }
+.fr-offer-bonus > span { font-size: 26px; line-height: 1; }
+.fr-offer-bonus p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--muted, #c7bfe6); }
+.fr-offer-bonus b { display: block; color: #f0d69d; font-size: 16px; margin-bottom: 2px; }
