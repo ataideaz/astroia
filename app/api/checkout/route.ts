@@ -40,7 +40,14 @@ export async function POST(request: Request) {
       amount: items.reduce((sum, item) => sum + productPrice(item), 0) / 100,
       publicKey: mp?.mercadoPagoPublicKey() ?? "",
     });
-    const open = await findOpenOrder(body.reportToken, items);
+    let open = await findOpenOrder(body.reportToken, items);
+    // Pedido aberto com preço antigo (antes de uma mudança de preço) não é reaproveitado.
+    if (open) {
+      const { env } = await import("cloudflare:workers");
+      const row = await env.DB.prepare("SELECT amount_cents FROM payment_orders WHERE id = ?").bind(open.order_id).first<{ amount_cents: number }>();
+      const expected = items.reduce((sum, item) => sum + productPrice(item), 0);
+      if (row?.amount_cents !== expected) open = null;
+    }
     if (open?.checkout_url && (open.checkout_url === "direct") === direct) {
       if (direct) return Response.json(directInfo(open.order_id), {headers:{"Cache-Control":"no-store"}});
       return Response.json({orderId: open.order_id, checkoutUrl: open.checkout_url, items}, {headers:{"Cache-Control":"no-store"}});
