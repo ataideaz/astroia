@@ -699,12 +699,18 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
     const update = () => {
       frame = 0;
       const offer = document.querySelector(".fr-offer");
-      const teasers = document.querySelector(".fr-teasers");
+      const finalBox = document.querySelector(".fr-unlock-box");
       const cookie = document.querySelector(".cookie-bar");
       if (!offer || cookie) { setShow(false); return; }
+      // Fica na tela o tempo todo depois da primeira oferta; só sai da frente
+      // enquanto um botão de compra grande já está visível na tela.
+      const visible = (el: Element | null) => {
+        if (!el) return false;
+        const rect = el.getBoundingClientRect();
+        return rect.top < window.innerHeight && rect.bottom > 0;
+      };
       const pastOffer = offer.getBoundingClientRect().bottom < 0;
-      const nearEnd = teasers ? teasers.getBoundingClientRect().top < window.innerHeight * 0.85 : false;
-      setShow(pastOffer && !nearEnd);
+      setShow(pastOffer && !visible(finalBox) && !visible(document.querySelector("footer")));
     };
     const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
     update();
@@ -722,7 +728,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
   return (
     <div className="buy-bar" role="region" aria-label="Comprar o mapa completo">
       <div>
-        <strong>{label}</strong>
+        <strong><span aria-hidden="true">✦</span> {label}</strong>
         <small>{price} · garantia de 7 dias</small>
       </div>
       <button onClick={onUnlock} type="button">Quero ler <span aria-hidden="true">→</span></button>
