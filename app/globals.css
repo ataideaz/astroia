@@ -7649,3 +7649,40 @@ footer {
   .cookie-bar { left: 10px; right: 10px; bottom: 10px; padding: 16px; }
   .cookie-actions button { padding: 14px 16px; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Celular: letras mínimas legíveis (pedido: público de todas as idades) */
+/* ------------------------------------------------------------------ */
+@media (max-width: 640px) {
+  /* Botões */
+  .analysis-button, .fr-offer-button, .checkout-free-button, .ck-back,
+  .saved-map-actions button, .delete-map-button, .text-button { font-size: 16px !important; }
+  .analysis-button, .fr-offer-button { min-height: 52px; }
+
+  /* Rótulos e pequenos títulos */
+  .section-kicker, .fr-kicker, .ck-kicker, .eyebrow, .plan-label, .st-badge,
+  .fr-teaser-top small, .fr-offer-preview small, .fr-offer-hooks small, .fr-trio small, .fr-offer-list small { font-size: 13px !important; }
+  .popular-badge, .maps-count { font-size: 13px !important; }
+
+  /* Textos de apoio */
+  .analysis-meta, .profile-context-label, .analysis-summary, .fr-archetype-combos,
+  .fr-guarantee, .fr-offer-hint, .fr-offer-preview-lock, .fr-offer-pricebox small, .fr-offer-pricebox span,
+  .st-hint, .ck-terms, .ck-terms a, .ck-field small, .ck-trust li, .dp-trust small, .dp-badges,
+  .theme-help, .local-storage-note, .privacy-note p, .data-use-note summary, .data-use-note p,
+  .price small, .price-addon, .price-addon strong, .signal-strip span, .trust-row span,
+  .footer-links a, .footer-cookie-link, .cookie-bar p { font-size: 15px !important; line-height: 1.5; }
+  .fr-offer-hooks em, .fr-offer-more, .fr-offer-value li, .fr-offer-value strong { font-size: 15.5px !important; }
+
+  /* Formulário do mapa */
+  .field span, .consent span, legend, .recipient-option strong, .plan-option strong { font-size: 16px !important; }
+  .field small, .recipient-option small, .plan-option small, .plan-option span { font-size: 14.5px !important; line-height: 1.45; }
+
+  /* Listas, perguntas frequentes e cartões */
+  details summary { font-size: 17px !important; }
+  details p, .price-card p, .price-card li, .step-card p, blockquote { font-size: 16px !important; line-height: 1.55; }
+  main li, .ck-includes li { font-size: 15.5px !important; }
+
+  /* Meus mapas neste dispositivo */
+  .saved-map-card p, .saved-map-top small { font-size: 14.5px !important; }
+  .saved-map-top strong { font-size: 17px !important; }
+}
