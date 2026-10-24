@@ -17,8 +17,8 @@ type Data = {
 
 const KEY = "astroia-painel-key";
 type People = {
-  sales: Array<{ at: number; email: string | null; name: string | null; items: string; value: number; status: string; order: string; source: string }>;
-  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; bought: string; checkout: boolean }>;
+  sales: Array<{ at: number; email: string | null; name: string | null; items: string; value: number; status: string; order: string; source: string; campaign?: string | null; ad?: string | null }>;
+  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; campaign?: string | null; ad?: string | null; bought: string; checkout: boolean }>;
   leads: Array<{ email: string; at: number }>;
   leadsTotal?: number;
 };
@@ -87,21 +87,21 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest, onDownloadAllE
   const match = (...values: Array<string | null | undefined>) => !q || values.some((v) => v?.toLowerCase().includes(q));
 
   if (tab === "vendas") {
-    const rows = people.sales.filter((s) => match(s.email, s.name, s.order, s.source));
+    const rows = people.sales.filter((s) => match(s.email, s.name, s.order, s.source, s.campaign, s.ad));
     return (
       <>
         <div className="pn-tools">
           <input onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por e-mail, nome ou pedido (ast_…)" value={search} />
-          <button className="pn-link" onClick={() => downloadCsv("astroia-vendas.csv", [["Data", "E-mail", "Nome no mapa", "Compra", "Valor", "Situação", "Origem", "Pedido"], ...rows.map((s) => [when(s.at), s.email || "", s.name || "", items(s.items), s.value.toFixed(2).replace(".", ","), STATUS[s.status] || s.status, s.source, s.order])])} type="button">⬇ Baixar planilha</button>
+          <button className="pn-link" onClick={() => downloadCsv("astroia-vendas.csv", [["Data", "E-mail", "Nome no mapa", "Compra", "Valor", "Situação", "Origem", "Campanha", "Anúncio", "Pedido"], ...rows.map((s) => [when(s.at), s.email || "", s.name || "", items(s.items), s.value.toFixed(2).replace(".", ","), STATUS[s.status] || s.status, s.source, s.campaign || "", s.ad || "", s.order])])} type="button">⬇ Baixar planilha</button>
         </div>
         {rows.length ? (
           <div className="pn-table-wrap"><table className="pn-table">
-            <thead><tr><th>Quando</th><th>E-mail</th><th>Nome no mapa</th><th>Compra</th><th>Valor</th><th>Situação</th><th>Origem</th><th>Pedido</th><th></th></tr></thead>
+            <thead><tr><th>Quando</th><th>E-mail</th><th>Nome no mapa</th><th>Compra</th><th>Valor</th><th>Situação</th><th>Origem</th><th>Campanha</th><th>Anúncio</th><th>Pedido</th><th></th></tr></thead>
             <tbody>{rows.map((s) => (
               <tr key={s.order}>
                 <td>{when(s.at)}</td><td>{s.email || "—"}</td><td>{s.name || "—"}</td><td>{items(s.items)}</td><td>{money(s.value)}</td>
                 <td><span className={`pn-badge ${s.status === "approved" ? "ok" : "bad"}`}>{STATUS[s.status] || s.status}</span></td>
-                <td>{s.source}</td><td><small>{s.order}</small></td><td><TestButton onConfirm={() => onMarkTest("order", s.order)} /></td>
+                <td>{s.source}</td><td>{s.campaign || "—"}</td><td>{s.ad || "—"}</td><td><small>{s.order}</small></td><td><TestButton onConfirm={() => onMarkTest("order", s.order)} /></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -111,22 +111,22 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest, onDownloadAllE
   }
 
   if (tab === "mapas") {
-    const rows = people.maps.filter((m) => match(m.email, m.name, m.source));
+    const rows = people.maps.filter((m) => match(m.email, m.name, m.source, m.campaign, m.ad));
     const bought = rows.filter((m) => m.bought).length;
     return (
       <>
         <p className="pn-note">{rows.length} mapas · {bought} viraram compra ({rows.length ? Math.round((bought / rows.length) * 100) : 0}%) · {rows.filter((m) => m.checkout && !m.bought).length} abriram o pagamento e não pagaram</p>
         <div className="pn-tools">
-          <input onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por e-mail, nome ou origem" value={search} />
-          <button className="pn-link" onClick={() => downloadCsv("astroia-mapas-gratis.csv", [["Data", "Nome no mapa", "Para quem", "E-mail", "Aceita e-mails", "Origem", "Comprou"], ...rows.map((m) => [when(m.at), m.name || "", RECIPIENT[m.recipient] || m.recipient, m.email || "", m.consent ? "sim" : "não", m.source, m.bought ? items(m.bought) : m.checkout ? "abriu o pagamento" : "não"])])} type="button">⬇ Baixar planilha</button>
+          <input onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por e-mail, nome, origem ou campanha" value={search} />
+          <button className="pn-link" onClick={() => downloadCsv("astroia-mapas-gratis.csv", [["Data", "Nome no mapa", "Para quem", "E-mail", "Aceita e-mails", "Origem", "Campanha", "Anúncio", "Comprou"], ...rows.map((m) => [when(m.at), m.name || "", RECIPIENT[m.recipient] || m.recipient, m.email || "", m.consent ? "sim" : "não", m.source, m.campaign || "", m.ad || "", m.bought ? items(m.bought) : m.checkout ? "abriu o pagamento" : "não"])])} type="button">⬇ Baixar planilha</button>
         </div>
         {rows.length ? (
           <div className="pn-table-wrap"><table className="pn-table">
-            <thead><tr><th>Quando</th><th>Nome no mapa</th><th>Para quem</th><th>E-mail</th><th>Aceita e-mails</th><th>Origem</th><th>Comprou?</th><th></th></tr></thead>
+            <thead><tr><th>Quando</th><th>Nome no mapa</th><th>Para quem</th><th>E-mail</th><th>Aceita e-mails</th><th>Origem</th><th>Campanha</th><th>Anúncio</th><th>Comprou?</th><th></th></tr></thead>
             <tbody>{rows.map((m, i) => (
               <tr key={m.id || i}>
                 <td>{when(m.at)}</td><td>{m.name || "—"}</td><td>{RECIPIENT[m.recipient] || m.recipient}</td><td>{m.email || "—"}</td>
-                <td>{m.consent ? "✓" : "—"}</td><td>{m.source}</td>
+                <td>{m.consent ? "✓" : "—"}</td><td>{m.source}</td><td>{m.campaign || "—"}</td><td>{m.ad || "—"}</td>
                 <td>{m.bought ? <span className="pn-badge ok">{items(m.bought)}</span> : m.checkout ? <span className="pn-badge warn">Abriu o pagamento</span> : "—"}</td>
                 <td><TestButton onConfirm={() => onMarkTest("map", m.id)} /></td>
               </tr>

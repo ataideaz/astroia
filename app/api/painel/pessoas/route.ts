@@ -7,6 +7,16 @@ export const dynamic = "force-dynamic";
 // Mostra o mínimo necessário: nada de data, hora ou cidade de nascimento.
 const LAUNCH = Date.parse("2026-10-22T15:00:00Z");
 
+/** Campanha e anúncio (utm_campaign / utm_content) de onde a pessoa veio. */
+function campaignOf(json: string | null, nested = false) {
+  if (!json) return { campaign: null as string | null, ad: null as string | null };
+  try {
+    const raw = JSON.parse(json);
+    const a = cleanAttribution(nested ? raw?.attribution : raw);
+    return { campaign: a.campaign ?? null, ad: a.content ?? null };
+  } catch { return { campaign: null, ad: null }; }
+}
+
 function source(json: string | null, nested = false) {
   if (!json) return "direto";
   try {
@@ -66,12 +76,13 @@ export async function GET(request: Request) {
     sales: sales.results.map((s) => ({
       at: s.at, email: s.customer_email, name: s.person_name, items: s.offer_mode, value: s.amount_cents / 100,
       status: s.status, order: s.id, source: s.ro_attr ? source(s.ro_attr, true) : source(s.gr_attr),
+      ...(s.ro_attr && campaignOf(s.ro_attr, true).campaign ? campaignOf(s.ro_attr, true) : campaignOf(s.gr_attr)),
     })),
     maps: maps.results.map((m) => {
       const items = new Set((m.bought || "").split("|").flatMap((part) => { try { return JSON.parse(part) as string[]; } catch { return []; } }));
       return {
         id: m.id, at: m.at, name: m.name, email: m.email || null, consent: m.consent === 1, recipient: m.recipient || "self",
-        source: source(m.attr), bought: [...items].join("+"), checkout: m.checkouts > 0,
+        source: source(m.attr), ...campaignOf(m.attr), bought: [...items].join("+"), checkout: m.checkouts > 0,
       };
     }),
     leads: leads.results,
