@@ -47,12 +47,20 @@ export async function GET(request: Request) {
   ).bind(from).all<{ id: string; at: number; name: string | null; email: string | null; consent: number | null; recipient: string | null; attr: string | null; bought: string | null; checkouts: number }>();
 
   // Lista para promoções: só quem marcou que aceita receber e-mails e não cancelou.
+  // E-mails seguem o período escolhido; "?emails=todos" devolve a lista inteira (para baixar).
+  const allEmails = url.searchParams.get("emails") === "todos";
   const leads = await env.DB.prepare(
     `SELECT ml.email, ml.consented_at AS at FROM marketing_leads ml
      WHERE ml.marketing_consent = 1 AND ml.revoked_at IS NULL AND ml.excluded_at IS NULL
+       AND ml.consented_at >= ?
        AND NOT EXISTS (SELECT 1 FROM marketing_suppressions ms WHERE ms.email = ml.email)
      ORDER BY ml.consented_at DESC LIMIT 5000`,
-  ).all<{ email: string; at: number }>();
+  ).bind(allEmails ? 0 : Date.parse(`${fromDay}T03:00:00Z`)).all<{ email: string; at: number }>();
+  const leadsTotal = await env.DB.prepare(
+    `SELECT COUNT(*) AS total FROM marketing_leads ml
+     WHERE ml.marketing_consent = 1 AND ml.revoked_at IS NULL AND ml.excluded_at IS NULL
+       AND NOT EXISTS (SELECT 1 FROM marketing_suppressions ms WHERE ms.email = ml.email)`,
+  ).first<{ total: number }>();
 
   return Response.json({
     sales: sales.results.map((s) => ({
@@ -67,5 +75,6 @@ export async function GET(request: Request) {
       };
     }),
     leads: leads.results,
+    leadsTotal: leadsTotal?.total ?? 0,
   }, { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
 }

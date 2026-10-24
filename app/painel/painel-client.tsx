@@ -20,6 +20,7 @@ type People = {
   sales: Array<{ at: number; email: string | null; name: string | null; items: string; value: number; status: string; order: string; source: string }>;
   maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; bought: string; checkout: boolean }>;
   leads: Array<{ email: string; at: number }>;
+  leadsTotal?: number;
 };
 type Tab = "resumo" | "vendas" | "mapas" | "emails";
 const when = (t: number) => new Date(t).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -80,7 +81,7 @@ function TestButton({ onConfirm, label = "Marcar como teste", confirmLabel = "Si
   return <button className="pn-link" onClick={() => setStep("confirm")} type="button">{label}</button>;
 }
 
-function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void; onMarkTest: (kind: "order" | "map" | "email", id: string) => Promise<void> }) {
+function PeopleView({ people, tab, search, setSearch, onMarkTest, onDownloadAllEmails }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void; onMarkTest: (kind: "order" | "map" | "email", id: string) => Promise<void>; onDownloadAllEmails: () => Promise<void> }) {
   if (!people) return <p className="pn-empty">Carregando…</p>;
   const q = search.trim().toLowerCase();
   const match = (...values: Array<string | null | undefined>) => !q || values.some((v) => v?.toLowerCase().includes(q));
@@ -139,10 +140,11 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: Pe
   const rows = people.leads.filter((l) => match(l.email));
   return (
     <>
-      <p className="pn-note">Só aparece aqui quem marcou que aceita receber e-mails do AstroIA e não cancelou. Use esta lista para promoções; sempre ofereça o link de cancelar (é a lei).</p>
+      <p className="pn-note"><b>{rows.length}</b> novos neste período · <b>{people.leadsTotal ?? rows.length}</b> na lista completa. Só aparece aqui quem marcou que aceita receber e-mails do AstroIA e não cancelou. Use esta lista para promoções; sempre ofereça o link de cancelar (é a lei).</p>
       <div className="pn-tools">
         <input onChange={(e) => setSearch(e.target.value)} placeholder="Buscar e-mail" value={search} />
-        <button className="pn-link" onClick={() => downloadCsv("astroia-emails-marketing.csv", [["E-mail", "Aceitou em"], ...rows.map((l) => [l.email, when(l.at)])])} type="button">⬇ Baixar lista</button>
+        <button className="pn-link" onClick={() => downloadCsv("astroia-emails-periodo.csv", [["E-mail", "Aceitou em"], ...rows.map((l) => [l.email, when(l.at)])])} type="button">⬇ Baixar deste período</button>
+        <button className="pn-link" onClick={() => void onDownloadAllEmails()} type="button">⬇ Baixar lista completa ({people.leadsTotal ?? rows.length})</button>
       </div>
       {rows.length ? (
         <div className="pn-table-wrap"><table className="pn-table">
@@ -185,6 +187,15 @@ export default function PainelClient() {
     try { saved = window.localStorage.getItem(KEY) || ""; } catch { /* ignora */ }
     if (saved) { setKey(saved); void load(saved, 7); }
   }, [load]);
+
+  async function downloadAllEmails() {
+    try {
+      const response = await fetch("/api/painel/pessoas?dias=1&emails=todos", { headers: { "x-admin-key": key }, cache: "no-store" });
+      if (!response.ok) throw new Error("Não foi possível baixar a lista.");
+      const all = (await response.json()) as People;
+      downloadCsv("astroia-emails-completo.csv", [["E-mail", "Aceitou em"], ...all.leads.map((l) => [l.email, when(l.at)])]);
+    } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível baixar a lista."); }
+  }
 
   async function markTest(kind: "order" | "map" | "email", id: string) {
     try {
@@ -240,7 +251,7 @@ export default function PainelClient() {
           </div>
 
           {tab !== "resumo" ? (
-            <PeopleView onMarkTest={markTest} people={people} search={search} setSearch={setSearch} tab={tab} />
+            <PeopleView onDownloadAllEmails={downloadAllEmails} onMarkTest={markTest} people={people} search={search} setSearch={setSearch} tab={tab} />
           ) : <>
           {t ? (
             <section className="pn-cards">
