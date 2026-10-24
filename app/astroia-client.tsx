@@ -706,7 +706,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
       const cookie = document.querySelector(".cookie-bar");
       if (!offer) { setShow(false); return; }
       // Com o aviso de cookies aberto, a barra sobe e fica logo acima dele.
-      setLift(cookie ? cookie.getBoundingClientRect().height + 12 : 0);
+      setLift(cookie ? Math.max(0, window.innerHeight - cookie.getBoundingClientRect().top + 10) : 0);
       // Fica na tela o tempo todo depois da primeira oferta; só sai da frente
       // enquanto um botão de compra grande já está visível na tela.
       const visible = (el: Element | null) => {
@@ -733,7 +733,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
   }, []);
   if (hidden || !show) return null;
   return (
-    <div className="buy-bar" role="region" aria-label="Comprar o mapa completo" style={lift ? { bottom: lift + 12 } : undefined}>
+    <div className="buy-bar" role="region" aria-label="Comprar o mapa completo" style={lift ? { bottom: lift } : undefined}>
       <div>
         <strong><span aria-hidden="true">✦</span> {label}</strong>
         <small>{price} · garantia de 7 dias</small>
