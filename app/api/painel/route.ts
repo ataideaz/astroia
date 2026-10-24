@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { cleanAttribution, dayInBrazil, sourceOf, type Attribution } from "../../../lib/attribution";
+import { cleanAttribution, dayInBrazil, normalizeName, sourceOf, type Attribution } from "../../../lib/attribution";
 import { checkAdmin } from "../../../lib/admin-auth";
 import { readEnv } from "../../../lib/runtime-env";
 export const dynamic = "force-dynamic";
@@ -53,8 +53,9 @@ export async function GET(request: Request) {
       bySource.get(row.source) ?? bySource.set(row.source, empty()).get(row.source)!,
       totals,
     ]) bucket[name] += row.total;
-    if (row.campaign) {
-      const id = `${row.source}|${row.campaign}`;
+    const campaign = normalizeName(row.campaign);
+    if (campaign) {
+      const id = `${row.source}|${campaign}`;
       const bucket = byCampaign.get(id) ?? byCampaign.set(id, { ...empty(), source: row.source }).get(id)!;
       bucket[name] += row.total;
     }

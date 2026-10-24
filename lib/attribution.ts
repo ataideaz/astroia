@@ -25,6 +25,20 @@ function clean(value: unknown, max = 80) {
   return text || undefined;
 }
 
+/**
+ * Nome de campanha/anúncio legível: "AstroIA+-+Vendas" vira "AstroIA - Vendas"
+ * (alguns apps mandam o espaço como "+" ou "%20"). Se a Meta não trocou a
+ * variável ({{campaign.name}}), fica sem nome: não dá para saber a campanha.
+ */
+export function normalizeName(value: string | null | undefined) {
+  if (!value) return undefined;
+  let text = value.replace(/\+/g, " ");
+  try { text = decodeURIComponent(text); } catch { /* já estava decodificado */ }
+  text = text.replace(/\s+/g, " ").trim();
+  if (!text || /\{\{.*\}\}/.test(text)) return undefined;
+  return text;
+}
+
 export function cleanAttribution(input: unknown): Attribution {
   if (!input || typeof input !== "object") return {};
   const raw = input as Record<string, unknown>;
@@ -32,8 +46,8 @@ export function cleanAttribution(input: unknown): Attribution {
   return {
     source: clean(raw.source)?.toLowerCase(),
     medium: clean(raw.medium)?.toLowerCase(),
-    campaign: clean(raw.campaign, 120),
-    content: clean(raw.content, 120),
+    campaign: normalizeName(clean(raw.campaign, 160))?.slice(0, 120),
+    content: normalizeName(clean(raw.content, 160))?.slice(0, 120),
     term: clean(raw.term),
     fbclid: clean(raw.fbclid, 500),
     referrer: clean(raw.referrer)?.toLowerCase(),
