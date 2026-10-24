@@ -41,15 +41,19 @@ type Props = {
   onApproved: () => void;
   onPix: (pix: PixInfo) => void;
   onFallback: () => void;
+  /** Pix direto: gera o código na hora, sem passar pelo formulário. */
+  autoPix?: boolean;
 };
 
-export function DirectPayment({ publicKey, amount, email, orderId, reportToken, onApproved, onPix, onFallback }: Props) {
+export function DirectPayment({ publicKey, amount, email, orderId, reportToken, onApproved, onPix, onFallback, autoPix }: Props) {
   const [message, setMessage] = useState("");
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [pix, setPix] = useState<PixInfo | null>(null);
   const [copied, setCopied] = useState(false);
+  // "pix": gera o Pix direto (1 toque). "brick": formulário do Mercado Pago (cartão).
+  const [view, setView] = useState<"pix" | "brick">(autoPix ? "pix" : "brick");
   const controller = useRef<BrickController | null>(null);
   // Callbacks em ref: re-renderizar a tela não recria o formulário de pagamento.
   const callbacks = useRef({ onApproved, onPix });
@@ -57,7 +61,31 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
   const containerId = `mp-brick-${orderId.slice(-8)}-${attempt}`;
 
   useEffect(() => {
-    if (pix) return;
+    if (view !== "pix" || pix) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch("/api/pay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reportToken, orderId, formData: { payment_method_id: "pix" } }),
+        });
+        const result = await response.json() as { approved?: boolean; error?: string; pix?: PixInfo | null };
+        if (cancelled) return;
+        if (result.approved) { callbacks.current.onApproved(); return; }
+        if (!response.ok || !result.pix?.code) throw new Error(result.error || "pix");
+        setPix(result.pix); callbacks.current.onPix(result.pix);
+      } catch {
+        if (cancelled) return;
+        setMessage("Não deu para gerar o Pix agora. Escolha a forma de pagamento abaixo.");
+        setView("brick");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [view, pix, orderId, reportToken]);
+
+  useEffect(() => {
+    if (view !== "brick" || pix) return;
     let cancelled = false;
     setReady(false);
     (async () => {
@@ -138,7 +166,7 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
       try { controller.current?.unmount(); } catch { /* já desmontado */ }
       controller.current = null;
     };
-  }, [publicKey, amount, email, orderId, reportToken, containerId, pix]);
+  }, [publicKey, amount, email, orderId, reportToken, containerId, pix, view]);
 
   async function copyPix() {
     if (!pix?.code) return;
@@ -169,6 +197,15 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
         {pix.image ? <img alt="QR Code do Pix" className="dp-qr" src={`data:image/png;base64,${pix.image}`} /> : null}
         <p className="dp-hint">No computador? Aponte a câmera do celular para o QR Code no app do banco.</p>
         <p className="dp-wait"><span className="dp-dot" aria-hidden="true" /> Esperando o pagamento… o código vale por 30 minutos.</p>
+        <button className="dp-alt" onClick={() => { setPix(null); setMessage(""); setView("brick"); }} type="button">Prefiro pagar com cartão</button>
+      </div>
+    );
+  }
+
+  if (view === "pix") {
+    return (
+      <div className="dp-pix">
+        <p className="dp-loading">Gerando o seu Pix…</p>
       </div>
     );
   }

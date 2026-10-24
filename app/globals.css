@@ -7606,7 +7606,10 @@ footer {
 .ck-body > .ck-price { order: 1; }
 .ck-body > .ck-bump { order: 2; }
 .ck-body > .ck-field, .ck-body > .checkout-payment-message, .ck-body > .ck-pay,
-.ck-body > .dp-wrap, .ck-body > .dp-pix, .ck-body > .dp-fallback { order: 3; }
+.ck-body > .dp-wrap, .ck-body > .dp-pix, .ck-body > .dp-fallback, .ck-body > .ck-card { order: 3; }
+.ck-card { width: 100%; margin-top: -4px; padding: 13px 16px; border-radius: 999px; border: 1px solid rgba(240, 214, 157, 0.35); background: transparent; color: var(--text, #f4f0ff); font: 600 15px var(--font-ui); cursor: pointer; }
+.ck-card:disabled { opacity: .5; }
+.dp-pix .dp-alt { display: block; margin: 10px auto 0; font-size: 15px; }
 .ck-body > .ck-trust { order: 4; }
 .ck-body > .ck-includes { order: 5; }
 .ck-body > .ck-terms { order: 6; }

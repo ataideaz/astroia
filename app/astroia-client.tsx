@@ -1127,7 +1127,7 @@ export default function Home({
     useState<AnalysisRequest | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   // Pagamento dentro do site (Pix/cartão sem login no Mercado Pago).
-  const [directCheckout, setDirectCheckout] = useState<{ orderId: string; publicKey: string; amount: number; email: string } | null>(null);
+  const [directCheckout, setDirectCheckout] = useState<{ orderId: string; publicKey: string; amount: number; email: string; pix: boolean } | null>(null);
   const activeCheckoutOrderId = useRef<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -1641,7 +1641,7 @@ export default function Home({
     setCheckoutError("");
   }
 
-  async function startAsaasCheckout(mode?: "redirect") {
+  async function startAsaasCheckout(mode?: "redirect", method: "pix" | "card" = "pix") {
     if (checkoutStatus !== "idle") return;
     if (mode === "redirect") setDirectCheckout(null);
     if (!paymentsEnabled) {
@@ -1688,7 +1688,7 @@ export default function Home({
         activeCheckoutOrderId.current = payload.orderId;
         rememberPendingPurchase(payload.orderId, checkoutTotalCents / 100, checkoutItems);
         metaEvent("InitiateCheckout", { currency: "BRL", value: checkoutTotalCents / 100, content_ids: checkoutItems, content_type: "product", num_items: checkoutItems.length }, `ic_${payload.orderId}`);
-        setDirectCheckout({ orderId: payload.orderId, publicKey: payload.publicKey, amount: payload.amount ?? checkoutTotalCents / 100, email: payload.email || checkoutEmail });
+        setDirectCheckout({ orderId: payload.orderId, publicKey: payload.publicKey, amount: payload.amount ?? checkoutTotalCents / 100, email: payload.email || checkoutEmail, pix: method === "pix" });
         setPendingItems(checkoutItems);
         setCheckoutStatus("idle");
         return;
@@ -3636,6 +3636,7 @@ export default function Home({
                 {directCheckout ? (
                   <DirectPayment
                     amount={directCheckout.amount}
+                    autoPix={directCheckout.pix}
                     email={directCheckout.email}
                     key={directCheckout.orderId}
                     onApproved={handleDirectApproved}
@@ -3677,10 +3678,20 @@ export default function Home({
                     : checkoutError
                       ? "Tentar de novo"
                       : paymentsEnabled
-                        ? `Pagar ${checkoutTotal} com Pix ou cartão`
+                        ? `Pagar ${checkoutTotal} com Pix`
                         : "Abrir mapa completo (teste)"}
                   <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
                 </button>
+                {paymentsEnabled && directPayments && (
+                  <button
+                    className="ck-card"
+                    disabled={checkoutStatus === "processing"}
+                    onClick={() => void startAsaasCheckout(undefined, "card")}
+                    type="button"
+                  >
+                    Prefiro pagar com cartão
+                  </button>
+                )}
                 </>
                 )}
 
