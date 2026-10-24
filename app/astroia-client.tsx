@@ -1101,6 +1101,14 @@ export default function Home({
   offerV2?: boolean;
 }) {
   const paymentPrice = formatPrice(paymentAmountCents);
+  // Prévia da oferta nova só para o dono ver (?oferta=v2): mostra o texto, mas não vende.
+  const [previewV2, setPreviewV2] = useState(false);
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("oferta") === "v2") window.sessionStorage.setItem("astroia-preview-v2", "1");
+      if (!offerV2 && window.sessionStorage.getItem("astroia-preview-v2") === "1") setPreviewV2(true);
+    } catch { /* sem storage */ }
+  }, [offerV2]);
   const compatPrice = formatPrice(compatAmountCents);
   const namePrice = formatPrice(nameAmountCents);
   const [nameReading, setNameReading] = useState<NameReading | null>(null);
@@ -1200,7 +1208,7 @@ export default function Home({
   // A numerologia do nome usa o mesmo meio de pagamento da compatibilidade.
   const nameOffered = compatOffered && !products.name;
   // Bônus real: a Numerologia do Nome é vendida à parte; aqui vem junto com o mapa.
-  const bonus = offerV2 && nameOffered && !products.map
+  const bonus = (offerV2 || previewV2) && nameOffered && !products.map
     ? { price: namePrice, separate: formatPrice(paymentAmountCents + nameAmountCents) }
     : undefined;
   const checkoutItems: Array<"map" | "compat" | "name"> =
@@ -1673,6 +1681,10 @@ export default function Home({
 
   async function startAsaasCheckout(mode?: "redirect", method: "pix" | "card" = "pix") {
     if (checkoutStatus !== "idle") return;
+    if (previewV2) {
+      setCheckoutError("Isto é só uma prévia da oferta nova: o pagamento está desligado aqui.");
+      return;
+    }
     if (mode === "redirect") setDirectCheckout(null);
     if (!paymentsEnabled) {
       setCheckoutError("");
@@ -1883,6 +1895,7 @@ export default function Home({
 
   return (
     <main>
+      {previewV2 && <div className="preview-v2-banner" role="status">👀 Prévia da oferta nova: só você vê, e o pagamento está desligado.</div>}
       <div className="ambient ambient-one" aria-hidden="true" />
       <div className="ambient ambient-two" aria-hidden="true" />
 

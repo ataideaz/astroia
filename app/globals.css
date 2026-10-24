@@ -7702,3 +7702,4 @@ footer {
 .fr-offer-bonus > span { font-size: 26px; line-height: 1; }
 .fr-offer-bonus p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--muted, #c7bfe6); }
 .fr-offer-bonus b { display: block; color: #f0d69d; font-size: 16px; margin-bottom: 2px; }
+.preview-v2-banner { position: sticky; top: 0; z-index: 60; padding: 10px 16px; text-align: center; font: 700 15px var(--font-ui); background: #f0d69d; color: #1a1530; }
