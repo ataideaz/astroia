@@ -66,18 +66,18 @@ function FunnelTable({ rows, first }: { rows: Array<Bucket & { label: string; hi
   );
 }
 
-function TestButton({ onConfirm }: { onConfirm: () => Promise<void> }) {
+function TestButton({ onConfirm, label = "Marcar como teste", confirmLabel = "Sim, é teste" }: { onConfirm: () => Promise<void>; label?: string; confirmLabel?: string }) {
   const [step, setStep] = useState<"idle" | "confirm" | "busy">("idle");
   if (step === "busy") return <small>Salvando…</small>;
   if (step === "confirm") {
     return (
       <span className="pn-test-confirm">
-        <button className="pn-link" onClick={async () => { setStep("busy"); await onConfirm(); setStep("idle"); }} type="button">Sim, é teste</button>
+        <button className="pn-link" onClick={async () => { setStep("busy"); await onConfirm(); setStep("idle"); }} type="button">{confirmLabel}</button>
         <button className="pn-link pn-muted" onClick={() => setStep("idle")} type="button">Cancelar</button>
       </span>
     );
   }
-  return <button className="pn-link" onClick={() => setStep("confirm")} type="button">Marcar como teste</button>;
+  return <button className="pn-link" onClick={() => setStep("confirm")} type="button">{label}</button>;
 }
 
 function PeopleView({ people, tab, search, setSearch, onMarkTest }: { people: People | null; tab: Tab; search: string; setSearch: (v: string) => void; onMarkTest: (kind: "order" | "map" | "email", id: string) => Promise<void> }) {
@@ -194,6 +194,14 @@ export default function PainelClient() {
     } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível marcar."); }
   }
 
+  async function resetFunnel() {
+    try {
+      const response = await fetch("/api/painel/zerar", { method: "POST", headers: { "x-admin-key": key } });
+      if (!response.ok) throw new Error((await response.json()).error || "Não foi possível zerar.");
+      await load(key, days);
+    } catch (e) { setError(e instanceof Error ? e.message : "Não foi possível zerar."); }
+  }
+
   function submit(event: FormEvent) { event.preventDefault(); if (key) void load(key, days); }
   function period(value: number) { setDays(value); if (key) void load(key, value); }
   function logout() { try { window.localStorage.removeItem(KEY); } catch { /* ignora */ } setKey(""); setData(null); }
@@ -246,6 +254,11 @@ export default function PainelClient() {
               <div><span>Reembolsos</span><strong>{data.refunds.count}</strong><small>{money(data.refunds.value)}</small></div>
             </section>
           ) : null}
+
+          <div className="pn-reset">
+            <span>Fez testes? Zere as contagens de <b>Viram a oferta</b>, <b>Abriram a compra</b>, <b>Clicaram em pagar</b> e <b>Pix gerados</b> registradas até agora (visitas, mapas e vendas não mudam).</span>
+            <TestButton label="Zerar funil até agora" confirmLabel="Sim, zerar" onConfirm={resetFunnel} />
+          </div>
 
           {!data.meta.pixel ? <p className="pn-note">Pixel da Meta ainda não configurado (META_PIXEL_ID).</p>
             : !data.meta.capi ? <p className="pn-note">Pixel ativo. Falta o token da API de Conversões (META_CAPI_TOKEN).</p> : null}

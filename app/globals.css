@@ -7571,3 +7571,4 @@ footer {
 @keyframes buyBarIn { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 .pn-test-confirm { display: inline-flex; gap: 10px; }
 .pn-muted { color: rgba(236,232,255,.6) !important; }
+.pn-reset { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin: 14px 0 4px; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.04); font-size: 13px; color: rgba(236,232,255,.75); }
