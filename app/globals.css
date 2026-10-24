@@ -7686,3 +7686,6 @@ footer {
   .saved-map-card p, .saved-map-top small { font-size: 14.5px !important; }
   .saved-map-top strong { font-size: 17px !important; }
 }
+@media (max-width: 640px) {
+  li small, .privacy-note strong, .maps-heading p, .add-profile-panel p, footer small { font-size: 15px !important; line-height: 1.5; }
+}
