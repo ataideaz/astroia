@@ -68,7 +68,32 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
         const brick = await mp.bricks().create("payment", containerId, {
           initialization: { amount, payer: { email } },
           customization: {
-            visual: { style: { theme: "dark" }, hideFormTitle: true },
+            visual: {
+              hideFormTitle: true,
+              style: {
+                theme: "dark",
+                // Cores e tamanhos do AstroIA: letras maiores e botão dourado.
+                customVariables: {
+                  baseColor: "#f0d69d",
+                  baseColorFirstVariant: "#e4bc72",
+                  baseColorSecondVariant: "#c9a6ff",
+                  buttonTextColor: "#1a1530",
+                  formBackgroundColor: "#17132f",
+                  inputBackgroundColor: "#211b40",
+                  textPrimaryColor: "#f4f0ff",
+                  textSecondaryColor: "#c7bfe6",
+                  outlinePrimaryColor: "#5a4d99",
+                  fontSizeSmall: "15px",
+                  fontSizeMedium: "17px",
+                  fontSizeLarge: "19px",
+                  fontSizeExtraLarge: "22px",
+                  borderRadiusMedium: "14px",
+                  borderRadiusLarge: "18px",
+                  formPadding: "18px",
+                  inputVerticalPadding: "14px",
+                },
+              },
+            },
             paymentMethods: { bankTransfer: "all", creditCard: "all", debitCard: "all", maxInstallments: 1 },
           },
           callbacks: {
@@ -159,9 +184,21 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
 
   return (
     <div className="dp-wrap">
+      <div className="dp-trust">
+        <span className="dp-trust-icon" aria-hidden="true">🔒</span>
+        <div>
+          <strong>Pagamento 100% seguro pelo Mercado Pago</strong>
+          <small>Os dados do cartão vão direto para o Mercado Pago, não passam pelo AstroIA. Pix aprovado em segundos.</small>
+        </div>
+      </div>
       {!ready ? <p className="dp-loading">Carregando pagamento seguro…</p> : null}
       {message ? <p className="checkout-payment-message" role="alert">{message}</p> : null}
-      <div id={containerId} key={containerId} />
+      <div className="dp-brick" id={containerId} key={containerId} />
+      <ul className="dp-badges" aria-label="Garantias">
+        <li><span aria-hidden="true">✓</span> Sem login e sem criar conta</li>
+        <li><span aria-hidden="true">✓</span> Liberado na hora</li>
+        <li><span aria-hidden="true">✓</span> Garantia de 7 dias</li>
+      </ul>
       <button className="dp-alt" onClick={onFallback} type="button">Prefiro pagar pelo site do Mercado Pago</button>
     </div>
   );

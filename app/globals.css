@@ -7555,7 +7555,7 @@ footer {
   position: fixed; left: 10px; right: 10px; bottom: 12px; z-index: 80;
   max-width: 680px; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 12px 12px 20px; border-radius: 999px;
+  padding: 14px 14px 14px 22px; border-radius: 999px;
   background: rgba(14, 12, 30, 0.97);
   border: 2px solid transparent;
   background-image: linear-gradient(rgba(14, 12, 30, 0.97), rgba(14, 12, 30, 0.97)), linear-gradient(90deg, var(--gold-light), #c9a6ff, var(--gold-light));
@@ -7564,13 +7564,13 @@ footer {
   font-family: var(--font-ui); color: #ece8ff;
   animation: buyBarIn 0.35s ease-out both, buyBarGlow 2.4s ease-in-out 0.4s infinite;
 }
-.buy-bar strong { display: block; font-size: 17px; }
+.buy-bar strong { display: block; font-size: 18px; }
 .buy-bar strong span { color: var(--gold-light); }
-.buy-bar small { display: block; font-size: 13px; color: var(--muted); margin-top: 1px; }
+.buy-bar small { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
 .buy-bar button {
-  position: relative; overflow: hidden; flex-shrink: 0; border: 0; border-radius: 999px; padding: 15px 24px;
+  position: relative; overflow: hidden; flex-shrink: 0; border: 0; border-radius: 999px; padding: 18px 26px;
   background: linear-gradient(90deg, var(--gold-light), #c9a6ff); color: #1a1530;
-  font: 800 17px var(--font-ui); cursor: pointer;
+  font: 800 18px var(--font-ui); cursor: pointer;
   animation: buyBtnPulse 1.8s ease-in-out infinite;
 }
 .buy-bar button::after {
@@ -7619,4 +7619,23 @@ footer {
   .ck-body { gap: 12px; }
   .ck-bump small { display: none; }
   .ck-bump { padding: 12px 14px; }
+}
+
+/* Preço em destaque na oferta */
+.fr-offer-pricebox { display: grid; justify-items: center; gap: 2px; text-align: center; padding: 16px 12px; border-radius: 18px; background: rgba(228, 188, 114, 0.08); border: 1px solid rgba(228, 188, 114, 0.35); font-family: var(--font-ui); }
+.fr-offer-pricebox small { font-size: 13px; color: var(--muted); max-width: 300px; line-height: 1.4; }
+.fr-offer-pricebox strong { font-family: var(--font-display); font-size: clamp(44px, 12vw, 58px); line-height: 1.05; color: var(--gold-light); letter-spacing: -1px; }
+.fr-offer-pricebox span { font-size: 13px; font-weight: 700; color: var(--ink); }
+
+/* Pagamento: confiança e formulário maior */
+.dp-trust { display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; background: rgba(158, 240, 176, 0.08); border: 1px solid rgba(158, 240, 176, 0.3); font-family: var(--font-ui); }
+.dp-trust-icon { font-size: 22px; }
+.dp-trust strong { display: block; font-size: 15px; color: var(--ink); }
+.dp-trust small { display: block; font-size: 12.5px; line-height: 1.4; color: var(--muted); margin-top: 2px; }
+.dp-brick { margin: 0 -6px; }
+.dp-brick [class*="value-prop"] { display: none !important; }
+.dp-badges { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-family: var(--font-ui); font-size: 13px; color: var(--ink); }
+.dp-badges span { color: #9ef0b0; font-weight: 800; }
+@media (max-width: 640px) {
+  .ck-dialog .ck-body { padding-left: 14px; padding-right: 14px; }
 }

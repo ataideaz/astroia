@@ -679,9 +679,11 @@ function EarlyOffer({
         </ul>
       </div>
 
-      <p className="fr-offer-price">
-        Uma consulta com astrólogo costuma custar bem mais. Aqui: <b>{price}</b>, uma vez só, sem assinatura.
-      </p>
+      <div className="fr-offer-pricebox">
+        <small>Uma consulta com astrólogo costuma custar bem mais. Aqui, o mapa completo sai por</small>
+        <strong>{price}</strong>
+        <span>pagamento único · sem assinatura</span>
+      </div>
       <button className="analysis-button primary-analysis-button fr-offer-button" onClick={onUnlock} type="button">
         {kid ? `Quero ler o mapa completo de ${firstName}` : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
       </button>
@@ -694,6 +696,7 @@ function EarlyOffer({
 /** Barra fixa de compra: aparece depois da primeira oferta e some perto da oferta final. */
 function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label: string; onUnlock: () => void; hidden: boolean }) {
   const [show, setShow] = useState(false);
+  const [lift, setLift] = useState(0);
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -701,7 +704,9 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
       const offer = document.querySelector(".fr-offer");
       const finalBox = document.querySelector(".fr-unlock-box");
       const cookie = document.querySelector(".cookie-bar");
-      if (!offer || cookie) { setShow(false); return; }
+      if (!offer) { setShow(false); return; }
+      // Com o aviso de cookies aberto, a barra sobe e fica logo acima dele.
+      setLift(cookie ? cookie.getBoundingClientRect().height + 12 : 0);
       // Fica na tela o tempo todo depois da primeira oferta; só sai da frente
       // enquanto um botão de compra grande já está visível na tela.
       const visible = (el: Element | null) => {
@@ -709,8 +714,10 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
         const rect = el.getBoundingClientRect();
         return rect.top < window.innerHeight && rect.bottom > 0;
       };
-      const pastOffer = offer.getBoundingClientRect().bottom < 0;
-      setShow(pastOffer && !visible(finalBox) && !visible(document.querySelector("footer")));
+      // Aparece assim que o mapa grátis está na tela (logo depois de gerar).
+      const result = document.getElementById("analise");
+      const onResult = result ? result.getBoundingClientRect().top < window.innerHeight * 0.6 : false;
+      setShow(onResult && !visible(finalBox) && !visible(document.querySelector("footer")));
     };
     const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
     update();
@@ -726,7 +733,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
   }, []);
   if (hidden || !show) return null;
   return (
-    <div className="buy-bar" role="region" aria-label="Comprar o mapa completo">
+    <div className="buy-bar" role="region" aria-label="Comprar o mapa completo" style={lift ? { bottom: lift + 12 } : undefined}>
       <div>
         <strong><span aria-hidden="true">✦</span> {label}</strong>
         <small>{price} · garantia de 7 dias</small>
