@@ -717,6 +717,7 @@ function EarlyOffer({
         )}
       </div>
 
+      <ActivityPill kind="sales" />
       <div className="fr-offer-pricebox">
         {bonus
           ? <small>Separados, os dois custam {bonus.separate}. Juntos, você leva tudo por</small>
@@ -731,6 +732,35 @@ function EarlyOffer({
       <p className="fr-offer-hint">Ou role para ver o que mais o seu mapa guarda <span aria-hidden="true">↓</span></p>
     </section>
   );
+}
+
+type SiteStats = { mapsToday: number; mapsWeek: number; salesWeek: number };
+let statsPromise: Promise<SiteStats | null> | null = null;
+function useSiteStats() {
+  const [stats, setStats] = useState<SiteStats | null>(null);
+  useEffect(() => {
+    statsPromise ??= fetch("/api/stats").then((r) => (r.ok ? r.json() as Promise<SiteStats> : null)).catch(() => null);
+    let alive = true;
+    void statsPromise.then((value) => { if (alive) setStats(value); });
+    return () => { alive = false; };
+  }, []);
+  return stats;
+}
+
+/** Prova social honesta: só números reais, e só quando já são bons. */
+function ActivityPill({ kind }: { kind: "maps" | "sales" }) {
+  const stats = useSiteStats();
+  if (!stats) return null;
+  let text = "";
+  if (kind === "sales") {
+    if (stats.salesWeek >= 3) text = `${stats.salesWeek} pessoas desbloquearam o mapa completo nesta semana`;
+  } else if (stats.mapsToday >= 5) {
+    text = `${stats.mapsToday} mapas feitos hoje no AstroIA`;
+  } else if (stats.mapsWeek >= 10) {
+    text = `${stats.mapsWeek} mapas feitos nesta semana no AstroIA`;
+  }
+  if (!text) return null;
+  return <p className="activity-pill"><span className="activity-dot" aria-hidden="true" /> {text}</p>;
 }
 
 /** Barra fixa de compra: aparece depois da primeira oferta e some perto da oferta final. */
@@ -1970,6 +2000,8 @@ export default function Home({
               Entender como funciona
             </a>
           </div>
+
+          <ActivityPill kind="maps" />
 
           <div className="trust-row" aria-label="Benefícios">
             <span>✓ Posições reais dos planetas</span>

@@ -7708,3 +7708,10 @@ footer {
 .fr-months-locked li { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--muted, #c7bfe6); font-size: 14px; }
 .fr-months-locked li span { text-transform: capitalize; }
 .fr-months-locked li.fr-months-more span { text-transform: none; }
+
+/* Prova social com números reais */
+.activity-pill { display: inline-flex; align-items: center; gap: 8px; margin: 14px auto 0; padding: 8px 14px; border-radius: 999px; background: rgba(198, 244, 50, 0.08); border: 1px solid rgba(198, 244, 50, 0.28); color: #e9f7c4; font: 600 15px var(--font-ui); }
+.fr-offer .activity-pill { display: flex; width: fit-content; margin: 14px auto; }
+.activity-dot { width: 8px; height: 8px; border-radius: 50%; background: #9be15d; box-shadow: 0 0 0 0 rgba(155, 225, 93, .6); animation: activity-pulse 2s ease-out infinite; }
+@keyframes activity-pulse { 0% { box-shadow: 0 0 0 0 rgba(155,225,93,.6); } 100% { box-shadow: 0 0 0 10px rgba(155,225,93,0); } }
+@media (prefers-reduced-motion: reduce) { .activity-dot { animation: none; } }
