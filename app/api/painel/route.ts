@@ -93,6 +93,38 @@ export async function GET(request: Request) {
     }
   }
 
+  // Quem faz o mapa: faixa de idade (só mapas "para mim") e para quem é o mapa.
+  type People = { maps: number; checkouts: number; sales: number };
+  const ageOrder = ["Menos de 18", "18 a 24", "25 a 34", "35 a 44", "45 a 54", "55 a 64", "65 ou mais"];
+  const recipientNames: Record<string, string> = { self: "Para mim", partner: "Para o par", child: "Para filho(a)", other: "Para outra pessoa" };
+  const byAge = new Map<string, People>();
+  const byRecipient = new Map<string, People>();
+  const reports = await env.DB.prepare(
+    `SELECT gr.request_json AS req, gr.created_at AS at,
+            (SELECT COUNT(*) FROM report_orders ro WHERE ro.token_hash = gr.token_hash) AS orders,
+            (SELECT COUNT(*) FROM report_orders ro JOIN payment_orders po ON po.id = ro.order_id
+              WHERE ro.token_hash = gr.token_hash AND po.status = 'approved' AND po.excluded_at IS NULL) AS paid
+     FROM guest_reports gr WHERE gr.created_at >= ? AND gr.excluded_at IS NULL LIMIT 5000`,
+  ).bind(fromTime).all<{ req: string; at: number; orders: number; paid: number }>();
+  const add = (map: Map<string, People>, key: string, r: { orders: number; paid: number }) => {
+    const b = map.get(key) ?? map.set(key, { maps: 0, checkouts: 0, sales: 0 }).get(key)!;
+    b.maps += 1; if (r.orders > 0) b.checkouts += 1; if (r.paid > 0) b.sales += 1;
+  };
+  for (const r of reports.results) {
+    let req: { birthDate?: string; recipientType?: string } = {};
+    try { req = JSON.parse(r.req); } catch { continue; }
+    const recipient = recipientNames[req.recipientType ?? "self"] ?? "Para outra pessoa";
+    add(byRecipient, recipient, r);
+    if ((req.recipientType ?? "self") !== "self" || !req.birthDate) continue;
+    const birth = new Date(`${req.birthDate}T12:00:00Z`);
+    const made = new Date(r.at);
+    if (Number.isNaN(birth.getTime())) continue;
+    let age = made.getUTCFullYear() - birth.getUTCFullYear();
+    if (made.getUTCMonth() < birth.getUTCMonth() || (made.getUTCMonth() === birth.getUTCMonth() && made.getUTCDate() < birth.getUTCDate())) age -= 1;
+    const label = age < 18 ? ageOrder[0] : age < 25 ? ageOrder[1] : age < 35 ? ageOrder[2] : age < 45 ? ageOrder[3] : age < 55 ? ageOrder[4] : age < 65 ? ageOrder[5] : ageOrder[6];
+    add(byAge, label, r);
+  }
+
   const products = new Map<string, { orders: number; revenue: number }>();
   const recent: Array<{ at: number; items: string; value: number; source: string; campaign: string | null }> = [];
   for (const sale of sales.results) {
@@ -132,6 +164,8 @@ export async function GET(request: Request) {
     bySource: [...bySource].map(([source, b]) => ({ source, ...round(b) })).sort((a, b) => b.revenue - a.revenue || b.visits - a.visits),
     byCampaign: [...byCampaign].map(([id, b]) => ({ campaign: id.split("|").slice(1).join("|"), ...round(b) })).sort((a, b) => b.revenue - a.revenue || b.visits - a.visits).slice(0, 50),
     byAd: [...byAd].map(([id, b]) => ({ ad: id.split("|").slice(1).join("|"), ...round(b) })).sort((a, b) => b.revenue - a.revenue || b.maps - a.maps || b.visits - a.visits).slice(0, 50),
+    byAge: ageOrder.filter((label) => byAge.has(label)).map((label) => ({ label, ...byAge.get(label)! })),
+    byRecipient: [...byRecipient].map(([label, b]) => ({ label, ...b })).sort((a, b) => b.maps - a.maps),
     products: [...products].map(([items, p]) => ({ items, ...p, revenue: Math.round(p.revenue * 100) / 100 })).sort((a, b) => b.revenue - a.revenue),
     recent,
     meta: { pixel: Boolean(readEnv("META_PIXEL_ID")), capi: Boolean(readEnv("META_PIXEL_ID") && readEnv("META_CAPI_TOKEN")) },

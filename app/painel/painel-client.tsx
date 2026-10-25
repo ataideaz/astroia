@@ -11,6 +11,8 @@ type Data = {
   bySource: Array<Bucket & { source: string }>;
   byCampaign: Array<Bucket & { campaign: string; source: string }>;
   byAd?: Array<Bucket & { ad: string; campaign: string }>;
+  byAge?: PeopleRow[];
+  byRecipient?: PeopleRow[];
   products: Array<{ items: string; orders: number; revenue: number }>;
   recent: Array<{ at: number; items: string; value: number; source: string; campaign: string | null }>;
   meta: { pixel: boolean; capi: boolean };
@@ -39,6 +41,33 @@ const LABEL: Record<string, string> = { map: "Mapa completo", compat: "Compatibi
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (a: number, b: number) => (b ? `${((a / b) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%` : "—");
 const items = (mode: string) => mode.split("+").map((i) => LABEL[i] || i).join(" + ");
+
+type PeopleRow = { label: string; maps: number; checkouts: number; sales: number };
+
+/** Quem faz o mapa (idade / para quem): mapas, quem chegou a pagar e quem comprou. */
+function PeopleTable({ rows, first }: { rows?: PeopleRow[]; first: string }) {
+  if (!rows?.length) return <p className="pn-empty">Ainda sem dados neste período.</p>;
+  const total = rows.reduce((sum, r) => sum + r.maps, 0);
+  const top = Math.max(...rows.map((r) => r.maps));
+  return (
+    <div className="pn-table-wrap">
+      <table className="pn-table">
+        <thead><tr><th>{first}</th><th>Mapas grátis</th><th>% dos mapas</th><th>Clicaram em pagar</th><th>Compraram</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label}>
+              <td>{r.maps === top ? <b>{r.label} ★</b> : r.label}</td>
+              <td>{r.maps}</td>
+              <td>{pct(r.maps, total)}</td>
+              <td>{r.checkouts} <small>{pct(r.checkouts, r.maps)}</small></td>
+              <td>{r.sales} <small>{pct(r.sales, r.maps)}</small></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 function FunnelTable({ rows, first }: { rows: Array<Bucket & { label: string; hint?: string }>; first: string }) {
   if (!rows.length) return <p className="pn-empty">Ainda sem dados neste período.</p>;
@@ -285,6 +314,13 @@ export default function PainelClient() {
           {data.byAd?.length ? (
             <FunnelTable first="Anúncio" rows={data.byAd.map((r) => ({ ...r, label: r.ad, hint: r.campaign }))} />
           ) : <p className="pn-note">Aparece aqui quando os anúncios tiverem utm_content={"{{ad.name}}"} nos Parâmetros de URL.</p>}
+
+          <h2>Idade de quem faz o mapa</h2>
+          <p className="pn-note">Só mapas feitos “para mim” (a idade é de quem preencheu). ★ = faixa que mais faz mapa.</p>
+          <PeopleTable first="Idade" rows={data.byAge} />
+
+          <h2>Para quem é o mapa</h2>
+          <PeopleTable first="Mapa feito" rows={data.byRecipient} />
 
           <h2>Por dia</h2>
           <FunnelTable first="Dia" rows={data.byDay.map((r) => ({ ...r, label: r.day.split("-").reverse().join("/") }))} />
