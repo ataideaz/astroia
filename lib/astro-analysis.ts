@@ -219,7 +219,7 @@ export type AnalysisResult = {
   /** Só na prévia grátis: 1 frase real do mapa completo, para mostrar o que vem depois. */
   premiumPreview?: { label: string; title: string; blockTitle: string; text: string } | null;
   /** Só na prévia grátis: o 1º mês aberto e os demais trancados (oferta dos 12 meses). */
-  monthsPreview?: { first: { label: string; theme: string }; labels: string[]; love: number; luck: number } | null;
+  monthsPreview?: { first: { label: string; theme: string; tip: string }; labels: string[]; love: number; luck: number } | null;
 };
 
 const { Origin, Horoscope } = astroPackage as unknown as {

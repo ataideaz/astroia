@@ -666,10 +666,10 @@ function EarlyOffer({
         <article className="fr-offer-preview fr-months">
           <small>Seus próximos 12 meses</small>
           <strong>{months.first.label}</strong>
-          <p>{months.first.theme}</p>
+          <p><b>{months.first.theme}.</b> {months.first.tip}</p>
           <ul className="fr-months-locked">
             {months.labels.slice(0, 5).map((label) => <li key={label}><span>{label}</span> 🔒</li>)}
-            <li><span>+ {Math.max(0, months.labels.length - 5)} meses</span> 🔒</li>
+            <li className="fr-months-more"><span>+ {Math.max(0, months.labels.length - 5)} meses</span> 🔒</li>
           </ul>
           <span className="fr-offer-preview-lock">
             <span aria-hidden="true">🔒</span>{" "}

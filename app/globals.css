@@ -7706,4 +7706,5 @@ footer {
 .fr-months > strong { text-transform: capitalize; }
 .fr-months-locked { list-style: none; margin: 12px 0 10px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .fr-months-locked li { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--muted, #c7bfe6); font-size: 14px; }
-.fr-months-locked li span { filter: none; text-transform: capitalize; }
+.fr-months-locked li span { text-transform: capitalize; }
+.fr-months-locked li.fr-months-more span { text-transform: none; }

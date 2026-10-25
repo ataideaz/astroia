@@ -47,7 +47,7 @@ function monthsPreviewOf(full: AnalysisResult): AnalysisResult["monthsPreview"] 
   const months = full.premiumReading?.months ?? [];
   if (months.length < 2) return null;
   return {
-    first: { label: months[0].label, theme: months[0].theme },
+    first: { label: months[0].label, theme: months[0].theme, tip: months[0].tip },
     labels: months.slice(1).map((month) => month.label),
     love: months.filter((month) => month.tags.some((tag) => tag.id === "amor")).length,
     luck: months.filter((month) => month.tags.some((tag) => tag.id === "sorte")).length,
