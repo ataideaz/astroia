@@ -774,7 +774,7 @@ function ActivityPill({ kind }: { kind: "maps" | "sales" }) {
 }
 
 /** Barra fixa de compra: aparece depois da primeira oferta e some perto da oferta final. */
-function StickyBuyBar({ price, label, onUnlock, hidden, cta = "Quero ler" }: { price: string; label: string; onUnlock: () => void; hidden: boolean; cta?: string }) {
+function StickyBuyBar({ price, label, onUnlock, hidden, cta = "Quero ler", note }: { price: string; label: string; onUnlock: () => void; hidden: boolean; cta?: string; note?: string }) {
   const [show, setShow] = useState(false);
   const [lift, setLift] = useState(0);
   const shown = useRef(false);
@@ -817,7 +817,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden, cta = "Quero ler" }: { p
     <div className="buy-bar" role="region" aria-label="Comprar o mapa completo" style={lift ? { bottom: lift } : undefined}>
       <div>
         <strong><span aria-hidden="true">✦</span> {label}</strong>
-        <small>{price} · garantia de 7 dias</small>
+        <small>{note ?? `${price} · garantia de 7 dias`}</small>
       </div>
       <button onClick={onUnlock} type="button">{cta} <span aria-hidden="true">→</span></button>
     </div>
@@ -3875,12 +3875,12 @@ export default function Home({
       ) : !analysis ? (
         // Desde o primeiro acesso: leva ao formulário já com o mapa completo escolhido.
         <StickyBuyBar
-          cta="Quero o completo"
+          cta="Fazer meu mapa grátis"
           hidden={checkoutOpen}
           key="pre-map"
-          label="Mapa astral completo"
+          label="Mapa astral grátis"
+          note="pronto em 1 minuto"
           onUnlock={() => {
-            setReportTier("premium");
             document.getElementById("criar")?.scrollIntoView({ behavior: "smooth", block: "start" });
             window.setTimeout(() => (document.querySelector('#criar input[name="name"]') as HTMLInputElement | null)?.focus({ preventScroll: true }), 700);
           }}
