@@ -24,7 +24,7 @@ type Data = {
 const KEY = "astroia-painel-key";
 type People = {
   sales: Array<{ at: number; email: string | null; name: string | null; items: string; value: number; status: string; order: string; source: string; campaign?: string | null; ad?: string | null }>;
-  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; campaign?: string | null; ad?: string | null; bought: string; checkout: boolean }>;
+  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; campaign?: string | null; ad?: string | null; bought: string; checkout: boolean; viewed?: boolean; opened?: boolean }>;
   leads: Array<{ email: string; at: number }>;
   leadsTotal?: number;
 };
@@ -44,6 +44,15 @@ const LABEL: Record<string, string> = { map: "Mapa completo", compat: "Compatibi
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (a: number, b: number) => (b ? `${((a / b) * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%` : "—");
 const items = (mode: string) => mode.split("+").map((i) => LABEL[i] || i).join(" + ");
+
+/** Até onde a pessoa foi no funil (aba Mapas grátis e planilha). */
+function stepLabel(m: { bought: string; checkout: boolean; opened?: boolean; viewed?: boolean }) {
+  if (m.bought) return `comprou: ${items(m.bought)}`;
+  if (m.checkout) return "clicou em pagar";
+  if (m.opened) return "abriu a compra";
+  if (m.viewed) return "viu a oferta";
+  return "só o mapa";
+}
 
 type PeopleRow = { label: string; maps: number; checkouts: number; sales: number };
 
@@ -148,19 +157,19 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest, onDownloadAllE
     const bought = rows.filter((m) => m.bought).length;
     return (
       <>
-        <p className="pn-note">{rows.length} mapas · {bought} viraram compra ({rows.length ? Math.round((bought / rows.length) * 100) : 0}%) · {rows.filter((m) => m.checkout && !m.bought).length} abriram o pagamento e não pagaram</p>
+        <p className="pn-note">{rows.length} mapas · {rows.filter((m) => m.viewed || m.opened || m.checkout || m.bought).length} viram a oferta · {rows.filter((m) => m.opened || m.checkout || m.bought).length} abriram a compra · {rows.filter((m) => m.checkout || m.bought).length} clicaram em pagar · {bought} compraram ({rows.length ? Math.round((bought / rows.length) * 100) : 0}%). “Viu/abriu” conta a partir de 25/10/2026, 20h.</p>
         <div className="pn-tools">
           <input onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por e-mail, nome, origem ou campanha" value={search} />
-          <button className="pn-link" onClick={() => downloadCsv("astroia-mapas-gratis.csv", [["Data", "Nome no mapa", "Para quem", "E-mail", "Aceita e-mails", "Origem", "Campanha", "Anúncio", "Comprou"], ...rows.map((m) => [when(m.at), m.name || "", RECIPIENT[m.recipient] || m.recipient, m.email || "", m.consent ? "sim" : "não", m.source, m.campaign || "", m.ad || "", m.bought ? items(m.bought) : m.checkout ? "abriu o pagamento" : "não"])])} type="button">⬇ Baixar planilha</button>
+          <button className="pn-link" onClick={() => downloadCsv("astroia-mapas-gratis.csv", [["Data", "Nome no mapa", "Para quem", "E-mail", "Aceita e-mails", "Origem", "Campanha", "Anúncio", "Até onde foi"], ...rows.map((m) => [when(m.at), m.name || "", RECIPIENT[m.recipient] || m.recipient, m.email || "", m.consent ? "sim" : "não", m.source, m.campaign || "", m.ad || "", stepLabel(m)])])} type="button">⬇ Baixar planilha</button>
         </div>
         {rows.length ? (
           <div className="pn-table-wrap"><table className="pn-table">
-            <thead><tr><th>Quando</th><th>Nome no mapa</th><th>Para quem</th><th>E-mail</th><th>Aceita e-mails</th><th>Origem</th><th>Campanha</th><th>Anúncio</th><th>Comprou?</th><th></th></tr></thead>
+            <thead><tr><th>Quando</th><th>Nome no mapa</th><th>Para quem</th><th>E-mail</th><th>Aceita e-mails</th><th>Origem</th><th>Campanha</th><th>Anúncio</th><th>Até onde foi</th><th></th></tr></thead>
             <tbody>{rows.map((m, i) => (
               <tr key={m.id || i}>
                 <td>{when(m.at)}</td><td>{m.name || "—"}</td><td>{RECIPIENT[m.recipient] || m.recipient}</td><td>{m.email || "—"}</td>
                 <td>{m.consent ? "✓" : "—"}</td><td>{m.source}</td><td>{m.campaign || "—"}</td><td>{m.ad || "—"}</td>
-                <td>{m.bought ? <span className="pn-badge ok">{items(m.bought)}</span> : m.checkout ? <span className="pn-badge warn">Abriu o pagamento</span> : "—"}</td>
+                <td>{m.bought ? <span className="pn-badge ok">Comprou: {items(m.bought)}</span> : m.checkout ? <span className="pn-badge warn">Clicou em pagar</span> : m.opened ? <span className="pn-badge warn">Abriu a compra</span> : m.viewed ? <span className="pn-badge">Viu a oferta</span> : "Só o mapa"}</td>
                 <td><TestButton onConfirm={() => onMarkTest("map", m.id)} /></td>
               </tr>
             ))}</tbody>

@@ -106,6 +106,9 @@ export const guestReports = sqliteTable("guest_reports", {
  compatJson: text("compat_json"),
  attributionJson: text("attribution_json"),
  geo: text("geo"),
+ /** Quando a pessoa viu a oferta / abriu a tela de compra deste mapa (painel). */
+ offerViewedAt: integer("offer_viewed_at"),
+ offerOpenedAt: integer("offer_opened_at"),
  /** Marcado no painel como mapa de teste. */
  excludedAt: integer("excluded_at"),
  createdAt: integer("created_at").notNull(),

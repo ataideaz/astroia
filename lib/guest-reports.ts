@@ -20,6 +20,14 @@ export async function limitRequest(request: Request, scope: string, limit: numbe
   if (!result) throw new Error("Muitas tentativas seguidas desta conexão. Aguarde alguns minutos e tente de novo.");
   await (await database()).prepare("DELETE FROM guest_limits WHERE expires_at < ?").bind(Date.now()).run();
 }
+/** Marca no mapa que a pessoa viu a oferta ou abriu a tela de compra (só para o painel). */
+export async function markOfferStep(token: unknown, step: "offer_view" | "offer_open") {
+  if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) return;
+  const column = step === "offer_view" ? "offer_viewed_at" : "offer_opened_at";
+  await (await database()).prepare(`UPDATE guest_reports SET ${column} = COALESCE(${column}, ?) WHERE token_hash = ?`)
+    .bind(Date.now(), await digest(token)).run();
+}
+
 export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremium = false, attribution: Attribution | null = null, geo: string | null = null) {
   const reportTier = allowUnpaidPremium && input.reportTier === "premium" ? "premium" : "free";
   const request = { ...input, theme: "personalidade", reportTier };

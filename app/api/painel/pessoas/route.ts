@@ -52,9 +52,10 @@ export async function GET(request: Request) {
             gr.attribution_json AS attr,
             (SELECT GROUP_CONCAT(ro.items, '|') FROM report_orders ro JOIN payment_orders po ON po.id = ro.order_id
               WHERE ro.token_hash = gr.token_hash AND po.status = 'approved' AND po.excluded_at IS NULL) AS bought,
-            (SELECT COUNT(*) FROM report_orders ro WHERE ro.token_hash = gr.token_hash) AS checkouts
+            (SELECT COUNT(*) FROM report_orders ro WHERE ro.token_hash = gr.token_hash) AS checkouts,
+            gr.offer_viewed_at AS viewed, gr.offer_opened_at AS opened
      FROM guest_reports gr WHERE gr.created_at >= ? AND gr.excluded_at IS NULL ORDER BY gr.created_at DESC LIMIT 1000`,
-  ).bind(from).all<{ id: string; at: number; name: string | null; email: string | null; consent: number | null; recipient: string | null; attr: string | null; bought: string | null; checkouts: number }>();
+  ).bind(from).all<{ id: string; at: number; name: string | null; email: string | null; consent: number | null; recipient: string | null; attr: string | null; bought: string | null; checkouts: number; viewed: number | null; opened: number | null }>();
 
   // Lista para promoções: só quem marcou que aceita receber e-mails e não cancelou.
   // E-mails seguem o período escolhido; "?emails=todos" devolve a lista inteira (para baixar).
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
       const items = new Set((m.bought || "").split("|").flatMap((part) => { try { return JSON.parse(part) as string[]; } catch { return []; } }));
       return {
         id: m.id, at: m.at, name: m.name, email: m.email || null, consent: m.consent === 1, recipient: m.recipient || "self",
-        source: source(m.attr), ...campaignOf(m.attr), bought: [...items].join("+"), checkout: m.checkouts > 0,
+        source: source(m.attr), ...campaignOf(m.attr), bought: [...items].join("+"), checkout: m.checkouts > 0, viewed: Boolean(m.viewed), opened: Boolean(m.opened),
       };
     }),
     leads: leads.results,

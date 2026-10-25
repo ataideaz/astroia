@@ -12,7 +12,7 @@ import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
 import { formatPersonName } from "../lib/name-format";
 import { DirectPayment } from "./direct-payment";
-import { trackFunnel } from "../lib/ad-tracking";
+import { setTrackingReport, trackFunnel } from "../lib/ad-tracking";
 import { adSignals, confirmPendingPurchase, currentAttribution, metaEvent, openCookiePreferences, rememberPendingPurchase } from "../lib/ad-tracking";
 import type { PremiumReading } from "../lib/premium-reading";
 
@@ -1187,6 +1187,7 @@ export default function Home({
   const [offerMode, setOfferMode] = useState<OfferMode>("individual");
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [reportToken, setReportToken] = useState("");
+  useEffect(() => { setTrackingReport(reportToken); }, [reportToken]);
   const [accessStatus, setAccessStatus] = useState("");
   const [reportOpening, setReportOpening] = useState(false);
   const [reportOpeningStep, setReportOpeningStep] = useState(0);

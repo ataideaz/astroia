@@ -60,14 +60,22 @@ export function trackVisit() {
   trackFunnel("visit");
 }
 
+// Mapa aberto agora: "viu a oferta" e "abriu a compra" ficam marcados nele no painel.
+let currentReport = "";
+export function setTrackingReport(token: string) { currentReport = token; }
+
 /** Conta um passo do funil uma única vez por sessão do navegador (anônimo). */
 export function trackFunnel(type: "visit" | "offer_view" | "offer_open") {
-  const key = type === "visit" ? VISIT_KEY : `astroia-ev-${type}`;
-  if (read("session", key)) return;
   // Prévia privada da oferta nova (?oferta=v2): não entra nas contagens do painel.
   if (read("session", "astroia-preview-v2") === "1" || window.location.search.includes("oferta=v2")) return;
+  const key = type === "visit" ? VISIT_KEY : `astroia-ev-${type}`;
+  const counted = Boolean(read("session", key));
+  const markKey = type !== "visit" && currentReport ? `astroia-mk-${type}-${currentReport.slice(0, 16)}` : "";
+  const marked = !markKey || Boolean(read("session", markKey));
+  if (counted && marked) return;
   write("session", key, "1");
-  const body = JSON.stringify({ type, attribution: currentAttribution() });
+  if (markKey) write("session", markKey, "1");
+  const body = JSON.stringify({ type, attribution: currentAttribution(), ...(markKey && !marked ? { reportToken: currentReport } : {}), ...(counted ? { count: false } : {}) });
   try {
     if (!navigator.sendBeacon?.("/api/track", new Blob([body], { type: "application/json" }))) {
       void fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
