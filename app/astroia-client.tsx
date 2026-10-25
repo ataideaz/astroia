@@ -774,7 +774,7 @@ function ActivityPill({ kind }: { kind: "maps" | "sales" }) {
 }
 
 /** Barra fixa de compra: aparece depois da primeira oferta e some perto da oferta final. */
-function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label: string; onUnlock: () => void; hidden: boolean }) {
+function StickyBuyBar({ price, label, onUnlock, hidden, cta = "Quero ler" }: { price: string; label: string; onUnlock: () => void; hidden: boolean; cta?: string }) {
   const [show, setShow] = useState(false);
   const [lift, setLift] = useState(0);
   const shown = useRef(false);
@@ -784,9 +784,10 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
       frame = 0;
       const offer = document.querySelector(".fr-offer");
       const cookie = document.querySelector(".cookie-bar");
-      if (!offer) { setShow(false); return; }
       // Com o aviso de cookies aberto, a barra sobe e fica logo acima dele.
       setLift(cookie ? Math.max(0, window.innerHeight - cookie.getBoundingClientRect().top + 10) : 0);
+      // Antes do mapa grátis a barra já aparece desde o primeiro acesso.
+      if (!offer) { setShow(true); return; }
       // Aparece assim que o mapa grátis chega na tela e, a partir daí, fica fixa:
       // não some mais ao rolar para cima nem para baixo.
       const result = document.getElementById("analise");
@@ -817,7 +818,7 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
         <strong><span aria-hidden="true">✦</span> {label}</strong>
         <small>{price} · garantia de 7 dias</small>
       </div>
-      <button onClick={onUnlock} type="button">Quero ler <span aria-hidden="true">→</span></button>
+      <button onClick={onUnlock} type="button">{cta} <span aria-hidden="true">→</span></button>
     </div>
   );
 }
@@ -3847,14 +3848,28 @@ export default function Home({
         </div>
       )}
 
-      {newFreeReading && paymentsEnabled && (
+      {paymentsEnabled && !products.map && (newFreeReading ? (
         <StickyBuyBar
           hidden={checkoutOpen}
           label={newFreeReading.audience === "child" ? `Mapa completo de ${analysis?.person.firstName ?? ""}` : "Seu mapa completo"}
           onUnlock={openMapOffer}
           price={paymentPrice}
         />
-      )}
+      ) : !analysis ? (
+        // Desde o primeiro acesso: leva ao formulário já com o mapa completo escolhido.
+        <StickyBuyBar
+          cta="Quero o completo"
+          hidden={checkoutOpen}
+          key="pre-map"
+          label="Mapa astral completo"
+          onUnlock={() => {
+            setReportTier("premium");
+            document.getElementById("criar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            window.setTimeout(() => (document.querySelector('#criar input[name="name"]') as HTMLInputElement | null)?.focus({ preventScroll: true }), 700);
+          }}
+          price={paymentPrice}
+        />
+      ) : null)}
 
       <footer>
         <div className="shell footer-content">
