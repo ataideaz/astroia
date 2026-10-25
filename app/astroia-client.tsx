@@ -777,27 +777,21 @@ function ActivityPill({ kind }: { kind: "maps" | "sales" }) {
 function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label: string; onUnlock: () => void; hidden: boolean }) {
   const [show, setShow] = useState(false);
   const [lift, setLift] = useState(0);
+  const shown = useRef(false);
   useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
       const offer = document.querySelector(".fr-offer");
-      const finalBox = document.querySelector(".fr-unlock-box");
       const cookie = document.querySelector(".cookie-bar");
       if (!offer) { setShow(false); return; }
       // Com o aviso de cookies aberto, a barra sobe e fica logo acima dele.
       setLift(cookie ? Math.max(0, window.innerHeight - cookie.getBoundingClientRect().top + 10) : 0);
-      // Fica na tela o tempo todo depois da primeira oferta; só sai da frente
-      // enquanto um botão de compra grande já está visível na tela.
-      const visible = (el: Element | null) => {
-        if (!el) return false;
-        const rect = el.getBoundingClientRect();
-        return rect.top < window.innerHeight && rect.bottom > 0;
-      };
-      // Aparece assim que o mapa grátis está na tela (logo depois de gerar).
+      // Aparece assim que o mapa grátis chega na tela e, a partir daí, fica fixa:
+      // não some mais ao rolar para cima nem para baixo.
       const result = document.getElementById("analise");
-      const onResult = result ? result.getBoundingClientRect().top < window.innerHeight * 0.6 : false;
-      setShow(onResult && !visible(finalBox) && !visible(document.querySelector("footer")));
+      if (result && result.getBoundingClientRect().top < window.innerHeight * 0.6) shown.current = true;
+      setShow(shown.current);
     };
     const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
     update();
@@ -811,6 +805,11 @@ function StickyBuyBar({ price, label, onUnlock, hidden }: { price: string; label
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
+  // Espaço no fim da página para a barra não cobrir o rodapé.
+  useEffect(() => {
+    document.body.classList.toggle("has-buy-bar", show && !hidden);
+    return () => document.body.classList.remove("has-buy-bar");
+  }, [show, hidden]);
   if (hidden || !show) return null;
   return (
     <div className="buy-bar" role="region" aria-label="Comprar o mapa completo" style={lift ? { bottom: lift } : undefined}>
