@@ -27,7 +27,9 @@
     // Preços em centavos (teste de preço iniciado em 24/10/2026).
     "ASAAS_AMOUNT_CENTS": "1990",
     "COMPAT_AMOUNT_CENTS": "1490",
-    "NAME_AMOUNT_CENTS": "990"
+    "NAME_AMOUNT_CENTS": "990",
+    // Oferta v2 (25/10/2026): 12 meses + Numerologia do Nome de bônus.
+    "OFFER_V2": "1"
   },
   "d1_databases": [
     {
