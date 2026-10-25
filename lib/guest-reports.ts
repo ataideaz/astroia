@@ -20,13 +20,13 @@ export async function limitRequest(request: Request, scope: string, limit: numbe
   if (!result) throw new Error("Muitas tentativas seguidas desta conexão. Aguarde alguns minutos e tente de novo.");
   await (await database()).prepare("DELETE FROM guest_limits WHERE expires_at < ?").bind(Date.now()).run();
 }
-export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremium = false, attribution: Attribution | null = null) {
+export async function createGuestReport(input: AnalyzeRequest, allowUnpaidPremium = false, attribution: Attribution | null = null, geo: string | null = null) {
   const reportTier = allowUnpaidPremium && input.reportTier === "premium" ? "premium" : "free";
   const request = { ...input, theme: "personalidade", reportTier };
   const full = await createAstroAnalysis(request);
   const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, "0")).join("");
-  await (await database()).prepare("INSERT INTO guest_reports (token_hash, request_json, analysis_json, attribution_json, created_at) VALUES (?, ?, ?, ?, ?)")
-    .bind(await digest(token), JSON.stringify(request), JSON.stringify(full), attribution ? JSON.stringify(attribution) : null, Date.now()).run();
+  await (await database()).prepare("INSERT INTO guest_reports (token_hash, request_json, analysis_json, attribution_json, geo, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(await digest(token), JSON.stringify(request), JSON.stringify(full), attribution ? JSON.stringify(attribution) : null, geo, Date.now()).run();
   return { ...(reportTier === "premium" ? full : preview(full)), reportToken: token };
 }
 function premiumPreviewOf(full: AnalysisResult): AnalysisResult["premiumPreview"] {

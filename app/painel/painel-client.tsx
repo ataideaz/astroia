@@ -13,6 +13,9 @@ type Data = {
   byAd?: Array<Bucket & { ad: string; campaign: string }>;
   byAge?: PeopleRow[];
   byRecipient?: PeopleRow[];
+  byRegionNow?: PeopleRow[];
+  byStateNow?: PeopleRow[];
+  byRegionBorn?: PeopleRow[];
   products: Array<{ items: string; orders: number; revenue: number }>;
   recent: Array<{ at: number; items: string; value: number; source: string; campaign: string | null }>;
   meta: { pixel: boolean; capi: boolean };
@@ -318,6 +321,15 @@ export default function PainelClient() {
           <h2>Idade de quem faz o mapa</h2>
           <p className="pn-note">Só mapas feitos “para mim” (a idade é de quem preencheu). ★ = faixa que mais faz mapa.</p>
           <PeopleTable first="Idade" rows={data.byAge} />
+
+          <h2>Região de onde acessam</h2>
+          <p className="pn-note">Pela conexão de internet, no momento em que fizeram o mapa (conta a partir de 25/10/2026).</p>
+          <PeopleTable first="Região" rows={data.byRegionNow} />
+          {data.byStateNow?.length ? <PeopleTable first="Estado" rows={data.byStateNow} /> : null}
+
+          <h2>Região onde nasceram</h2>
+          <p className="pn-note">Pela cidade de nascimento informada no mapa (vale para todos os mapas).</p>
+          <PeopleTable first="Região" rows={data.byRegionBorn} />
 
           <h2>Para quem é o mapa</h2>
           <PeopleTable first="Mapa feito" rows={data.byRecipient} />

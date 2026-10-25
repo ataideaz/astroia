@@ -3,6 +3,7 @@ import { createGuestReport, limitRequest } from "../../../lib/guest-reports";
 import { paymentsEnabled } from "../../../lib/asaas";
 import { cleanAttribution } from "../../../lib/attribution";
 import { recordSiteEvent } from "../../../lib/site-events";
+import { geoFromCf } from "../../../lib/br-geo";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
@@ -13,7 +14,9 @@ export async function POST(request: Request) {
     if (body.reportTier === "premium" && paymentsEnabled()) return NextResponse.json({error: "Abra seu relatório pelo link privado após confirmar o pagamento."}, {status:403});
     const attribution = cleanAttribution(body.attribution);
     delete body.attribution;
-    const result = await createGuestReport(body, body.reportTier === "premium" && !paymentsEnabled(), attribution);
+    // Estado de onde a pessoa acessa (pela conexão, via Cloudflare): só a sigla, para o painel.
+    const geo = geoFromCf((request as Request & { cf?: { country?: string; regionCode?: string } }).cf);
+    const result = await createGuestReport(body, body.reportTier === "premium" && !paymentsEnabled(), attribution, geo);
     await recordSiteEvent("map", attribution);
     if (body.marketingConsent && body.email) {
       const { saveMarketingLead } = await import("../../../lib/marketing-leads");
