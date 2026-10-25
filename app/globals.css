@@ -7719,3 +7719,18 @@ footer {
 .activity-hero strong { font-size: 30px; line-height: 1; color: #f0d69d; font-weight: 800; }
 .activity-hero em { font-style: normal; color: #c6f432; white-space: nowrap; }
 body.has-buy-bar { padding-bottom: 96px; }
+
+/* Escolha do plano: completo em cima e em destaque */
+.plan-options { grid-template-columns: 1fr !important; gap: 14px; }
+.plan-hero { padding: 26px 22px 22px; gap: 10px; border: 2px solid rgba(240, 214, 157, 0.55); background: linear-gradient(160deg, rgba(240,214,157,.14), rgba(143,108,247,.16)); box-shadow: 0 0 34px rgba(240,214,157,.12); }
+.plan-hero.selected-plan { border-color: #f0d69d; box-shadow: 0 0 0 3px rgba(240,214,157,.25), 0 0 40px rgba(240,214,157,.2); }
+.plan-hero > .plan-badge { position: absolute; top: -13px; left: 20px; padding: 5px 12px; border-radius: 999px; background: #f0d69d; color: #1a1530 !important; font-size: 12px !important; letter-spacing: .1em; }
+.plan-hero strong { font-size: 26px !important; color: #fff; }
+.plan-price { display: flex; flex-direction: column; font-family: var(--font-display); font-size: 44px; line-height: 1; color: #f0d69d; font-weight: 600; }
+.plan-price em { font-family: var(--font-ui); font-style: normal; font-size: 14px; color: #c7bfe6; margin-top: 6px; font-weight: 500; }
+.plan-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; }
+.plan-list li { position: relative; padding-left: 26px; font-size: 16px; line-height: 1.4; color: #ece6ff; }
+.plan-list li::before { content: "✓"; position: absolute; left: 0; color: #9be15d; font-weight: 800; }
+.plan-list li.plan-bonus { padding: 10px 12px 10px 38px; border-radius: 12px; border: 1px dashed rgba(240,214,157,.55); background: rgba(240,214,157,.08); color: #f0d69d; }
+.plan-list li.plan-bonus::before { content: ""; }
+.plan-option .plan-guarantee { font-size: 14px !important; color: #c6f432 !important; }

@@ -2436,6 +2436,43 @@ export default function Home({
               <div className="plan-options">
                 <label
                   className={
+                    reportTier === "premium"
+                      ? "plan-option premium-plan plan-hero selected-plan"
+                      : "plan-option premium-plan plan-hero"
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="reportTier"
+                    value="premium"
+                    checked={reportTier === "premium"}
+                    onChange={() => { setAnalysis(null); setReportTier("premium"); }}
+                  />
+                  <span className="plan-badge">MAIS COMPLETO</span>
+                  <strong>Mapa astral completo</strong>
+                  <b className="plan-price">{paymentPrice}<em>pagamento único · sem assinatura</em></b>
+                  <ul className="plan-list">
+                    {offerV2 ? (
+                      <>
+                        <li>Os seus próximos 12 meses, mês a mês</li>
+                        <li>Amor: como você ama e o que te atrai</li>
+                        <li>Trabalho e dinheiro: onde você brilha</li>
+                        <li>Missão, dom e número de destino</li>
+                        <li>PDF completo e stories para postar</li>
+                        <li className="plan-bonus">🎁 Bônus: Numerologia do Nome (vendida à parte por {namePrice})</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>As cinco áreas: personalidade, amor, carreira, dinheiro e momento atual</li>
+                        <li>Os seus próximos 12 meses</li>
+                        <li>PDF completo e stories para postar</li>
+                      </>
+                    )}
+                  </ul>
+                  <small className="plan-guarantee">✓ Liberado na hora · Garantia de 7 dias</small>
+                </label>
+                <label
+                  className={
                     reportTier === "free"
                       ? "plan-option selected-plan"
                       : "plan-option"
@@ -2449,36 +2486,15 @@ export default function Home({
                     onChange={() => { setAnalysis(null); setReportTier("free"); }}
                   />
                   <span>GRÁTIS</span>
-                  <strong>Sua primeira descoberta</strong>
+                  <strong>Prévia gratuita</strong>
                   <small>
-                    Trio principal, padrão dominante e
-                    numerologia.
-                  </small>
-                </label>
-                <label
-                  className={
-                    reportTier === "premium"
-                      ? "plan-option premium-plan selected-plan"
-                      : "plan-option premium-plan"
-                  }
-                >
-                  <input
-                    type="radio"
-                    name="reportTier"
-                    value="premium"
-                    checked={reportTier === "premium"}
-                    onChange={() => { setAnalysis(null); setReportTier("premium"); }}
-                  />
-                  <span>PREMIUM · {paymentPrice}</span>
-                  <strong>Seu mapa por inteiro</strong>
-                  <small>
-                    Todos os cinco temas, capítulos, ações e PDF diagramado.
+                    Seu arquétipo, Sol, Lua e Ascendente e um trecho do mapa completo.
                   </small>
                 </label>
               </div>
             </fieldset>
 
-            <p className="theme-help">A prévia apresenta Sol, Lua, Ascendente e seu padrão pessoal. O Premium aprofunda as cinco áreas: Personalidade, Amor, Carreira, Dinheiro e Momento Atual.</p>
+            <p className="theme-help">O bônus da Numerologia do Nome vale para mapas de adultos. Escolhendo o completo, você vê o mapa e o pagamento abre logo em seguida.</p>
 
             <label className="consent">
               <input required name="dataConsent" type="checkbox" />
