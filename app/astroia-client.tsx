@@ -1662,6 +1662,13 @@ export default function Home({
     setDirectCheckout(null);
     trackFunnel("offer_view"); // quem abriu a compra viu a oferta (o contador de "viu" não perde ninguém)
     trackFunnel("offer_open");
+    // Sinal de intenção de compra para a Meta (abrir a tela de compra), mais forte que o Lead.
+    try {
+      if (!window.sessionStorage.getItem("astroia-atc")) {
+        window.sessionStorage.setItem("astroia-atc", "1");
+        metaEvent("AddToCart", { currency: "BRL", value: paymentAmountCents / 100, content_ids: ["map"], content_type: "product" });
+      }
+    } catch { /* sem storage */ }
     window.sessionStorage.removeItem(PAYMENT_CHECKOUT_STORAGE_KEY);
     setPendingAnalysis(request);
     setCheckoutIntent(intent);
