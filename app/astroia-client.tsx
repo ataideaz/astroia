@@ -734,7 +734,7 @@ function EarlyOffer({
   );
 }
 
-type SiteStats = { mapsToday: number; mapsWeek: number; mapsTotal?: number; salesWeek: number };
+type SiteStats = { mapsToday: number; mapsWeek: number; mapsTotal?: number; salesWeek: number; salesTotal?: number };
 let statsPromise: Promise<SiteStats | null> | null = null;
 function useSiteStats() {
   const [stats, setStats] = useState<SiteStats | null>(null);
@@ -753,7 +753,9 @@ function ActivityPill({ kind }: { kind: "maps" | "sales" }) {
   if (!stats) return null;
   let text = "";
   if (kind === "sales") {
-    if (stats.salesWeek >= 3) text = `${stats.salesWeek} pessoas desbloquearam o mapa completo nesta semana`;
+    const sold = stats.salesTotal ?? 0;
+    if (sold === 1) text = "1 pessoa já desbloqueou o mapa completo";
+    else if (sold > 1) text = `${sold} pessoas já desbloquearam o mapa completo`;
   } else if ((stats.mapsTotal ?? 0) >= 20) {
     text = `${stats.mapsTotal} mapas já feitos no AstroIA${stats.mapsToday >= 5 ? ` · ${stats.mapsToday} hoje` : ""}`;
   } else if (stats.mapsToday >= 5) {

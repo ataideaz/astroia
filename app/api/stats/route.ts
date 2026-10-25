@@ -19,14 +19,14 @@ export async function GET() {
       "SELECT COUNT(*) AS total FROM guest_reports WHERE created_at >= ? AND excluded_at IS NULL",
     ).bind(SALES_SINCE).first<{ total: number }>();
     const sales = await env.DB.prepare(
-      `SELECT COUNT(*) AS week FROM payment_orders
-       WHERE status = 'approved' AND excluded_at IS NULL AND approved_at >= ?`,
-    ).bind(Math.max(weekStart, SALES_SINCE)).first<{ week: number }>();
+      `SELECT SUM(CASE WHEN approved_at >= ? THEN 1 ELSE 0 END) AS week, COUNT(*) AS total FROM payment_orders
+       WHERE status = 'approved' AND excluded_at IS NULL AND approved_at >= ? AND offer_mode LIKE 'map%'`,
+    ).bind(weekStart, SALES_SINCE).first<{ week: number | null; total: number }>();
     return Response.json(
-      { mapsToday: maps?.today ?? 0, mapsWeek: maps?.week ?? 0, mapsTotal: total?.total ?? 0, salesWeek: sales?.week ?? 0 },
+      { mapsToday: maps?.today ?? 0, mapsWeek: maps?.week ?? 0, mapsTotal: total?.total ?? 0, salesWeek: sales?.week ?? 0, salesTotal: sales?.total ?? 0 },
       { headers: { "Cache-Control": "public, max-age=300" } },
     );
   } catch {
-    return Response.json({ mapsToday: 0, mapsWeek: 0, mapsTotal: 0, salesWeek: 0 }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ mapsToday: 0, mapsWeek: 0, mapsTotal: 0, salesWeek: 0, salesTotal: 0 }, { headers: { "Cache-Control": "no-store" } });
   }
 }
