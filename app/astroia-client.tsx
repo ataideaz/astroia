@@ -757,7 +757,13 @@ function ActivityPill({ kind }: { kind: "maps" | "sales" }) {
     if (sold === 1) text = "1 pessoa já desbloqueou o mapa completo";
     else if (sold > 1) text = `${sold} pessoas já desbloquearam o mapa completo`;
   } else if ((stats.mapsTotal ?? 0) >= 20) {
-    text = `${stats.mapsTotal} mapas já feitos no AstroIA${stats.mapsToday >= 5 ? ` · ${stats.mapsToday} hoje` : ""}`;
+    return (
+      <div className="activity-hero" role="status">
+        <span className="activity-dot" aria-hidden="true" />
+        <strong>{stats.mapsTotal}</strong>
+        <span>mapas já feitos no AstroIA{stats.mapsToday >= 5 ? <em> · {stats.mapsToday} hoje</em> : null}</span>
+      </div>
+    );
   } else if (stats.mapsToday >= 5) {
     text = `${stats.mapsToday} mapas feitos hoje no AstroIA`;
   } else if (stats.mapsWeek >= 10) {
