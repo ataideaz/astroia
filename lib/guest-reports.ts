@@ -43,8 +43,19 @@ function premiumPreviewOf(full: AnalysisResult): AnalysisResult["premiumPreview"
   }
   return best;
 }
+function monthsPreviewOf(full: AnalysisResult): AnalysisResult["monthsPreview"] {
+  const months = full.premiumReading?.months ?? [];
+  if (months.length < 2) return null;
+  return {
+    first: { label: months[0].label, theme: months[0].theme },
+    labels: months.slice(1).map((month) => month.label),
+    love: months.filter((month) => month.tags.some((tag) => tag.id === "amor")).length,
+    luck: months.filter((month) => month.tags.some((tag) => tag.id === "sorte")).length,
+  };
+}
+
 export function preview(full: AnalysisResult): AnalysisResult {
-  return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [], premiumReading: null, premiumPreview: premiumPreviewOf(full),
+  return { ...full, midheaven: null, aspects: [], readings: [], allThemes: [], premiumReading: null, premiumPreview: premiumPreviewOf(full), monthsPreview: monthsPreviewOf(full),
     premium: { headline: "", introduction: "", chapters: [], actionPlan: [], reflectionQuestions: [] },
     themeDeepDive: { ...full.themeDeepDive, sections: full.themeDeepDive.sections.slice(0, 1) },
     zodiacPortrait: full.zodiacPortrait ? { ...full.zodiacPortrait, premiumLayers: [] } : undefined,

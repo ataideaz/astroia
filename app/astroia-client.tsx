@@ -644,6 +644,7 @@ function EarlyOffer({
   onUnlock,
   preview,
   bonus,
+  months,
 }: {
   reading: FreeReadingData;
   firstName: string;
@@ -651,6 +652,7 @@ function EarlyOffer({
   onUnlock: () => void;
   preview?: AnalysisResult["premiumPreview"];
   bonus?: OfferBonus;
+  months?: AnalysisResult["monthsPreview"];
 }) {
   const ref = useOfferView();
   const kid = reading.audience === "child";
@@ -660,7 +662,24 @@ function EarlyOffer({
       <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : bonus ? "O que os seus próximos 12 meses guardam, mês a mês" : "Isso é só o começo do seu mapa"}</h2>
       {bonus && <p className="fr-offer-sub">Pelo seu mapa e pela sua numerologia: o tema de cada mês, o que fazer nele e quais são os seus meses fortes para o amor e para a sorte. Os seus já estão calculados aqui. 🔒</p>}
 
-      {preview && (
+      {bonus && months && (
+        <article className="fr-offer-preview fr-months">
+          <small>Seus próximos 12 meses</small>
+          <strong>{months.first.label}</strong>
+          <p>{months.first.theme}</p>
+          <ul className="fr-months-locked">
+            {months.labels.slice(0, 5).map((label) => <li key={label}><span>{label}</span> 🔒</li>)}
+            <li><span>+ {Math.max(0, months.labels.length - 5)} meses</span> 🔒</li>
+          </ul>
+          <span className="fr-offer-preview-lock">
+            <span aria-hidden="true">🔒</span>{" "}
+            {months.love ? `${months.love} ${months.love > 1 ? "meses fortes" : "mês forte"} para o amor` : "Os seus meses fortes"}
+            {months.luck ? ` e ${months.luck} de sorte em alta` : ""} já marcados no seu mapa completo
+          </span>
+        </article>
+      )}
+
+      {preview && !(bonus && months) && (
         <article className="fr-offer-preview">
           <small>{preview.label} · {preview.title}</small>
           <strong>{preview.blockTitle}</strong>
@@ -814,7 +833,7 @@ function FreeReadingView({
       </section>
 
       {onUnlock && offerPrice && (
-        <EarlyOffer bonus={!reading.audience || reading.audience === "adult" ? bonus : undefined} firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
+        <EarlyOffer months={analysis.monthsPreview} bonus={!reading.audience || reading.audience === "adult" ? bonus : undefined} firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
       )}
 
       <div className="fr-stories">
