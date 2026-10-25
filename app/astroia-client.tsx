@@ -785,7 +785,8 @@ function StickyBuyBar({ price, label, onUnlock, hidden, cta = "Quero ler" }: { p
       const offer = document.querySelector(".fr-offer");
       const cookie = document.querySelector(".cookie-bar");
       // Com o aviso de cookies aberto, a barra sobe e fica logo acima dele.
-      setLift(cookie ? Math.max(0, window.innerHeight - cookie.getBoundingClientRect().top + 10) : 0);
+      const cookieRect = cookie?.getBoundingClientRect();
+      setLift(cookieRect && cookieRect.height > 0 ? Math.max(0, Math.min(window.innerHeight / 2, window.innerHeight - cookieRect.top + 10)) : 0);
       // Antes do mapa grátis a barra já aparece desde o primeiro acesso.
       if (!offer) { setShow(true); return; }
       // Aparece assim que o mapa grátis chega na tela e, a partir daí, fica fixa:
