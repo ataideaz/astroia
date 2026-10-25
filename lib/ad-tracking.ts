@@ -64,6 +64,8 @@ export function trackVisit() {
 export function trackFunnel(type: "visit" | "offer_view" | "offer_open") {
   const key = type === "visit" ? VISIT_KEY : `astroia-ev-${type}`;
   if (read("session", key)) return;
+  // Prévia privada da oferta nova (?oferta=v2): não entra nas contagens do painel.
+  if (read("session", "astroia-preview-v2") === "1" || window.location.search.includes("oferta=v2")) return;
   write("session", key, "1");
   const body = JSON.stringify({ type, attribution: currentAttribution() });
   try {
