@@ -570,7 +570,9 @@ function useOfferView() {
     if (!node || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) { trackFunnel("offer_view"); observer.disconnect(); }
-    }, { threshold: 0.25 });
+    // A oferta nova é bem alta: conta assim que o começo dela entra na tela
+    // (antes exigia 25% do bloco inteiro visível, o que o celular nem sempre mostra).
+    }, { threshold: 0, rootMargin: "0px 0px -35% 0px" });
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
