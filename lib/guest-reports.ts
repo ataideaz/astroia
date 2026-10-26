@@ -51,10 +51,28 @@ function premiumPreviewOf(full: AnalysisResult): AnalysisResult["premiumPreview"
   }
   return best;
 }
+const SIGN_ELEMENT: Record<string, string> = {
+  aries: "Fogo", leo: "Fogo", sagittarius: "Fogo", taurus: "Terra", virgo: "Terra", capricorn: "Terra",
+  gemini: "Ar", libra: "Ar", aquarius: "Ar", cancer: "Água", scorpio: "Água", pisces: "Água",
+};
+const PLANET_LABELS = new Set(["Sol", "Lua", "Mercúrio", "Vênus", "Marte", "Júpiter", "Saturno", "Urano", "Netuno", "Plutão"]);
+
 function monthsPreviewOf(full: AnalysisResult): AnalysisResult["monthsPreview"] {
   const months = full.premiumReading?.months ?? [];
   if (months.length < 2) return null;
+  // Primeiro mês forte para o amor depois do mês atual (o atual já aparece aberto).
+  const love = months.slice(1).find((month) => month.tags.some((tag) => tag.id === "amor"));
+  const loveMask = love ? love.label.replace(/^(\S+)(\s+)(\d{4})$/, (_m, _name: string, _s, year: string) => `███████ de ${year}`) : null;
+  const counts = new Map<string, number>();
+  for (const placement of full.placements ?? []) {
+    if (!PLANET_LABELS.has(placement.label)) continue;
+    const element = SIGN_ELEMENT[placement.signKey];
+    if (element) counts.set(element, (counts.get(element) ?? 0) + 1);
+  }
+  const top = [...counts].sort((a, b) => b[1] - a[1])[0];
   return {
+    loveMask: loveMask && loveMask.includes("█") ? loveMask : null,
+    element: top && top[1] >= 4 ? { name: top[0], count: top[1] } : null,
     first: { label: months[0].label, theme: months[0].theme, tip: months[0].tip },
     labels: months.slice(1).map((month) => month.label),
     love: months.filter((month) => month.tags.some((tag) => tag.id === "amor")).length,

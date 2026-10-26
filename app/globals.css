@@ -7734,3 +7734,14 @@ body.has-buy-bar { padding-bottom: 96px; }
 .plan-list li.plan-bonus { padding: 10px 12px 10px 38px; border-radius: 12px; border: 1px dashed rgba(240,214,157,.55); background: rgba(240,214,157,.08); color: #f0d69d; }
 .plan-list li.plan-bonus::before { content: ""; }
 .plan-option .plan-guarantee { font-size: 14px !important; color: #c6f432 !important; }
+
+/* Ganchos pessoais da oferta */
+.fr-hook-love { margin: 16px 0 6px; padding: 18px 18px 16px; border-radius: 20px; text-align: center; background: linear-gradient(140deg, rgba(255,61,139,.22), rgba(143,108,247,.2)); border: 1px solid rgba(255,140,190,.5); }
+.fr-hook-love small { display: block; font: 700 13px var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: #ffb3cf; }
+.fr-hook-love strong { display: block; margin: 8px 0 6px; font-family: var(--font-display); font-size: 30px; color: #fff; font-weight: 600; }
+.fr-hook-mask { display: inline-block; padding: 0 6px; border-radius: 8px; background: rgba(255,255,255,.14); color: transparent; text-shadow: 0 0 12px rgba(255,255,255,.85); letter-spacing: -1px; user-select: none; }
+.fr-hook-love em { display: block; font-style: normal; font-size: 15px; color: #e9ddff; }
+.fr-hook-element { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0 4px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
+.fr-hook-element > span { font-size: 26px; line-height: 1; }
+.fr-hook-element p { margin: 0; font-size: 16px; line-height: 1.5; color: #ece6ff; }
+.fr-hook-element b { color: #f0d69d; }

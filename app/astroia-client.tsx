@@ -662,6 +662,13 @@ function EarlyOffer({
     <section className="fr-offer" aria-labelledby="fr-offer-title" ref={ref}>
       <span className="fr-kicker">{kid ? `O mapa completo de ${firstName}` : bonus ? `${firstName}, o seu mapa completo` : "O seu mapa completo"}</span>
       <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : bonus ? "O que os seus próximos 12 meses guardam, mês a mês" : "Isso é só o começo do seu mapa"}</h2>
+      {bonus && months?.loveMask && (
+        <div className="fr-hook-love" role="note">
+          <small>Seu mês mais forte para o amor</small>
+          <strong><span className="fr-hook-mask">{months.loveMask.split(" de ")[0]}</span> de {months.loveMask.split(" de ")[1]} <span aria-hidden="true">🔒</span></strong>
+          <em>Já está calculado no seu mapa. Ele aparece no mapa completo.</em>
+        </div>
+      )}
       {bonus && <p className="fr-offer-sub">Pelo seu mapa e pela sua numerologia: o tema de cada mês, o que fazer nele e quais são os seus meses fortes para o amor e para a sorte. Os seus já estão calculados aqui. 🔒</p>}
 
       {bonus && months && (
@@ -679,6 +686,13 @@ function EarlyOffer({
             {months.luck ? ` e ${months.luck} de sorte em alta` : ""} já marcados no seu mapa completo
           </span>
         </article>
+      )}
+
+      {bonus && months?.element && (
+        <div className="fr-hook-element" role="note">
+          <span aria-hidden="true">{months.element.name === "Fogo" ? "🔥" : months.element.name === "Água" ? "💧" : months.element.name === "Ar" ? "🌬️" : "🌿"}</span>
+          <p><b>{months.element.count} dos seus 10 planetas estão em {months.element.name}.</b> Isso pesa em como você ama, trabalha e decide, e o mapa completo explica cada um. 🔒</p>
+        </div>
       )}
 
       {preview && !(bonus && months) && (
