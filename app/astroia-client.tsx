@@ -3889,20 +3889,6 @@ export default function Home({
           onUnlock={openMapOffer}
           price={paymentPrice}
         />
-      ) : !analysis ? (
-        // Desde o primeiro acesso: leva ao formulário já com o mapa completo escolhido.
-        <StickyBuyBar
-          cta="Fazer meu mapa grátis"
-          hidden={checkoutOpen}
-          key="pre-map"
-          label="Mapa astral grátis"
-          note="pronto em 1 minuto"
-          onUnlock={() => {
-            document.getElementById("criar")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            window.setTimeout(() => (document.querySelector('#criar input[name="name"]') as HTMLInputElement | null)?.focus({ preventScroll: true }), 700);
-          }}
-          price={paymentPrice}
-        />
       ) : null)}
 
       <footer>
