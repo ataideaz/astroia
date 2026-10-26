@@ -1685,7 +1685,8 @@ export default function Home({
       }
 
       setReportToken(payload.reportToken);
-      metaEvent("Lead", { content_name: "mapa_gratis" }, `lead_${String(payload.reportToken).slice(0, 24)}`);
+      // Valor estimado de um mapa grátis para a Meta (~10% do preço do mapa completo).
+      metaEvent("Lead", { content_name: "mapa_gratis", currency: "BRL", value: Math.round(paymentAmountCents * 0.1) / 100 }, `lead_${String(payload.reportToken).slice(0, 24)}`);
       window.history.replaceState({}, "", `/#report=${payload.reportToken}`);
       setReturnedFromPayment(false);
       const result = payload as AnalysisResult;
