@@ -7810,3 +7810,5 @@ body.has-buy-bar { padding-bottom: 96px; }
 .cp-sample-more > span { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 700; color: #ffb3cf; }
 .cp-sample-more ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
 .cp-sample-more li { font-size: 13.5px; line-height: 1.35; color: #ece6ff; }
+.hero-couple { max-width: 520px; margin: 0 auto 18px; }
+.hero-couple .cp-sample { margin: 0; text-align: left; }

@@ -1313,7 +1313,11 @@ export default function Home({
   // a oferta principal já leva mapa + compatibilidade + numerologia por um preço só.
   const [coupleAd, setCoupleAd] = useState(false);
   useEffect(() => {
-    try { setCoupleAd(/casal/i.test(currentAttribution()?.content ?? "")); } catch { /* sem storage */ }
+    try {
+      // Na primeira visita o link ainda tem o utm_content; depois vale a origem guardada.
+      const fromLink = new URLSearchParams(window.location.search).get("utm_content") ?? "";
+      setCoupleAd(/casal/i.test(fromLink) || /casal/i.test(currentAttribution()?.content ?? ""));
+    } catch { /* sem storage */ }
   }, []);
   const coupleOffer = offerV2 && coupleAd && compatOffered && !products.compat && !products.map;
   // Bônus real: a Numerologia do Nome é vendida à parte; aqui vem junto com o mapa.
@@ -2089,20 +2093,37 @@ export default function Home({
             Cálculo astronômico real + leitura em linguagem simples
           </div>
 
-          <h1>
-            Há mais em você
-            <span> do que o seu signo conta.</span>
-          </h1>
+          {coupleAd ? (
+            <>
+              <h1>
+                Vocês combinam
+                <span> de verdade?</span>
+              </h1>
+              <p className="hero-description">
+                Comece pelo seu mapa astral grátis em 1 minuto. Depois, veja a
+                compatibilidade com quem você ama: coração, atração, conversa e
+                dia a dia.
+              </p>
+              <div className="hero-couple"><CompatSample compact /></div>
+            </>
+          ) : (
+            <>
+              <h1>
+                Há mais em você
+                <span> do que o seu signo conta.</span>
+              </h1>
 
-          <p className="hero-description">
-            As posições exatas dos planetas no dia, na hora e na cidade em que
-            você nasceu, junto com a sua numerologia, traduzidas em palavras
-            simples: como você sente, ama, trabalha e atravessa seus ciclos.
-          </p>
+              <p className="hero-description">
+                As posições exatas dos planetas no dia, na hora e na cidade em que
+                você nasceu, junto com a sua numerologia, traduzidas em palavras
+                simples: como você sente, ama, trabalha e atravessa seus ciclos.
+              </p>
+            </>
+          )}
 
           <div className="hero-actions">
             <a className="primary-button" href="#criar">
-              Descobrir meu mapa grátis
+              {coupleAd ? "Começar pelo meu mapa grátis" : "Descobrir meu mapa grátis"}
               <span aria-hidden="true">→</span>
             </a>
             <a className="text-button" href="#como-funciona">
