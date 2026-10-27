@@ -7806,3 +7806,7 @@ body.has-buy-bar { padding-bottom: 96px; }
 .fr-couple { margin: 12px 0 6px; padding: 14px; border-radius: 18px; background: linear-gradient(140deg, rgba(255, 61, 139, .16), rgba(143, 108, 247, .14)); border: 1px solid rgba(255, 140, 190, .45); }
 .fr-couple-lead { margin: 0 0 8px; font-size: 16px; line-height: 1.45; color: #fff; }
 .fr-couple-lead b { color: #ffd1e3; }
+.cp-sample-more { grid-column: 1 / -1; text-align: left; }
+.cp-sample-more > span { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 700; color: #ffb3cf; }
+.cp-sample-more ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.cp-sample-more li { font-size: 13.5px; line-height: 1.35; color: #ece6ff; }

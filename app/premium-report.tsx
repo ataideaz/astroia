@@ -388,6 +388,19 @@ export function CompatSample({ compact = false }: { compact?: boolean }) {
           </div>
         ))}
       </div>
+      <div className="cp-sample-more">
+        <span>E ainda, no resultado de vocês:</span>
+        <ul>
+          <li>💫 O arquétipo do casal</li>
+          <li>🔒 Ciúme e confiança</li>
+          <li>💰 Dinheiro a dois</li>
+          <li>♡ O que faz cada um se sentir amado</li>
+          <li>🕊️ Como fazer as pazes</li>
+          <li>🌙 O encontro perfeito</li>
+          <li>🤝 Os combinados do casal</li>
+          <li>📲 Stories do casal</li>
+        </ul>
+      </div>
       <small className="cp-sample-note">Exemplo ilustrativo · o resultado de vocês depende dos dois mapas</small>
     </div>
   );
