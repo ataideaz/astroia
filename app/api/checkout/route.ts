@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!paymentsEnabled()) throw new Error("O pagamento está temporariamente desativado para testes.");
     const raw = await request.text();
     if (raw.length > 12000) throw new Error("Solicitação muito grande.");
-    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown; mode?: string};
+    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown; mode?: string; exitOffer?: boolean};
     const email = normalizedEmail(body.customerEmail);
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
@@ -23,6 +23,9 @@ export async function POST(request: Request) {
     if (offerV2() && items.includes("map") && !report.products.name && !report.analysis.person.isMinor) {
       items = cleanItems([...items, "name"]);
     }
+    // Oferta de saída (só uma vez, para quem ia fechar o pagamento): a compatibilidade vem de presente.
+    const exit = offerV2() && body.exitOffer === true && items.includes("map") && !report.products.compat && !report.analysis.person.isMinor;
+    if (exit) items = cleanItems([...items, "compat"]);
     if (!items.length) throw new Error("Isso já está liberado neste mapa. Use o seu link privado.");
     if (items.includes("compat") && !items.includes("map") && !report.products.map) {
       throw new Error("A compatibilidade é liberada junto com o mapa completo.");
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
     const direct = Boolean(mp?.directCheckoutEnabled()) && body.mode !== "redirect";
     const directInfo = (orderId: string) => ({
       orderId, mode: "direct", items, email,
-      amount: orderTotal(items) / 100,
+      amount: orderTotal(items, undefined, exit) / 100,
       publicKey: mp?.mercadoPagoPublicKey() ?? "",
     });
     let open = await findOpenOrder(body.reportToken, items);
@@ -49,7 +52,7 @@ export async function POST(request: Request) {
     if (open) {
       const { env } = await import("cloudflare:workers");
       const row = await env.DB.prepare("SELECT amount_cents FROM payment_orders WHERE id = ?").bind(open.order_id).first<{ amount_cents: number }>();
-      const expected = orderTotal(items);
+      const expected = orderTotal(items, undefined, exit);
       if (row?.amount_cents !== expected) open = null;
     }
     if (open?.checkout_url && (open.checkout_url === "direct") === direct) {
@@ -59,9 +62,10 @@ export async function POST(request: Request) {
     await limitRequest(request, "checkout", 30);
     if (mp) {
       const checkout = direct
-        ? { ...(await mp.createDirectOrder({ items, customerEmail: email, personName: report.analysis.person.fullName })), checkoutUrl: "direct" }
+        ? { ...(await mp.createDirectOrder({ items, customerEmail: email, personName: report.analysis.person.fullName, exit })), checkoutUrl: "direct" }
         : await mp.createPaymentPreference({
             items,
+            exit,
             customerEmail: email,
             personName: report.analysis.person.fullName,
             reportToken: body.reportToken,

@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { PRODUCTS, linePrices, type ProductId } from "./products";
+import { PRODUCTS, linePrices, orderTotal, type ProductId } from "./products";
 import { readEnv } from "./runtime-env";
 
 type PaymentOrder = {
@@ -79,9 +79,10 @@ export async function createPaymentPreference(input: {
   customerEmail?: unknown;
   personName?: unknown;
   reportToken?: string;
+  exit?: boolean;
 }) {
   if (!input.items.length) throw new Error("Escolha o que deseja comprar.");
-  const lines = linePrices(input.items).map(({ id, cents }) => ({ id, ...PRODUCTS[id], amountCents: cents }));
+  const lines = linePrices(input.items, undefined, Boolean(input.exit)).map(({ id, cents }) => ({ id, ...PRODUCTS[id], amountCents: cents }));
   const totalCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
   const orderId = `ast_${crypto.randomUUID()}`;
   const customerEmail = cleanEmail(input.customerEmail);
@@ -289,9 +290,9 @@ export function mercadoPagoPublicKey() {
 }
 
 /** Cria só o pedido no AstroIA (o pagamento é criado depois, pelo formulário no site). */
-export async function createDirectOrder(input: { items: ProductId[]; customerEmail?: unknown; personName?: unknown }) {
+export async function createDirectOrder(input: { items: ProductId[]; customerEmail?: unknown; personName?: unknown; exit?: boolean }) {
   if (!input.items.length) throw new Error("Escolha o que deseja comprar.");
-  const lines = linePrices(input.items).map(({ id, cents }) => ({ id, ...PRODUCTS[id], amountCents: cents }));
+  const lines = linePrices(input.items, undefined, Boolean(input.exit)).map(({ id, cents }) => ({ id, ...PRODUCTS[id], amountCents: cents }));
   const totalCents = lines.reduce((sum, line) => sum + line.amountCents, 0);
   const orderId = `ast_${crypto.randomUUID()}`;
   const now = Date.now();
@@ -381,7 +382,7 @@ export async function payDirectOrder(orderIdInput: unknown, formData: BrickFormD
     statement_descriptor: "ASTROIA",
     metadata: { astroia_order_id: orderId, items: order.offer_mode },
     additional_info: {
-      items: linePrices(items).filter((line) => line.cents > 0).map(({ id, cents }) => ({
+      items: linePrices(items, undefined, order.amount_cents < orderTotal(items)).filter((line) => line.cents > 0).map(({ id, cents }) => ({
         id, title: PRODUCTS[id]?.title || id, category_id: "services", quantity: 1, unit_price: cents / 100,
       })),
     },

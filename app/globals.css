@@ -7745,3 +7745,6 @@ body.has-buy-bar { padding-bottom: 96px; }
 .fr-hook-element > span { font-size: 26px; line-height: 1; }
 .fr-hook-element p { margin: 0; font-size: 16px; line-height: 1.5; color: #ece6ff; }
 .fr-hook-element b { color: #f0d69d; }
+
+/* Oferta de saída */
+.ck-exit-list li b { color: #ffb3cf; }

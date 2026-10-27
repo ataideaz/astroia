@@ -1189,6 +1189,8 @@ export default function Home({
   const namePrice = formatPrice(nameAmountCents);
   const [nameReading, setNameReading] = useState<NameReading | null>(null);
   const [downsell, setDownsell] = useState(false);
+  // Oferta de saída: quem ia fechar o pagamento do mapa ganha a compatibilidade de presente (uma vez).
+  const [exitOffer, setExitOffer] = useState(false);
   const [products, setProducts] = useState<Products>({ map: false, compat: false });
   const [compat, setCompat] = useState<CompatState>(null);
   const [pendingItems, setPendingItems] = useState<string[]>([]);
@@ -1293,17 +1295,14 @@ export default function Home({
       ? ["compat"]
       : checkoutProduct === "name"
         ? ["name"]
-        : addCompat && compatOffered ? ["map", "compat"] : ["map"];
-  const checkoutTotalCents = checkoutItems.reduce(
-    (sum, item) => sum + (item === "map" ? paymentAmountCents : item === "compat" ? compatAmountCents : nameAmountCents),
-    0,
-  );
-  const checkoutTotal = formatPrice(
-    checkoutItems.reduce(
+        : exitOffer || (addCompat && compatOffered) ? ["map", "compat"] : ["map"];
+  const checkoutTotalCents = exitOffer && checkoutProduct === "map"
+    ? paymentAmountCents
+    : checkoutItems.reduce(
       (sum, item) => sum + (item === "map" ? paymentAmountCents : item === "compat" ? compatAmountCents : nameAmountCents),
       0,
-    ),
-  );
+    );
+  const checkoutTotal = formatPrice(checkoutTotalCents);
 
   function applyReport(payload: ReportPayload, token: string) {
     setAnalysis(payload.analysis);
@@ -1719,6 +1718,7 @@ export default function Home({
   ) {
     activeCheckoutOrderId.current = null;
     setDirectCheckout(null);
+    setExitOffer(false);
     trackFunnel("offer_view"); // quem abriu a compra viu a oferta (o contador de "viu" não perde ninguém)
     trackFunnel("offer_open");
     // Sinal de intenção de compra para a Meta (abrir a tela de compra), mais forte que o Lead.
@@ -1742,6 +1742,26 @@ export default function Home({
       // Quem já abriu o pagamento (ex.: gerou o Pix) não vê oferta nova ao fechar.
       setDirectCheckout(null);
       setDownsell(false);
+      setExitOffer(false);
+      setCheckoutOpen(false);
+      setCheckoutStatus("idle");
+      setCheckoutError("");
+      return;
+    }
+    // Oferta de saída (oferta v2): quem ia fechar o pagamento do mapa vê, uma única vez,
+    // tudo por R$ 19,90 com a compatibilidade de presente.
+    if (offerV2 && checkoutProduct === "map" && !products.map && !products.compat && compatOffered && !exitOffer) {
+      let exitShown = false;
+      try { exitShown = window.sessionStorage.getItem("astroia-exit-offer") === "1"; } catch { /* sem storage */ }
+      if (!exitShown) {
+        try { window.sessionStorage.setItem("astroia-exit-offer", "1"); } catch { /* sem storage */ }
+        setExitOffer(true);
+        setCheckoutError("");
+        return;
+      }
+    }
+    if (exitOffer) {
+      setExitOffer(false);
       setCheckoutOpen(false);
       setCheckoutStatus("idle");
       setCheckoutError("");
@@ -1800,6 +1820,7 @@ export default function Home({
           attribution: currentAttribution(),
           ad: adSignals(),
           ...(mode ? { mode } : {}),
+          ...(exitOffer && checkoutProduct === "map" ? { exitOffer: true } : {}),
         }),
       });
       const payload = (await response.json()) as {
@@ -3723,6 +3744,22 @@ export default function Home({
                       <li>Imagem para postar nos stories</li>
                     </ul>
                   </>
+                ) : exitOffer ? (
+                  <>
+                    <span className="ck-kicker">Espera! Antes de você ir…</span>
+                    <h2 className="ck-title" id="checkout-title">
+                      Leve tudo por {paymentPrice}, com a compatibilidade de presente
+                    </h2>
+                    <div className="ck-price">
+                      <strong>{paymentPrice}</strong>
+                      <span>Separados, sairiam {formatPrice(paymentAmountCents + nameAmountCents + compatAmountCents)} · só agora</span>
+                    </div>
+                    <ul className="ck-includes ck-exit-list">
+                      <li>Mapa completo com os seus próximos 12 meses</li>
+                      <li>🎁 Numerologia do Nome ({namePrice})</li>
+                      <li><b>💞 Compatibilidade do casal ({compatPrice}) de presente</b>: você preenche os dados do seu par depois</li>
+                    </ul>
+                  </>
                 ) : (
                   <>
                     <span className="ck-kicker">
@@ -3830,7 +3867,7 @@ export default function Home({
                     : checkoutError
                       ? "Tentar de novo"
                       : paymentsEnabled
-                        ? `Pagar ${checkoutTotal} com Pix`
+                        ? exitOffer ? `Quero tudo por ${checkoutTotal} com Pix` : `Pagar ${checkoutTotal} com Pix`
                         : "Abrir mapa completo (teste)"}
                   <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
                 </button>
@@ -3867,7 +3904,9 @@ export default function Home({
                   onClick={checkoutIntent === "generate" && checkoutProduct === "map" ? continueWithFreeMap : closeCheckout}
                   type="button"
                 >
-                  {checkoutProduct === "name"
+                  {exitOffer
+                    ? "Não, obrigado"
+                    : checkoutProduct === "name"
                     ? downsell
                       ? "Não, obrigado"
                       : "Agora não, voltar ao meu mapa"

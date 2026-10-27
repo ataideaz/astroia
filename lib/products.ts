@@ -39,13 +39,20 @@ export function offerV2() {
   return process.env.OFFER_V2 === "1";
 }
 
-/** Preço de cada item do pedido (o bônus sai a zero quando vem junto com o mapa). */
-export function linePrices(items: ProductId[], bonus = offerV2()) {
-  return items.map((id) => ({ id, cents: bonus && id === "name" && items.includes("map") ? 0 : productPrice(id) }));
+/**
+ * Preço de cada item do pedido. Com o mapa: a Numerologia do Nome sai a zero (bônus da
+ * oferta v2) e, na oferta de saída (quem ia fechar o pagamento), a Compatibilidade também.
+ */
+export function linePrices(items: ProductId[], bonus = offerV2(), exit = false) {
+  const withMap = items.includes("map");
+  return items.map((id) => ({
+    id,
+    cents: withMap && ((bonus && id === "name") || (exit && id === "compat")) ? 0 : productPrice(id),
+  }));
 }
 
-export function orderTotal(items: ProductId[], bonus = offerV2()) {
-  return linePrices(items, bonus).reduce((sum, line) => sum + line.cents, 0);
+export function orderTotal(items: ProductId[], bonus = offerV2(), exit = false) {
+  return linePrices(items, bonus, exit).reduce((sum, line) => sum + line.cents, 0);
 }
 
 /** Lista limpa, sem repetição e sempre na mesma ordem. */
