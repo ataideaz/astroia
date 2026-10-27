@@ -6,7 +6,7 @@ import type {
   Placement,
   RecipientType,
 } from "../lib/astro-analysis";
-import { CompatSection, PremiumReport, type CompatState } from "./premium-report";
+import { CompatSample, CompatSection, PremiumReport, type CompatState } from "./premium-report";
 import { StoryShare, nameCards, personalCards } from "./story-cards";
 import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
@@ -3776,6 +3776,10 @@ export default function Home({
                       <li><span aria-hidden="true">🔢</span><b>Numerologia do Nome</b><em><s>{namePrice}</s> <strong>GRÁTIS</strong></em></li>
                       <li><span aria-hidden="true">💞</span><b>Compatibilidade do casal<small>você preenche os dados do seu par depois</small></b><em><s>{compatPrice}</s> <strong>GRÁTIS</strong></em></li>
                     </ul>
+                    <div className="ck-exit-sample">
+                      <span>💞 Assim fica a compatibilidade de vocês:</span>
+                      <CompatSample compact />
+                    </div>
                     <div className="ck-exit-total">
                       <span>Total: <s>{formatPrice(paymentAmountCents + nameAmountCents + compatAmountCents)}</s></span>
                       <strong>{paymentPrice}</strong>

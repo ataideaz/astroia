@@ -193,6 +193,10 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
           <li>Abra o app do seu banco → Pix → <strong>Pix Copia e Cola</strong>.</li>
           <li>Cole e confirme. Pronto: aqui libera sozinho em segundos.</li>
         </ol>
+        <p className="dp-receiver">
+          <span aria-hidden="true">🔒</span>
+          <span>No app do banco, o recebedor aparece como <b>ATAIDE DE AZEVEDO NETTO</b>, o responsável pelo AstroIA, com pagamento processado pelo Mercado Pago. Pode pagar tranquilo: o seu conteúdo libera aqui na hora.</span>
+        </p>
         <button className="checkout-primary dp-copy" onClick={copyPix} type="button">
           {copied ? "✓ Código copiado!" : "Copiar código Pix"}
         </button>

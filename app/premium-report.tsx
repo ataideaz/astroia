@@ -365,6 +365,34 @@ export type CompatSectionProps = Pick<
   "compatOwned" | "compatOffered" | "compatPrice" | "compat" | "compatPending" | "onBuyCompat" | "reportToken" | "onCompatSaved"
 >;
 
+/** Exemplo do gráfico de compatibilidade (o mesmo visual que o cliente recebe, com números de exemplo). */
+export function CompatSample({ compact = false }: { compact?: boolean }) {
+  const areas = [
+    { label: "Coração", symbol: "♡", score: 90 },
+    { label: "Atração", symbol: "🔥", score: 84 },
+    { label: "Conversa", symbol: "💬", score: 72 },
+    { label: "Dia a dia", symbol: "🏡", score: 78 },
+  ];
+  return (
+    <div className={`cp-sample${compact ? " cp-sample-compact" : ""}`} role="img" aria-label="Exemplo ilustrativo: 87% de sintonia, com coração, atração, conversa e dia a dia">
+      <div className="cp-ring" style={{ ["--cp-score" as string]: "87" }} aria-hidden="true">
+        <strong>87%</strong>
+        <span>de sintonia</span>
+      </div>
+      <div className="cp-sample-bars" aria-hidden="true">
+        {areas.map((area) => (
+          <div className="cp-sample-row" key={area.label}>
+            <span>{area.symbol} {area.label}</span>
+            <b>{area.score}%</b>
+            <div className="cp-bar"><span style={{ width: `${area.score}%` }} /></div>
+          </div>
+        ))}
+      </div>
+      <small className="cp-sample-note">Exemplo ilustrativo · o resultado de vocês depende dos dois mapas</small>
+    </div>
+  );
+}
+
 export function CompatSection(props: CompatSectionProps) {
   const { compatOwned, compatOffered, compatPrice, compat, compatPending, onBuyCompat, reportToken, onCompatSaved } = props;
   const [editing, setEditing] = useState(false);
@@ -380,6 +408,7 @@ export function CompatSection(props: CompatSectionProps) {
       {!compatOwned && (
         <div className="cp-offer">
           <div>
+            <CompatSample />
             <p>
               Agora que você sabe como ama, descubra como o seu mapa conversa com
               o mapa de quem você ama: no coração, na atração, na conversa e no

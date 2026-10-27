@@ -7778,3 +7778,23 @@ body.has-buy-bar { padding-bottom: 96px; }
 .ck-exit-note { margin: 4px 0 0; text-align: center; font-size: 14px; color: #e9ddff; }
 .ck-dialog-exit .ck-back { opacity: .7; font-size: 14px !important; }
 @media (prefers-reduced-motion: reduce) { .ck-exit-gift, .ck-dialog-exit .ck-pay, .ck-dialog-exit .ck-body { animation: none !important; } }
+.dp-receiver { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 12px; padding: 12px 14px; border-radius: 14px; background: rgba(198, 244, 50, .08); border: 1px solid rgba(198, 244, 50, .35); font-size: 15px; line-height: 1.45; color: #ece6ff; text-align: left; }
+.dp-receiver b { color: #fff; }
+
+/* Exemplo do gráfico de compatibilidade */
+.cp-sample { display: grid; grid-template-columns: auto 1fr; gap: 16px 18px; align-items: center; margin: 4px 0 16px; padding: 16px; border-radius: 18px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12); }
+.cp-sample .cp-ring { width: 120px; height: 120px; }
+.cp-sample .cp-ring strong { font-size: 36px; }
+.cp-sample .cp-ring span { font-size: 10px; }
+.cp-sample-bars { display: grid; gap: 8px; }
+.cp-sample-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; font-size: 14px; color: #ece6ff; text-align: left; }
+.cp-sample-row b { color: #f0d69d; font-size: 14px; }
+.cp-sample-row .cp-bar { grid-column: 1 / -1; margin: 0; }
+.cp-sample-note { grid-column: 1 / -1; font-size: 12.5px; color: #b8a9d6; text-align: center; }
+.cp-sample-compact { margin: 6px 0 0; padding: 12px; gap: 10px 14px; }
+.cp-sample-compact .cp-ring { width: 96px; height: 96px; }
+.cp-sample-compact .cp-ring strong { font-size: 28px; }
+.cp-sample-compact .cp-sample-row { font-size: 13px; }
+.ck-exit-sample { display: grid; gap: 4px; text-align: left; }
+.ck-exit-sample > span { font-size: 14px; font-weight: 700; color: #ffb3cf; }
+@media (max-width: 360px) { .cp-sample { grid-template-columns: 1fr; justify-items: center; } }
