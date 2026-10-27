@@ -7801,3 +7801,8 @@ body.has-buy-bar { padding-bottom: 96px; }
 .dp-pix { scroll-margin-top: 76px; }
 .st-how { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); font-size: 15px; line-height: 1.5; color: #ece6ff; text-align: left; }
 .st-how b { color: #fff; }
+
+/* Oferta do casal (quem veio do anúncio do casal) */
+.fr-couple { margin: 12px 0 6px; padding: 14px; border-radius: 18px; background: linear-gradient(140deg, rgba(255, 61, 139, .16), rgba(143, 108, 247, .14)); border: 1px solid rgba(255, 140, 190, .45); }
+.fr-couple-lead { margin: 0 0 8px; font-size: 16px; line-height: 1.45; color: #fff; }
+.fr-couple-lead b { color: #ffd1e3; }

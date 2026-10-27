@@ -647,6 +647,7 @@ function EarlyOffer({
   preview,
   bonus,
   months,
+  couple,
 }: {
   reading: FreeReadingData;
   firstName: string;
@@ -655,13 +656,20 @@ function EarlyOffer({
   preview?: AnalysisResult["premiumPreview"];
   bonus?: OfferBonus;
   months?: AnalysisResult["monthsPreview"];
+  couple?: { total: string };
 }) {
   const ref = useOfferView();
   const kid = reading.audience === "child";
   return (
     <section className="fr-offer" aria-labelledby="fr-offer-title" ref={ref}>
       <span className="fr-kicker">{kid ? `O mapa completo de ${firstName}` : bonus ? `${firstName}, o seu mapa completo` : "O seu mapa completo"}</span>
-      <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : bonus ? "O que os seus próximos 12 meses guardam, mês a mês" : "Isso é só o começo do seu mapa"}</h2>
+      <h2 id="fr-offer-title">{kid ? `Isso é só o começo do mapa de ${firstName}` : couple ? "Vocês combinam de verdade? O seu mapa completo responde" : bonus ? "O que os seus próximos 12 meses guardam, mês a mês" : "Isso é só o começo do seu mapa"}</h2>
+      {couple && (
+        <div className="fr-couple">
+          <p className="fr-couple-lead">💞 <b>Mapa completo + compatibilidade do casal + Numerologia do Nome</b>: os 3 por {price}.</p>
+          <CompatSample compact />
+        </div>
+      )}
       {bonus && months?.loveMask && (
         <div className="fr-hook-love" role="note">
           <small>Seu mês mais forte para o amor</small>
@@ -728,21 +736,23 @@ function EarlyOffer({
         {bonus && (
           <div className="fr-offer-bonus">
             <span aria-hidden="true">🎁</span>
-            <p><b>Bônus: Numerologia do Nome completa</b> O que o seu nome revela sobre você: alma, talentos, destino e dias de poder. Vendida à parte por {bonus.price}; aqui vem junto.</p>
+            <p><b>{couple ? "Bônus: Compatibilidade do casal + Numerologia do Nome" : "Bônus: Numerologia do Nome completa"}</b> {couple ? "A sintonia de vocês no coração, na atração, na conversa e no dia a dia, e o que o seu nome revela sobre você. Vendidas à parte; aqui vêm junto." : <>O que o seu nome revela sobre você: alma, talentos, destino e dias de poder. Vendida à parte por {bonus.price}; aqui vem junto.</>}</p>
           </div>
         )}
       </div>
 
       <ActivityPill kind="sales" />
       <div className="fr-offer-pricebox">
-        {bonus
+        {couple
+          ? <small>Separados, os 3 custam {couple.total}. Juntos, você leva tudo por</small>
+          : bonus
           ? <small>Separados, os dois custam {bonus.separate}. Juntos, você leva tudo por</small>
           : <small>Uma consulta com astrólogo costuma custar bem mais. Aqui, o mapa completo sai por</small>}
         <strong>{price}</strong>
         <span>pagamento único · sem assinatura</span>
       </div>
       <button className="analysis-button primary-analysis-button fr-offer-button" onClick={onUnlock} type="button">
-        {kid ? `Quero ler o mapa completo de ${firstName}` : bonus ? "Quero ver os meus 12 meses" : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
+        {kid ? `Quero ler o mapa completo de ${firstName}` : couple ? "Quero ver a nossa compatibilidade" : bonus ? "Quero ver os meus 12 meses" : "Quero ler o meu mapa completo"} <span aria-hidden="true">→</span>
       </button>
       <p className="fr-guarantee"><span aria-hidden="true">✓</span> {GUARANTEE_LINE}</p>
       <p className="fr-offer-hint">Ou role para ver o que mais o seu mapa guarda <span aria-hidden="true">↓</span></p>
@@ -848,6 +858,7 @@ function FreeReadingView({
   offerPrice,
   onUnlock,
   bonus,
+  couple,
 }: {
   analysis: AnalysisResult;
   reading: FreeReadingData;
@@ -857,6 +868,7 @@ function FreeReadingView({
   offerPrice?: string;
   onUnlock?: () => void;
   bonus?: OfferBonus;
+  couple?: { total: string };
 }) {
   const kid = reading.audience === "child";
   const kidName = analysis.person.firstName;
@@ -890,7 +902,7 @@ function FreeReadingView({
       </section>
 
       {onUnlock && offerPrice && (
-        <EarlyOffer months={analysis.monthsPreview} bonus={!reading.audience || reading.audience === "adult" ? bonus : undefined} firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
+        <EarlyOffer couple={couple} months={analysis.monthsPreview} bonus={!reading.audience || reading.audience === "adult" ? bonus : undefined} firstName={kidName} onUnlock={onUnlock} preview={analysis.premiumPreview} price={offerPrice} reading={reading} />
       )}
 
       <div className="fr-stories">
@@ -1297,6 +1309,13 @@ export default function Home({
     compatEnabled && paymentsEnabled && Boolean(analysis) && !analysis?.person.isMinor;
   // A numerologia do nome usa o mesmo meio de pagamento da compatibilidade.
   const nameOffered = compatOffered && !products.name;
+  // Quem veio do anúncio do casal (utm_content com "casal") quer a compatibilidade:
+  // a oferta principal já leva mapa + compatibilidade + numerologia por um preço só.
+  const [coupleAd, setCoupleAd] = useState(false);
+  useEffect(() => {
+    try { setCoupleAd(/casal/i.test(currentAttribution()?.content ?? "")); } catch { /* sem storage */ }
+  }, []);
+  const coupleOffer = offerV2 && coupleAd && compatOffered && !products.compat && !products.map;
   // Bônus real: a Numerologia do Nome é vendida à parte; aqui vem junto com o mapa.
   const bonus = (offerV2 || previewV2) && nameOffered && !products.map
     ? { price: namePrice, separate: formatPrice(paymentAmountCents + nameAmountCents) }
@@ -1338,6 +1357,11 @@ export default function Home({
     setCheckoutProduct("map");
     setCheckoutEmail((current) => current || form.email);
     openCheckout(null, "upgrade");
+    if (coupleOffer) {
+      // Oferta do casal: já abre com os 3 produtos pelo preço do mapa (e fechar fecha de vez).
+      try { window.sessionStorage.setItem("astroia-exit-offer", "1"); } catch { /* sem storage */ }
+      setExitOffer(true);
+    }
   }
 
   function openCompatCheckout() {
@@ -2882,6 +2906,7 @@ export default function Home({
               analysis={analysis}
               nameReading={nameReading}
               bonus={bonus}
+              couple={coupleOffer && bonus ? { total: formatPrice(paymentAmountCents + nameAmountCents + compatAmountCents) } : undefined}
               offerPrice={paymentsEnabled ? paymentPrice : undefined}
               onUnlock={paymentsEnabled ? openMapOffer : undefined}
               reading={newFreeReading}
@@ -3784,9 +3809,9 @@ export default function Home({
                   </>
                 ) : exitOffer ? (
                   <div className="ck-exit">
-                    <span className="ck-exit-gift" aria-hidden="true">🎁</span>
-                    <span className="ck-exit-kicker">Espera! Separamos um presente para você</span>
-                    <h2 className="ck-exit-title" id="checkout-title">Só nesta tela: leve os 3 pelo preço de 1</h2>
+                    <span className="ck-exit-gift" aria-hidden="true">{coupleOffer ? "💞" : "🎁"}</span>
+                    <span className="ck-exit-kicker">{coupleOffer ? "Para você e o seu par" : "Espera! Separamos um presente para você"}</span>
+                    <h2 className="ck-exit-title" id="checkout-title">{coupleOffer ? "Mapa completo + compatibilidade do casal: os 3 pelo preço de 1" : "Só nesta tela: leve os 3 pelo preço de 1"}</h2>
                     <ul className="ck-exit-items">
                       <li><span aria-hidden="true">🌙</span><b>Mapa completo + seus 12 meses</b><em>{paymentPrice}</em></li>
                       <li><span aria-hidden="true">🔢</span><b>Numerologia do Nome</b><em><s>{namePrice}</s> <strong>GRÁTIS</strong></em></li>
@@ -3910,7 +3935,7 @@ export default function Home({
                     : checkoutError
                       ? "Tentar de novo"
                       : paymentsEnabled
-                        ? exitOffer ? `🎁 Quero meu presente: tudo por ${checkoutTotal}` : `Pagar ${checkoutTotal} com Pix`
+                        ? exitOffer ? (coupleOffer ? `💞 Quero tudo por ${checkoutTotal} com Pix` : `🎁 Quero meu presente: tudo por ${checkoutTotal}`) : `Pagar ${checkoutTotal} com Pix`
                         : "Abrir mapa completo (teste)"}
                   <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
                 </button>
@@ -3936,7 +3961,7 @@ export default function Home({
                   <li>Liberado na hora</li>
                   <li>Garantia de 7 dias</li>
                 </ul>
-                {exitOffer && !directCheckout ? <p className="ck-exit-note">✓ Pix na hora · ✓ Garantia de 7 dias · Esta oferta aparece só agora</p> : null}
+                {exitOffer && !directCheckout ? <p className="ck-exit-note">✓ Pix na hora · ✓ Garantia de 7 dias{coupleOffer ? "" : " · Esta oferta aparece só agora"}</p> : null}
                 <p className="ck-terms">
                   Não gostou? Devolvemos o seu dinheiro em até 7 dias. Ao pagar, você concorda com os{" "}
                   <a href="/termos" rel="noreferrer" target="_blank">Termos de Uso</a>.
@@ -3969,7 +3994,7 @@ export default function Home({
       {paymentsEnabled && !products.map && (newFreeReading ? (
         <StickyBuyBar
           hidden={checkoutOpen}
-          label={newFreeReading.audience === "child" ? `Mapa completo de ${analysis?.person.firstName ?? ""}` : "Seu mapa completo"}
+          label={newFreeReading.audience === "child" ? `Mapa completo de ${analysis?.person.firstName ?? ""}` : coupleOffer ? "Mapa + compatibilidade do casal" : "Seu mapa completo"}
           onUnlock={openMapOffer}
           price={paymentPrice}
         />
