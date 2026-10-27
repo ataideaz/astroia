@@ -38,8 +38,8 @@ export async function GET(request: Request) {
      WHERE status IN ('refunded', 'charged_back') AND updated_at >= ? AND excluded_at IS NULL`,
   ).bind(fromTime).first<{ total: number; cents: number }>();
 
-  type Bucket = { visits: number; offerViews: number; offerOpens: number; maps: number; checkouts: number; pix: number; sales: number; revenue: number };
-  const empty = (): Bucket => ({ visits: 0, offerViews: 0, offerOpens: 0, maps: 0, checkouts: 0, pix: 0, sales: 0, revenue: 0 });
+  type Bucket = { visits: number; offerViews: number; offerOpens: number; exitViews: number; maps: number; checkouts: number; pix: number; sales: number; revenue: number };
+  const empty = (): Bucket => ({ visits: 0, offerViews: 0, offerOpens: 0, exitViews: 0, maps: 0, checkouts: 0, pix: 0, sales: 0, revenue: 0 });
   const byDay = new Map<string, Bucket>();
   const bySource = new Map<string, Bucket>();
   const byCampaign = new Map<string, Bucket & { source: string }>();
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
     return byAd.get(id) ?? byAd.set(id, { ...empty(), campaign: camp }).get(id)!;
   };
   const totals = empty();
-  const field = { visit: "visits", offer_view: "offerViews", offer_open: "offerOpens", map: "maps", checkout: "checkouts", pix: "pix" } as const;
+  const field = { visit: "visits", offer_view: "offerViews", offer_open: "offerOpens", exit_view: "exitViews", map: "maps", checkout: "checkouts", pix: "pix" } as const;
 
   for (const row of events.results) {
     const name = field[row.type as keyof typeof field];

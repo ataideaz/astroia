@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 // Zera as contagens anônimas do funil (viu a oferta, abriu a compra, clicou em
 // pagar, Pix gerado) registradas até agora. Usado depois de testes. Visitas,
 // mapas e vendas não são tocados.
-const TYPES = ["offer_view", "offer_open", "checkout", "pix"];
+const TYPES = ["offer_view", "offer_open", "exit_view", "checkout", "pix"];
 
 export async function POST(request: Request) {
   const denied = await checkAdmin(request);

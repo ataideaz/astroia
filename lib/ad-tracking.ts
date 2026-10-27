@@ -65,7 +65,7 @@ let currentReport = "";
 export function setTrackingReport(token: string) { currentReport = token; }
 
 /** Conta um passo do funil uma única vez por sessão do navegador (anônimo). */
-export function trackFunnel(type: "visit" | "offer_view" | "offer_open") {
+export function trackFunnel(type: "visit" | "offer_view" | "offer_open" | "exit_view") {
   // Prévia privada da oferta nova (?oferta=v2): não entra nas contagens do painel.
   if (read("session", "astroia-preview-v2") === "1" || window.location.search.includes("oferta=v2")) return;
   const key = type === "visit" ? VISIT_KEY : `astroia-ev-${type}`;

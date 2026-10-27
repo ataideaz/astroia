@@ -1767,6 +1767,7 @@ export default function Home({
       if (!exitShown) {
         try { window.sessionStorage.setItem("astroia-exit-offer", "1"); } catch { /* sem storage */ }
         setExitOffer(true);
+        trackFunnel("exit_view");
         setCheckoutError("");
         return;
       }

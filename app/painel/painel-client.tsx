@@ -2,7 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-type Bucket = { visits: number; offerViews?: number; offerOpens?: number; maps: number; checkouts: number; pix?: number; sales: number; revenue: number };
+type Bucket = { visits: number; offerViews?: number; offerOpens?: number; exitViews?: number; maps: number; checkouts: number; pix?: number; sales: number; revenue: number };
 type Data = {
   days: number;
   totals: Bucket;
@@ -24,7 +24,7 @@ type Data = {
 const KEY = "astroia-painel-key";
 type People = {
   sales: Array<{ at: number; email: string | null; name: string | null; items: string; value: number; status: string; order: string; source: string; campaign?: string | null; ad?: string | null }>;
-  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; campaign?: string | null; ad?: string | null; bought: string; checkout: boolean; viewed?: boolean; opened?: boolean }>;
+  maps: Array<{ id: string; at: number; name: string | null; email: string | null; consent: boolean; recipient: string; source: string; campaign?: string | null; ad?: string | null; bought: string; checkout: boolean; viewed?: boolean; opened?: boolean; exited?: boolean }>;
   leads: Array<{ email: string; at: number }>;
   leadsTotal?: number;
 };
@@ -46,9 +46,10 @@ const pct = (a: number, b: number) => (b ? `${((a / b) * 100).toLocaleString("pt
 const items = (mode: string) => mode.split("+").map((i) => LABEL[i] || i).join(" + ");
 
 /** Até onde a pessoa foi no funil (aba Mapas grátis e planilha). */
-function stepLabel(m: { bought: string; checkout: boolean; opened?: boolean; viewed?: boolean }) {
+function stepLabel(m: { bought: string; checkout: boolean; opened?: boolean; viewed?: boolean; exited?: boolean }) {
   if (m.bought) return `comprou: ${items(m.bought)}`;
   if (m.checkout) return "clicou em pagar";
+  if (m.exited) return "viu a oferta de saída";
   if (m.opened) return "abriu a compra";
   if (m.viewed) return "viu a oferta";
   return "só o mapa";
@@ -169,7 +170,7 @@ function PeopleView({ people, tab, search, setSearch, onMarkTest, onDownloadAllE
               <tr key={m.id || i}>
                 <td>{when(m.at)}</td><td>{m.name || "—"}</td><td>{RECIPIENT[m.recipient] || m.recipient}</td><td>{m.email || "—"}</td>
                 <td>{m.consent ? "✓" : "—"}</td><td>{m.source}</td><td>{m.campaign || "—"}</td><td>{m.ad || "—"}</td>
-                <td>{m.bought ? <span className="pn-badge ok">Comprou: {items(m.bought)}</span> : m.checkout ? <span className="pn-badge warn">Clicou em pagar</span> : m.opened ? <span className="pn-badge warn">Abriu a compra</span> : m.viewed ? <span className="pn-badge">Viu a oferta</span> : "Só o mapa"}</td>
+                <td>{m.bought ? <span className="pn-badge ok">Comprou: {items(m.bought)}</span> : m.checkout ? <span className="pn-badge warn">Clicou em pagar</span> : m.exited ? <span className="pn-badge warn">Viu a oferta de saída</span> : m.opened ? <span className="pn-badge warn">Abriu a compra</span> : m.viewed ? <span className="pn-badge">Viu a oferta</span> : "Só o mapa"}</td>
                 <td><TestButton onConfirm={() => onMarkTest("map", m.id)} /></td>
               </tr>
             ))}</tbody>
@@ -301,6 +302,7 @@ export default function PainelClient() {
               <div><span>Mapas grátis</span><strong>{t.maps}</strong><small>{pct(t.maps, t.visits)} das visitas</small></div>
               <div><span>Viram a oferta</span><strong>{t.offerViews ?? 0}</strong><small>{pct(t.offerViews ?? 0, t.maps)} dos mapas</small></div>
               <div><span>Abriram a compra</span><strong>{t.offerOpens ?? 0}</strong><small>{pct(t.offerOpens ?? 0, t.offerViews ?? 0)} de quem viu</small></div>
+              <div><span>Viram a 2ª oferta</span><strong>{t.exitViews ?? 0}</strong><small>{pct(t.exitViews ?? 0, t.offerOpens ?? 0)} de quem abriu · ao tentar fechar o pagamento</small></div>
               <div><span>Clicaram em pagar</span><strong>{t.checkouts}</strong><small>{pct(t.checkouts, t.offerOpens ?? 0)} de quem abriu{t.pix ? ` · ${t.pix} Pix gerados` : ""}</small></div>
               <div><span>Vendas</span><strong>{t.sales}</strong><small>{pct(t.sales, t.maps)} dos mapas</small></div>
               <div><span>Faturamento</span><strong>{money(t.revenue)}</strong><small>ticket médio {t.sales ? money(t.revenue / t.sales) : "—"}</small></div>
