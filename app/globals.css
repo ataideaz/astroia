@@ -7799,3 +7799,5 @@ body.has-buy-bar { padding-bottom: 96px; }
 .ck-exit-sample > span { font-size: 14px; font-weight: 700; color: #ffb3cf; }
 @media (max-width: 360px) { .cp-sample { grid-template-columns: 1fr; justify-items: center; } }
 .dp-pix { scroll-margin-top: 76px; }
+.st-how { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); font-size: 15px; line-height: 1.5; color: #ece6ff; text-align: left; }
+.st-how b { color: #fff; }

@@ -780,9 +780,14 @@ export function StoryShare({
   return (
     <section className="st-share" aria-label={title}>
       <div className="st-share-head">
-        <span className="st-badge">Novo · stories prontos</span>
+        <span className="st-badge">Stories prontos para as suas redes</span>
         <h3>{title}</h3>
         <p>{subtitle}</p>
+        <p className="st-how">
+          📲 São imagens no formato de story (em pé), prontas para postar no <b>Instagram</b>, no <b>TikTok</b>, no
+          <b> status do WhatsApp</b> e nos stories do <b>Facebook</b>. Toque em “Postar meus stories” e escolha o app,
+          ou toque numa imagem para baixar e postar depois.
+        </p>
       </div>
       <div className="st-strip" role="list">
         {(images.length ? images : cards.map((card) => ({ card, blob: null, url: "" }))).map((image, index) => (

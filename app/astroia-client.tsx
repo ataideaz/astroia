@@ -635,7 +635,7 @@ const OFFER_V2_VALUE = [
   "Amor: como você ama, o que te atrai e o que te afasta",
   "Trabalho e dinheiro: onde você brilha e como o dinheiro chega",
   "A sua missão, o seu dom e o seu número de destino",
-  "PDF completo para guardar e stories para postar",
+  "PDF completo e stories prontos para Instagram, TikTok e WhatsApp",
 ];
 
 /** Oferta logo depois do arquétipo: ganchos do próprio mapa, uma frase real do pago e o que vem junto. */
@@ -1747,6 +1747,20 @@ export default function Home({
     setCheckoutOpen(true);
   }
 
+  // Botão "voltar" do celular com a compra aberta: fecha a compra (e mostra a oferta de
+  // presente, uma vez) em vez de sair da página.
+  const closeCheckoutRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    if (!checkoutOpen) return;
+    window.history.pushState({ ...(window.history.state || {}), astroiaCheckout: true }, "");
+    const onPop = () => closeCheckoutRef.current();
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (window.history.state?.astroiaCheckout) window.history.back();
+    };
+  }, [checkoutOpen, exitOffer]);
+
   function closeCheckout() {
     if (checkoutStatus === "processing") return;
     if (directCheckout) {
@@ -1795,6 +1809,8 @@ export default function Home({
     setCheckoutStatus("idle");
     setCheckoutError("");
   }
+
+  closeCheckoutRef.current = closeCheckout;
 
   async function startAsaasCheckout(mode?: "redirect", method: "pix" | "card" = "pix") {
     if (checkoutStatus !== "idle") return;
@@ -2519,14 +2535,14 @@ export default function Home({
                         <li>Amor: como você ama e o que te atrai</li>
                         <li>Trabalho e dinheiro: onde você brilha</li>
                         <li>Missão, dom e número de destino</li>
-                        <li>PDF completo e stories para postar</li>
+                        <li>PDF completo e stories para Instagram, TikTok e WhatsApp</li>
                         <li className="plan-bonus">🎁 Bônus: Numerologia do Nome (vendida à parte por {namePrice})</li>
                       </>
                     ) : (
                       <>
                         <li>As cinco áreas: personalidade, amor, carreira, dinheiro e momento atual</li>
                         <li>Os seus próximos 12 meses</li>
-                        <li>PDF completo e stories para postar</li>
+                        <li>PDF completo e stories para Instagram, TikTok e WhatsApp</li>
                       </>
                     )}
                   </ul>
