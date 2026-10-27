@@ -7812,3 +7812,4 @@ body.has-buy-bar { padding-bottom: 96px; }
 .cp-sample-more li { font-size: 13.5px; line-height: 1.35; color: #ece6ff; }
 .hero-couple { max-width: 520px; margin: 0 auto 18px; }
 .hero-couple .cp-sample { margin: 0; text-align: left; }
+.hero-couple .cp-sample-more { display: none; }
