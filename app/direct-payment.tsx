@@ -174,8 +174,24 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
 
   useEffect(() => {
     if (view !== "pix" && !pix?.code) return;
-    const timer = window.setTimeout(() => pixBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
-    return () => window.clearTimeout(timer);
+    const timers: number[] = [];
+    const go = (smooth: boolean) => {
+      const box = pixBox.current;
+      if (!box) return;
+      // Rola a janela de pagamento (ou a página) até o topo do bloco do Pix.
+      let parent: HTMLElement | null = box.parentElement;
+      while (parent && !/(auto|scroll)/.test(getComputedStyle(parent).overflowY)) parent = parent.parentElement;
+      const scroller: HTMLElement = parent ?? (document.scrollingElement as HTMLElement);
+      const top = box.getBoundingClientRect().top - (parent ? parent.getBoundingClientRect().top : 0) + scroller.scrollTop - 70;
+      scroller.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "auto" });
+    };
+    timers.push(window.setTimeout(() => go(true), 60));
+    // Garantia: se a rolagem suave não andou (alguns celulares), vai direto.
+    timers.push(window.setTimeout(() => {
+      const box = pixBox.current;
+      if (box && box.getBoundingClientRect().top > window.innerHeight * 0.4) go(false);
+    }, 700));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [view, pix?.code]);
 
   async function copyPix() {
