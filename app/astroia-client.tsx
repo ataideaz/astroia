@@ -3668,7 +3668,7 @@ export default function Home({
           <section
             aria-labelledby="checkout-title"
             aria-modal="true"
-            className="checkout-dialog ck-dialog"
+            className={`checkout-dialog ck-dialog${exitOffer && checkoutStatus !== "approved" && !directCheckout ? " ck-dialog-exit" : ""}`}
             role="dialog"
           >
             <header className="checkout-header ck-header">
@@ -3762,21 +3762,21 @@ export default function Home({
                     </ul>
                   </>
                 ) : exitOffer ? (
-                  <>
-                    <span className="ck-kicker">Espera! Antes de você ir…</span>
-                    <h2 className="ck-title" id="checkout-title">
-                      Leve tudo por {paymentPrice}, com a compatibilidade de presente
-                    </h2>
-                    <div className="ck-price">
-                      <strong>{paymentPrice}</strong>
-                      <span>Separados, sairiam {formatPrice(paymentAmountCents + nameAmountCents + compatAmountCents)} · só agora</span>
-                    </div>
-                    <ul className="ck-includes ck-exit-list">
-                      <li>Mapa completo com os seus próximos 12 meses</li>
-                      <li>🎁 Numerologia do Nome ({namePrice})</li>
-                      <li><b>💞 Compatibilidade do casal ({compatPrice}) de presente</b>: você preenche os dados do seu par depois</li>
+                  <div className="ck-exit">
+                    <span className="ck-exit-gift" aria-hidden="true">🎁</span>
+                    <span className="ck-exit-kicker">Espera! Separamos um presente para você</span>
+                    <h2 className="ck-exit-title" id="checkout-title">Só nesta tela: leve os 3 pelo preço de 1</h2>
+                    <ul className="ck-exit-items">
+                      <li><span aria-hidden="true">🌙</span><b>Mapa completo + seus 12 meses</b><em>{paymentPrice}</em></li>
+                      <li><span aria-hidden="true">🔢</span><b>Numerologia do Nome</b><em><s>{namePrice}</s> <strong>GRÁTIS</strong></em></li>
+                      <li><span aria-hidden="true">💞</span><b>Compatibilidade do casal<small>você preenche os dados do seu par depois</small></b><em><s>{compatPrice}</s> <strong>GRÁTIS</strong></em></li>
                     </ul>
-                  </>
+                    <div className="ck-exit-total">
+                      <span>Total: <s>{formatPrice(paymentAmountCents + nameAmountCents + compatAmountCents)}</s></span>
+                      <strong>{paymentPrice}</strong>
+                      <em>Você economiza {formatPrice(nameAmountCents + compatAmountCents)}</em>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <span className="ck-kicker">
@@ -3884,7 +3884,7 @@ export default function Home({
                     : checkoutError
                       ? "Tentar de novo"
                       : paymentsEnabled
-                        ? exitOffer ? `Quero tudo por ${checkoutTotal} com Pix` : `Pagar ${checkoutTotal} com Pix`
+                        ? exitOffer ? `🎁 Quero meu presente: tudo por ${checkoutTotal}` : `Pagar ${checkoutTotal} com Pix`
                         : "Abrir mapa completo (teste)"}
                   <span aria-hidden="true">{checkoutStatus === "processing" ? "◌" : "→"}</span>
                 </button>
@@ -3910,6 +3910,7 @@ export default function Home({
                   <li>Liberado na hora</li>
                   <li>Garantia de 7 dias</li>
                 </ul>
+                {exitOffer && !directCheckout ? <p className="ck-exit-note">✓ Pix na hora · ✓ Garantia de 7 dias · Esta oferta aparece só agora</p> : null}
                 <p className="ck-terms">
                   Não gostou? Devolvemos o seu dinheiro em até 7 dias. Ao pagar, você concorda com os{" "}
                   <a href="/termos" rel="noreferrer" target="_blank">Termos de Uso</a>.
