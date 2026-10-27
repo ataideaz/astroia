@@ -93,7 +93,7 @@ export default function PrivacyPage() {
                 filho, familiar ou outra pessoa.
               </li>
               <li>Tema escolhido e informações necessárias para gerar a leitura.</li>
-              <li>E-mail, somente quando você decidir informá-lo.</li>
+              <li>E-mail, informado ao gerar o mapa, para identificar o seu mapa e uma eventual compra.</li>
               <li>Registro do consentimento, revogação e pedidos de privacidade.</li>
               <li>Dados técnicos mínimos de segurança e funcionamento.</li>
             </ul>
@@ -105,7 +105,10 @@ export default function PrivacyPage() {
               Os dados de nascimento são processados para gerar a análise
               solicitada. Se o mapa for de outra pessoa, quem solicita deverá
               confirmar que pode utilizar esses dados. Nesta versão, os dados
-              do mapa não são adicionados à lista de marketing. Quando você
+              do mapa não são adicionados à lista de marketing. O e-mail
+              informado no formulário identifica o seu mapa e uma eventual
+              compra, e pode ficar guardado no seu próprio navegador para
+              vir preenchido da próxima vez. Quando você
               pedir o envio do mapa, o e-mail será usado para realizar essa
               entrega e anexar o PDF. Esse uso não ativa comunicações
               promocionais. Novidades, conteúdos, lançamentos e ofertas só

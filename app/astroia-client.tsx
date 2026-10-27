@@ -1251,6 +1251,17 @@ export default function Home({
     email: "",
   });
 
+  // E-mail lembrado neste aparelho: volta preenchido no formulário e no pagamento.
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("astroia-email") || "";
+      if (saved) {
+        setForm((current) => (current.email ? current : { ...current, email: saved }));
+        setCheckoutEmail((current) => current || saved);
+      }
+    } catch { /* sem storage */ }
+  }, []);
+
   const childAudience =
     (recipientType === "child" && !form.birthDate) ||
     Boolean(form.birthDate && isMinorBirthDate(form.birthDate));
@@ -1805,6 +1816,7 @@ export default function Home({
     window.sessionStorage.removeItem(PAYMENT_CHECKOUT_STORAGE_KEY);
     setCheckoutStatus("processing");
     setCheckoutError("");
+    try { const typed = (checkoutEmail || pendingAnalysis?.email || form.email || "").trim(); if (typed) window.localStorage.setItem("astroia-email", typed); } catch { /* sem storage */ }
 
     try {
       const response = await fetchWithRetry("/api/checkout", {
@@ -1973,6 +1985,7 @@ export default function Home({
     };
 
     setForm(nextForm);
+    try { if (nextForm.email) window.localStorage.setItem("astroia-email", nextForm.email.trim()); } catch { /* sem storage */ }
     setSelectedTheme(nextTheme);
     setRecipientType(nextRecipientType);
     setAnalysis(null);
@@ -2417,9 +2430,12 @@ export default function Home({
             </div>
 
             <label className="field">
-              <span>Seu e-mail (opcional)</span>
+              <span>Seu e-mail</span>
               <input
+                autoComplete="email"
+                inputMode="email"
                 name="email"
+                required
                 type="email"
                 placeholder="voce@exemplo.com"
                 value={form.email}
@@ -2430,7 +2446,7 @@ export default function Home({
                 }}
               />
               <small>
-                Opcional na prévia e solicitado na compra. O acesso ao mapa é pelo link privado. Ofertas só serão enviadas com sua autorização.
+                Para identificar o seu mapa e uma futura compra. Sem senha e sem cadastro. Ofertas só serão enviadas se você marcar a opção abaixo.
               </small>
             </label>
 
@@ -2459,7 +2475,7 @@ export default function Home({
             <details className="data-use-note">
               <summary>Como o e-mail poderá ser utilizado?</summary>
               <p>
-                O e-mail identifica sua compra. Nesta versão, o acesso é pelo link privado e não depende de envio de mensagem. Se você marcar a opção acima, o AstroIA também
+                O e-mail é pedido para identificar o seu mapa e uma eventual compra. O acesso continua pelo link privado. Se você marcar a opção acima, o AstroIA também
                 poderá guardar o e-mail para enviar comunicações, novidades e
                 ofertas. Essa autorização é opcional e pode ser cancelada a
                 qualquer momento.

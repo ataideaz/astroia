@@ -12,6 +12,9 @@ export async function POST(request: Request) {
     if (raw.length > 12000) return NextResponse.json({error: "Dados muito extensos."}, {status:413});
     const body = JSON.parse(raw);
     if (body.reportTier === "premium" && paymentsEnabled()) return NextResponse.json({error: "Abra seu relatório pelo link privado após confirmar o pagamento."}, {status:403});
+    // O e-mail é obrigatório para gerar o mapa (identifica o mapa e uma futura compra).
+    const { normalizedEmail } = await import("../../../lib/site-auth");
+    if (!normalizedEmail(body.email)) return NextResponse.json({error: "Informe um e-mail válido para receber o seu mapa."}, {status:400});
     const attribution = cleanAttribution(body.attribution);
     delete body.attribution;
     // Estado de onde a pessoa acessa (pela conexão, via Cloudflare): só a sigla, para o painel.
