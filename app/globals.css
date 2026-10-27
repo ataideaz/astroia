@@ -7798,3 +7798,4 @@ body.has-buy-bar { padding-bottom: 96px; }
 .ck-exit-sample { display: grid; gap: 4px; text-align: left; }
 .ck-exit-sample > span { font-size: 14px; font-weight: 700; color: #ffb3cf; }
 @media (max-width: 360px) { .cp-sample { grid-template-columns: 1fr; justify-items: center; } }
+.dp-pix { scroll-margin-top: 76px; }

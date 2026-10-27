@@ -57,6 +57,8 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
   // "pix": gera o Pix direto (1 toque). "brick": formulário do Mercado Pago (cartão).
   const [view, setView] = useState<"pix" | "brick">(autoPix ? "pix" : "brick");
   const controller = useRef<BrickController | null>(null);
+  // Leva a tela até o Pix assim que ele começa a ser gerado e quando fica pronto.
+  const pixBox = useRef<HTMLDivElement | null>(null);
   // Callbacks em ref: re-renderizar a tela não recria o formulário de pagamento.
   const callbacks = useRef({ onApproved, onPix });
   callbacks.current = { onApproved, onPix };
@@ -170,6 +172,12 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
     };
   }, [publicKey, amount, email, orderId, reportToken, containerId, pix, view]);
 
+  useEffect(() => {
+    if (view !== "pix" && !pix?.code) return;
+    const timer = window.setTimeout(() => pixBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+    return () => window.clearTimeout(timer);
+  }, [view, pix?.code]);
+
   async function copyPix() {
     if (!pix?.code) return;
     try {
@@ -186,7 +194,7 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
 
   if (pix?.code) {
     return (
-      <div className="dp-pix">
+      <div className="dp-pix" ref={pixBox}>
         <h3>Pague com Pix</h3>
         <ol>
           <li>Toque em <strong>Copiar código Pix</strong>.</li>
@@ -210,7 +218,7 @@ export function DirectPayment({ publicKey, amount, email, orderId, reportToken, 
 
   if (view === "pix") {
     return (
-      <div className="dp-pix">
+      <div className="dp-pix" ref={pixBox}>
         <p className="dp-loading">Gerando o seu Pix…</p>
       </div>
     );
