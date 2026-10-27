@@ -1778,16 +1778,24 @@ export default function Home({
   // Botão "voltar" do celular com a compra aberta: fecha a compra (e mostra a oferta de
   // presente, uma vez) em vez de sair da página.
   const closeCheckoutRef = useRef<() => void>(() => {});
+  const checkoutOpenRef = useRef(false);
+  checkoutOpenRef.current = checkoutOpen;
   useEffect(() => {
     if (!checkoutOpen) return;
-    window.history.pushState({ ...(window.history.state || {}), astroiaCheckout: true }, "");
-    const onPop = () => closeCheckoutRef.current();
+    const mark = () => window.history.pushState({ ...(window.history.state || {}), astroiaCheckout: true }, "");
+    mark();
+    const onPop = () => {
+      closeCheckoutRef.current();
+      // Se a compra continuou aberta (apareceu a oferta de presente), o próximo "voltar" fecha.
+      window.setTimeout(() => { if (checkoutOpenRef.current) mark(); }, 0);
+    };
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
+      // Fechou pelo X/botão: tira a marca do histórico (o "voltar" seguinte volta ao normal).
       if (window.history.state?.astroiaCheckout) window.history.back();
     };
-  }, [checkoutOpen, exitOffer]);
+  }, [checkoutOpen]);
 
   function closeCheckout() {
     if (checkoutStatus === "processing") return;
