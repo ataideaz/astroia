@@ -2064,6 +2064,11 @@ export default function Home({
       setCheckoutEmail(request.email);
       setCheckoutProduct("map");
       openCheckout(request, "upgrade");
+      // Quem veio do anúncio do casal e escolheu o completo já vê os 3 por um preço só.
+      if (offerV2 && coupleAd && compatEnabled && !isMinorBirthDate(request.birthDate)) {
+        try { window.sessionStorage.setItem("astroia-exit-offer", "1"); } catch { /* sem storage */ }
+        setExitOffer(true);
+      }
       return;
     }
 
@@ -2579,10 +2584,19 @@ export default function Home({
                     onChange={() => { setAnalysis(null); setReportTier("premium"); }}
                   />
                   <span className="plan-badge">MAIS COMPLETO</span>
-                  <strong>Mapa astral completo</strong>
-                  <b className="plan-price">{paymentPrice}<em>pagamento único · sem assinatura</em></b>
+                  <strong>{offerV2 && coupleAd ? "Mapa completo + compatibilidade do casal" : "Mapa astral completo"}</strong>
+                  <b className="plan-price">{paymentPrice}<em>{offerV2 && coupleAd ? `os 3 juntos · separados sairiam ${formatPrice(paymentAmountCents + nameAmountCents + compatAmountCents)}` : "pagamento único · sem assinatura"}</em></b>
                   <ul className="plan-list">
-                    {offerV2 ? (
+                    {offerV2 && coupleAd ? (
+                      <>
+                        <li><b>💞 Compatibilidade do casal</b>: a % de sintonia no coração, na atração, na conversa e no dia a dia</li>
+                        <li>Ciúme e confiança, dinheiro a dois e como fazer as pazes</li>
+                        <li>O encontro perfeito e os combinados do casal</li>
+                        <li>O seu mapa completo, com os seus próximos 12 meses</li>
+                        <li>PDF completo e stories do casal para Instagram, TikTok e WhatsApp</li>
+                        <li className="plan-bonus">🎁 Bônus: Numerologia do Nome (vendida à parte por {namePrice})</li>
+                      </>
+                    ) : offerV2 ? (
                       <>
                         <li>Os seus próximos 12 meses, mês a mês</li>
                         <li>Amor: como você ama e o que te atrai</li>
