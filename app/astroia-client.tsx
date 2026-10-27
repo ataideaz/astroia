@@ -11,7 +11,7 @@ import { StoryShare, nameCards, personalCards } from "./story-cards";
 import { NameOffer, NameReadingView } from "./name-report";
 import type { NameReading } from "../lib/name-numerology";
 import { formatPersonName } from "../lib/name-format";
-import { DirectPayment } from "./direct-payment";
+import { DirectPayment, type PixInfo } from "./direct-payment";
 import { setTrackingReport, trackFunnel } from "../lib/ad-tracking";
 import { adSignals, confirmPendingPurchase, currentAttribution, metaEvent, openCookiePreferences, rememberPendingPurchase } from "../lib/ad-tracking";
 import type { PremiumReading } from "../lib/premium-reading";
@@ -1240,7 +1240,7 @@ export default function Home({
     useState<AnalysisRequest | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   // Pagamento dentro do site (Pix/cartão sem login no Mercado Pago).
-  const [directCheckout, setDirectCheckout] = useState<{ orderId: string; publicKey: string; amount: number; email: string; pix: boolean } | null>(null);
+  const [directCheckout, setDirectCheckout] = useState<{ orderId: string; publicKey: string; amount: number; email: string; pix: boolean; initialPix?: PixInfo | null } | null>(null);
   const activeCheckoutOrderId = useRef<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -1834,6 +1834,7 @@ export default function Home({
           ad: adSignals(),
           ...(mode ? { mode } : {}),
           ...(exitOffer && checkoutProduct === "map" ? { exitOffer: true } : {}),
+          ...(method === "pix" && mode !== "redirect" ? { pix: true } : {}),
         }),
       });
       const payload = (await response.json()) as {
@@ -1844,13 +1845,17 @@ export default function Home({
         publicKey?: string;
         amount?: number;
         email?: string;
+        pix?: PixInfo;
+        approved?: boolean;
       };
       if (response.ok && payload.orderId && payload.mode === "direct" && payload.publicKey) {
         activeCheckoutOrderId.current = payload.orderId;
         rememberPendingPurchase(payload.orderId, checkoutTotalCents / 100, checkoutItems);
         metaEvent("InitiateCheckout", { currency: "BRL", value: checkoutTotalCents / 100, content_ids: checkoutItems, content_type: "product", num_items: checkoutItems.length }, `ic_${payload.orderId}`);
-        setDirectCheckout({ orderId: payload.orderId, publicKey: payload.publicKey, amount: payload.amount ?? checkoutTotalCents / 100, email: payload.email || checkoutEmail, pix: method === "pix" });
+        if (payload.approved) { setPendingItems(checkoutItems); setCheckoutStatus("idle"); void handleDirectApproved(); return; }
+        setDirectCheckout({ orderId: payload.orderId, publicKey: payload.publicKey, amount: payload.amount ?? checkoutTotalCents / 100, email: payload.email || checkoutEmail, pix: method === "pix", initialPix: payload.pix ?? null });
         setPendingItems(checkoutItems);
+        if (payload.pix?.code) setAwaitingPayment(true);
         setCheckoutStatus("idle");
         return;
       }
@@ -3843,6 +3848,7 @@ export default function Home({
                   <DirectPayment
                     amount={directCheckout.amount}
                     autoPix={directCheckout.pix}
+                    initialPix={directCheckout.initialPix}
                     email={directCheckout.email}
                     key={directCheckout.orderId}
                     onApproved={handleDirectApproved}

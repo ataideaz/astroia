@@ -43,14 +43,16 @@ type Props = {
   onFallback: () => void;
   /** Pix direto: gera o código na hora, sem passar pelo formulário. */
   autoPix?: boolean;
+  /** Pix que já veio pronto junto com o pedido (mostra o QR Code na hora). */
+  initialPix?: PixInfo | null;
 };
 
-export function DirectPayment({ publicKey, amount, email, orderId, reportToken, onApproved, onPix, onFallback, autoPix }: Props) {
+export function DirectPayment({ publicKey, amount, email, orderId, reportToken, onApproved, onPix, onFallback, autoPix, initialPix }: Props) {
   const [message, setMessage] = useState("");
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [pix, setPix] = useState<PixInfo | null>(null);
+  const [pix, setPix] = useState<PixInfo | null>(initialPix?.code ? initialPix : null);
   const [copied, setCopied] = useState(false);
   // "pix": gera o Pix direto (1 toque). "brick": formulário do Mercado Pago (cartão).
   const [view, setView] = useState<"pix" | "brick">(autoPix ? "pix" : "brick");

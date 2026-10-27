@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     if (!paymentsEnabled()) throw new Error("O pagamento está temporariamente desativado para testes.");
     const raw = await request.text();
     if (raw.length > 12000) throw new Error("Solicitação muito grande.");
-    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown; mode?: string; exitOffer?: boolean};
+    const body = JSON.parse(raw) as {reportToken: string; customerEmail: string; items?: unknown; attribution?: unknown; ad?: unknown; mode?: string; exitOffer?: boolean; pix?: boolean};
     const email = normalizedEmail(body.customerEmail);
     if (!email) throw new Error("Informe um e-mail válido para identificar a compra.");
     const report = await getGuestReport(body.reportToken);
@@ -47,6 +47,15 @@ export async function POST(request: Request) {
       amount: orderTotal(items, undefined, exit) / 100,
       publicKey: mp?.mercadoPagoPublicKey() ?? "",
     });
+    // Pix na mesma resposta (um toque = QR Code): gera o Pix logo depois de criar/achar o pedido.
+    const wantsPix = direct && body.pix === true && Boolean(mp);
+    const pixFor = async (orderId: string) => {
+      if (!wantsPix || !mp) return null;
+      try {
+        const paid = await mp.payDirectOrder(orderId, { payment_method_id: "pix", payer: { email } });
+        return paid.approved ? { approved: true as const } : paid.pix ? { pix: paid.pix } : null;
+      } catch { return null; } // o navegador tenta de novo pelo /api/pay
+    };
     let open = await findOpenOrder(body.reportToken, items);
     // Pedido aberto com preço antigo (antes de uma mudança de preço) não é reaproveitado.
     if (open) {
@@ -56,7 +65,11 @@ export async function POST(request: Request) {
       if (row?.amount_cents !== expected) open = null;
     }
     if (open?.checkout_url && (open.checkout_url === "direct") === direct) {
-      if (direct) return Response.json(directInfo(open.order_id), {headers:{"Cache-Control":"no-store"}});
+      if (direct) {
+        const pix = await pixFor(open.order_id);
+        if (pix && "pix" in pix) await recordSiteEvent("pix", cleanAttribution(body.attribution));
+        return Response.json({ ...directInfo(open.order_id), ...(pix ?? {}) }, {headers:{"Cache-Control":"no-store"}});
+      }
       return Response.json({orderId: open.order_id, checkoutUrl: open.checkout_url, items}, {headers:{"Cache-Control":"no-store"}});
     }
     await limitRequest(request, "checkout", 30);
@@ -72,14 +85,19 @@ export async function POST(request: Request) {
           });
       const signals = cleanAdSignals(body.ad);
       const attribution = cleanAttribution(body.attribution);
-      await attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl, items, {
-        attribution: Object.keys(attribution).some((key) => attribution[key as keyof typeof attribution] !== undefined) ? attribution : null,
-        signals,
-        ip: request.headers.get("cf-connecting-ip") || undefined,
-        userAgent: request.headers.get("user-agent")?.slice(0, 400) || undefined,
-      });
-      await recordSiteEvent("checkout", attribution);
-      if (direct) return Response.json(directInfo(checkout.orderId), {headers:{"Cache-Control":"no-store"}});
+      // Em paralelo: liga o pedido ao mapa, conta o "clicou em pagar" e já gera o Pix.
+      const [, , pix] = await Promise.all([
+        attachOrder(body.reportToken, checkout.orderId, checkout.checkoutUrl, items, {
+          attribution: Object.keys(attribution).some((key) => attribution[key as keyof typeof attribution] !== undefined) ? attribution : null,
+          signals,
+          ip: request.headers.get("cf-connecting-ip") || undefined,
+          userAgent: request.headers.get("user-agent")?.slice(0, 400) || undefined,
+        }),
+        recordSiteEvent("checkout", attribution),
+        direct ? pixFor(checkout.orderId) : Promise.resolve(null),
+      ]);
+      if (pix && "pix" in pix) await recordSiteEvent("pix", attribution);
+      if (direct) return Response.json({ ...directInfo(checkout.orderId), ...(pix ?? {}) }, {headers:{"Cache-Control":"no-store"}});
       return Response.json({orderId: checkout.orderId, checkoutUrl: checkout.checkoutUrl, items}, {headers:{"Cache-Control":"no-store"}});
     }
     if (items.some((item) => item !== "map")) throw new Error("Este produto ainda não está disponível neste meio de pagamento.");
